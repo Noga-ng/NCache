@@ -1,0 +1,5 @@
+{
+    "cacheDir":"/cache/",
+    "defaultTtl":3600,
+    "expiredAt":5000
+}

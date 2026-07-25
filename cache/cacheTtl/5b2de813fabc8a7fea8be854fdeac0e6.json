@@ -1,0 +1,15 @@
+{
+    "type": "JSON",
+    "name": "noga",
+    "key": "5b2de813fabc8a7fea8be854fdeac0e6",
+    "signature": "7b45a9a77ef9399214dad3d29c81e607",
+    "ttl": 14400,
+    "expiredAt": 1785026344,
+    "data": {
+        "Cache_noga": {
+            "ttl": 3600,
+            "expiredAt": 1784973600,
+            "file": "I:\\dev\\php\\NCache\\Testscache\/cache.php"
+        }
+    }
+}

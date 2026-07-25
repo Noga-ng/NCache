@@ -1,0 +1,25 @@
+# Normalize text files
+* text=auto
+
+# Development files
+/.github export-ignore
+/.vscode export-ignore
+/.idea export-ignore
+
+# Tests
+/Tests export-ignore
+/phpunit.xml export-ignore
+/.phpunit.cache export-ignore
+
+# Documentation (si tu ne souhaites pas l'inclure)
+#/docs export-ignore
+
+# Examples (si tu ne souhaites pas les distribuer)
+/examples export-ignore
+
+# Git files
+/.gitignore export-ignore
+/.gitattributes export-ignore
+
+# CI / Misc
+/.editorconfig export-ignore

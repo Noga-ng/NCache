@@ -1,0 +1,11 @@
+{
+    "type": "json_cache",
+    "name": "jsonCache",
+    "signature": "JsonSignature",
+    "ttl": 3500,
+    "data": [
+        "noga",
+        "data",
+        "nblal"
+    ]
+}

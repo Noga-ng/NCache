@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="I:\xampp\htdocs\g_app\phpunit.xml" tests="6" assertions="12" errors="0" failures="0" skipped="0" time="0.027209">
+    <testsuite name="Builder SQL Suite" tests="6" assertions="12" errors="0" failures="0" skipped="0" time="0.027209">
+      <testsuite name="NogaTest" file="I:\xampp\htdocs\g_app\App\Models\QueryConstruct\test\NogaTest.php" tests="6" assertions="12" errors="0" failures="0" skipped="0" time="0.027209">
+        <testcase name="testBasicSelect" file="I:\xampp\htdocs\g_app\App\Models\QueryConstruct\test\NogaTest.php" line="14" class="NogaTest" classname="NogaTest" assertions="1" time="0.015424"/>
+        <testcase name="testWhereClause" file="I:\xampp\htdocs\g_app\App\Models\QueryConstruct\test\NogaTest.php" line="21" class="NogaTest" classname="NogaTest" assertions="2" time="0.002041"/>
+        <testcase name="testGroupByAndSum" file="I:\xampp\htdocs\g_app\App\Models\QueryConstruct\test\NogaTest.php" line="31" class="NogaTest" classname="NogaTest" assertions="2" time="0.005310"/>
+        <testcase name="testUnionAndWith" file="I:\xampp\htdocs\g_app\App\Models\QueryConstruct\test\NogaTest.php" line="41" class="NogaTest" classname="NogaTest" assertions="4" time="0.001798"/>
+        <testcase name="testIsNullMethod" file="I:\xampp\htdocs\g_app\App\Models\QueryConstruct\test\NogaTest.php" line="60" class="NogaTest" classname="NogaTest" assertions="2" time="0.001105"/>
+        <testcase name="testInnerJoin" file="I:\xampp\htdocs\g_app\App\Models\QueryConstruct\test\NogaTest.php" line="69" class="NogaTest" classname="NogaTest" assertions="1" time="0.001530"/>
+      </testsuite>
+    </testsuite>
+  </testsuite>
+</testsuites>

@@ -1,0 +1,13 @@
+<?php 
+return array (
+  'name' => 'noga',
+  'signature' => 'noga',
+  'ttl' => 3500,
+  'data' => 
+  array (
+    0 => 'noga',
+    1 => 'germainio',
+    2 => 'miasa',
+    3 => 'ephore',
+  ),
+);
