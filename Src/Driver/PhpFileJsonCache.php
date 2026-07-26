@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace NCache\Driver;
 
-use NCache\Core\Files\PutData;
+use NCache\Core\Files\WriteFile;
 use NCache\Core\Files\ReadFile;
 use NCache\Driver\CacheDriver;
 use NCache\Enum\CType;
@@ -31,7 +31,7 @@ final class PhpFileJsonCache extends CacheDriver{
     }
 
     public function save(): bool{
-        return (new PutData(
+        return (new WriteFile(
             $this->file,
             $this->metaData(),
             $this->tmp()

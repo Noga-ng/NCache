@@ -77,7 +77,9 @@ final class NCache implements CacheInterface {
 
     if (
         isset($data['expiredAt']) &&
-        (new Expiration($data['ttl'],$data['expiredAt']))->expired()
+        (new Expiration(
+            $data['ttl'],
+            $data['expiredAt']))->expired()
     ) {
         $this->delete();
         return null;

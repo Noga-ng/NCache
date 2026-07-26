@@ -2,6 +2,8 @@
 require __DIR__.'/../vendor/autoload.php';
 use NCache\Config\CacheConfig;
 use NCache\Config\Ttl\Duration;
+use NCache\Core\Files\ReadFile;
+use NCache\Core\Files\WriteFile;
 use NCache\Enum\CType;
 use NCache\NCache;
 CacheConfig::config(__DIR__."/../cache");
@@ -36,20 +38,19 @@ CacheConfig::config(__DIR__."/../cache");
 // ],
 // ];
 
-$d = [
-'Cache_noga'=>[  //cache key
-'ttl'=>3600,
-'expiredAt'=>1784973600,
-'file'=>__DIR__."cache/cache.php"
-]
-];
+$s = __DIR__."/arrayts.cache.ng";
 
-$f = NCache::key("noga",CType::JSON)
-->dir("cacheTtl")
-->signature($d)
-->ttl(Duration::hours(4))
-->set($d);
+$file = __DIR__."/../composer.lock";
 
-// 1784999000 1784999021
+$js = (new ReadFile($file,CType::JSON))->get();
 
-var_dump($f);
+$nc = NCache::key("noga",CType::ARRAY)
+->dir("nc");
+
+$cs = $nc->signature($js)
+->ttl(Duration::month(2))
+->set($js);
+
+$d = $nc->get();
+
+var_dump($d);

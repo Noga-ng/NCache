@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace NCache\Driver;
 
-use NCache\Core\Files\PutData;
+use NCache\Core\Files\WriteFile;
 use NCache\Core\Files\ReadFile;
 use NCache\Enum\CType;
 use NCache\Driver\CacheDriver;
@@ -13,28 +13,22 @@ final class PhpFileArrayCache extends CacheDriver{
     public function __construct(
         string $file
     ){
-       $files = str_contains($file,".php") ? 
-       $file : "{$file}.php";
+       $files = "{$file}.nc";
         parent::__construct($files);
     }
 
     protected function format():string{
-        return var_export(
-            $this->structure->toArray(),
-            true
-        );
+        return serialize($this->structure->toArray());
     }
 
     protected function metaData():string{
-        return "<?php ".PHP_EOL.
-         "return ".$this->format().";";
+        return $this->format();
     }
 
     public function save():bool{
-        return (new PutData(
+        return (new WriteFile(
              $this->file,
-            $this->metaData(),
-            $this->tmp()
+            $this->metaData()
         ))
         ->save();
     }

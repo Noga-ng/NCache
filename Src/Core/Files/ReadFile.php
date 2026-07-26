@@ -1,10 +1,13 @@
 <?php
-declare (strict_types = 1);
+
+declare(strict_types=1);
 
 namespace NCache\Core\Files;
 
+use JsonException;
 use NCache\Enum\CType;
 use NCache\Exceptions\FailedReadFileException;
+use Throwable;
 
 final class ReadFile
 {
@@ -13,51 +16,132 @@ final class ReadFile
         private readonly CType $type
     ) {
         if (!is_file($this->file)) {
-            throw new FailedReadFileException("Failed to read file {$this->file}");
+            throw new FailedReadFileException(
+                "Le fichier '{$this->file}' n'existe pas."
+            );
+        }
+
+        if (!is_readable($this->file)) {
+            throw new FailedReadFileException(
+                "Le fichier '{$this->file}' n'est pas lisible."
+            );
         }
     }
 
-    public function get(): mixed
+    /**
+     * @return array<string, mixed>|string
+     */
+    public function get(): array|string
     {
         return match ($this->type) {
-            CType::ARRAY => $this->loadPhpFile(),
-            CType::JSON => json_decode(
-                $this->read(),
-                true,
-                512,
-                JSON_THROW_ON_ERROR),
-            CType::STRING => $this->read()
+            CType::ARRAY => $this->loadSerializedArray(),
+            CType::JSON => $this->decodeJson(),
+            CType::STRING => $this->read(),
         };
     }
 
-   private function read(): string
+    /**
+     * @return array<string, mixed>
+     */
+    private function decodeJson(): array
+    {
+        try {
+            $data = json_decode(
+                $this->read(),
+                true,
+                512,
+                JSON_THROW_ON_ERROR
+            );
+        } catch (JsonException $exception) {
+            throw new FailedReadFileException(
+                "Le fichier JSON '{$this->file}' est invalide.",
+                previous: $exception
+            );
+        }
+
+        if (!\is_array($data)) {
+            throw new FailedReadFileException(
+                "Le fichier JSON '{$this->file}' doit contenir un tableau."
+            );
+        }
+
+        return $data;
+    }
+
+    private function read(): string
+    {
+        $handle = fopen($this->file, 'rb');
+
+        if ($handle === false) {
+            throw new FailedReadFileException(
+                "Impossible d'ouvrir le fichier '{$this->file}'."
+            );
+        }
+
+        $locked = false;
+
+        try {
+            $locked = flock($handle, LOCK_SH);
+
+            if (!$locked) {
+                throw new FailedReadFileException(
+                    "Impossible de verrouiller le fichier '{$this->file}'."
+                );
+            }
+
+            $content = '';
+
+            while (!feof($handle)) {
+                $chunk = fread($handle, 8192);
+
+                if ($chunk === false) {
+                    throw new FailedReadFileException(
+                        "Erreur pendant la lecture de '{$this->file}'."
+                    );
+                }
+
+                $content .= $chunk;
+            }
+
+            return $content;
+        } finally {
+            if ($locked) {
+                flock($handle, LOCK_UN);
+            }
+
+            fclose($handle);
+        }
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    /**
+ * @return array<string, mixed>
+ */
+private function loadSerializedArray(): array
 {
-    $content = '';
-    $fp = null;
+    $content = $this->read();
 
     try {
-        $fp = fopen($this->file, 'r');
-
-        if ($fp === false) {
-            throw new FailedReadFileException("Error fopen is failed");
-        }
-
-        while (($line = fgets($fp)) !== false) {
-            $content .= $line;
-        }
-
-    } finally {
-        if (\is_resource($fp)) {
-            fclose($fp);
-        }
+        $data = unserialize(
+            $content,
+            ['allowed_classes' => false]
+        );
+    } catch (Throwable $exception) {
+        throw new FailedReadFileException(
+            "Le fichier de cache '{$this->file}' est corrompu.",
+            previous: $exception
+        );
     }
 
-    return $content;
+    if (!\is_array($data)) {
+        throw new FailedReadFileException(
+            "Le fichier '{$this->file}' doit contenir un tableau sérialisé."
+        );
+    }
+
+    return $data;
 }
-
-    private function loadPhpFile(): mixed
-    {
-        return require $this->file;
-    }
 
 }
