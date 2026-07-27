@@ -43,8 +43,9 @@
   },
 
   "scripts": {
-    "test": "phpunit",
+    "phpunit": "phpunit",
     "analyse":"./vendor/phpstan/phpstan/phpstan analyse",
-    "dump": "composer dump-autoload -o"
+    "dump": "composer dump-autoload -o",
+    "test":"./Tests/Test.php"
   }
 }

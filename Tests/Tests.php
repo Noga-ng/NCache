@@ -1,12 +1,17 @@
 <?php
 require __DIR__.'/../vendor/autoload.php';
 use NCache\Config\CacheConfig;
+use NCache\Config\Connection\SqlitePdo;
 use NCache\Config\Ttl\Duration;
+use NCache\Core\CachePath;
 use NCache\Core\Files\ReadFile;
 use NCache\Core\Files\WriteFile;
 use NCache\Enum\CType;
 use NCache\NCache;
+use Pdo\Pgsql;
+
 CacheConfig::config(__DIR__."/../cache");
+
 // 1 minute = 60 secondes
 // 1 heure  = 3600 secondes
 // 1 jour   = 86400 secondes
@@ -38,19 +43,12 @@ CacheConfig::config(__DIR__."/../cache");
 // ],
 // ];
 
-$s = __DIR__."/arrayts.cache.ng";
+$p = NCache::key('noga',CType::SQLite);
 
-$file = __DIR__."/../composer.lock";
+$c = $p->signature("noga")
+->ttl(Duration::minutes(1))
+->set(["noga","germainio"]);
 
-$js = (new ReadFile($file,CType::JSON))->get();
+$g = $p->get();
 
-$nc = NCache::key("noga",CType::ARRAY)
-->dir("nc");
-
-$cs = $nc->signature($js)
-->ttl(Duration::month(2))
-->set($js);
-
-$d = $nc->get();
-
-var_dump($d);
+var_dump($g);

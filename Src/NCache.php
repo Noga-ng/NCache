@@ -3,31 +3,34 @@ declare(strict_types=1);
 
 namespace NCache;
 
+use NCache\Config\CacheConfig;
 use NCache\Config\Ttl\Expiration;
 use NCache\Contract\CacheInterface;
+use NCache\Core\CacheItem\CacheItem;
+use NCache\Core\CachePath;
 use NCache\Core\Files\CacheCleaner;
-use NCache\Core\GetPath;
 use NCache\Core\Hash;
 use NCache\Driver\CacheDriver;
 use NCache\Enum\CType;
 use NCache\Registry\DriverRegistry;
-use NCache\Structure\Structure;
 
-final class NCache implements CacheInterface {
+final class NCache implements CacheInterface{
 
-    private Structure $structure;
+    private CacheItem $cacheItem;
     public function __construct(string $key,CType $type){
-        $this->structure = new Structure($key,$type);
+
+        $basePath = new CachePath(CacheConfig::config()->getBasePath());
+        $this->cacheItem = new CacheItem($key,$type,$basePath);
     }
 
     public static function key(string $key,CType $type):static{
-        $instance = new NCache((new Hash($key))->get(),$type);
-        $instance->structure->name = $key;
+        $instance = new NCache($key,$type);
+        $instance->cacheItem->setName($key);
         return $instance;
     }
 
     public function dir(string $dir):static{
-        $this->structure->dir = (new GetPath($dir))->getPath();
+        $this->cacheItem->setDir($dir);
         return $this;
     }
 
@@ -40,12 +43,12 @@ final class NCache implements CacheInterface {
      * @return NCache
      */
     public function signature(mixed $signature):static{
-        $this->structure->signature = (new Hash($signature))->get();
+       $this->cacheItem->setSignature($signature);
         return $this;
     }
 
     public function ttl(int $ttl): static{
-       $this->structure->ttl($ttl);
+       $this->cacheItem->setTtl($ttl);
         return $this;
     }
     
@@ -53,17 +56,23 @@ final class NCache implements CacheInterface {
      * @param array<mixed>|bool|int|string $data
      * @return bool
      */
-    public function set(mixed $data): bool{
-        $this->structure->data = $data;
-        return $this->driver()
-        ->structure($this->structure)
-        ->save();
+    public function set(mixed $data):bool{
+        $this->cacheItem->setData($data);
+        return $this->driver()->save();
     }
 
     public function delete(): bool{
-        return (new CacheCleaner())->delete($this->driver()->getFile());
+        return (new CacheCleaner())
+        ->delete(
+            $this->driver()
+                    ->getFile()
+        );
     }
 
+    /**
+     * @param string|null $dir
+     * @return int
+     */
     public static function clear(?string $dir = null):int{
         return (new CacheCleaner())->clear($dir);
     }
@@ -85,14 +94,14 @@ final class NCache implements CacheInterface {
         return null;
     }
 
-        return $data['data'];
+        return $data;
     }
 
       /**
        * @return array<string,mixed>
        */
-      public function show():array{
-        return $this->structure->toArray();
+    public function show():array{
+        return $this->cacheItem->toArray();
     }
 
     public function has(): bool{
@@ -105,7 +114,7 @@ final class NCache implements CacheInterface {
      */
     public function hasValidSignature(mixed $data): bool{
         $signature = (new Hash($data))->get();
-        $cache = $this->driver()->get();
+        $cache = $this->driver()->metaData();
 
         return (\is_array($cache) && 
         isset($cache['signature']) && 
@@ -118,10 +127,8 @@ final class NCache implements CacheInterface {
      */
     private function driver():CacheDriver{
         return DriverRegistry::make(
-           $this->structure->type,
-            $this->structure->file()
+           $this->cacheItem
         );
     }
   
-
 }

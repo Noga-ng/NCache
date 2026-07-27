@@ -9,31 +9,20 @@ use RecursiveIteratorIterator;
 
 final class CacheCleaner
 {
-    private readonly string $cacheDir;
 
-    public function __construct()
+    public static function delete(string $filename): bool
     {
-        $this->cacheDir = CacheConfig::config()->getBasePath();
-    }
-
-    public function delete(string $file): bool
-    {
-        if (!is_file($file)) {
+        if (!is_file($filename)) {
             return true;
         }
-
-        return unlink($file);
+        return unlink($filename);
     }
 
-  public function clear(?string $dir = null): int
+  public static function clear(string $dir): int
 {
-    $path = $dir === null
-        ? $this->cacheDir
-        : $this->cacheDir . DIRECTORY_SEPARATOR . $dir;
-
     $files = new RecursiveIteratorIterator(
         new RecursiveDirectoryIterator(
-            $path,
+            $dir,
             \FilesystemIterator::SKIP_DOTS
         ),
         RecursiveIteratorIterator::CHILD_FIRST
@@ -54,7 +43,7 @@ final class CacheCleaner
             if (unlink($realPath)) {
                 $count++;
             }
-        } elseif ($file->isDir() && $realPath !== realpath($path)) {
+        } elseif ($file->isDir() && $realPath !== realpath($dir)) {
             rmdir($realPath);
         }
     }

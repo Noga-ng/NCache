@@ -34,7 +34,7 @@ final class ReadFile
     public function get(): array|string
     {
         return match ($this->type) {
-            CType::ARRAY => $this->loadSerializedArray(),
+            CType::SERIALIZE => $this->loadSerializedArray(),
             CType::JSON => $this->decodeJson(),
             CType::STRING => $this->read(),
         };

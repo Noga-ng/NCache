@@ -3,11 +3,17 @@ declare(strict_types=1);
 
 namespace NCache\Registry;
 
+
+use NCache\Core\CacheItem\CacheItem;
 use NCache\Driver\CacheDriver;
-use NCache\Driver\PhpFileArrayCache;
-use NCache\Driver\PhpFileJsonCache;
+use NCache\Driver\JsonCache;
+use NCache\Driver\RedisCache;
+use NCache\Driver\SerializeCache;
+use NCache\Driver\SqliteCache;
+use NCache\Driver\StringCache;
 use NCache\Enum\CType;
-use InvalidArgumentException;
+use NCache\Exceptions\InvalidCacheArgumentException;
+
 
 final class DriverRegistry
 {
@@ -15,31 +21,35 @@ final class DriverRegistry
      * @var array<string, class-string<CacheDriver>>
      */
     private static array $drivers = [
-        CType::ARRAY->name =>PhpFileArrayCache::class,
-        CType::JSON->name =>PhpFileJsonCache::class
+        CType::SERIALIZE->name =>SerializeCache::class,
+        CType::JSON->name =>JsonCache::class,
+        CType::STRING->name =>StringCache::class,
+        CType::REDIS->name =>RedisCache::class,
+        CType::SQLite->name =>SqliteCache::class
     ];
 
     public static function register(CType $type,string $driver): void {
 
     if (!is_subclass_of($driver, CacheDriver::class)) {
-        throw new InvalidArgumentException(
+        throw new InvalidCacheArgumentException(
             "{$driver} must extend CacheDriver"
         );
     }
 
     self::$drivers[$type->name] = $driver;
+    
     }
 
-    public static function make(CType $type,string $file): CacheDriver {
-       $name = $type->name;
+    public static function make(CacheItem $item): CacheDriver {
+       $name = $item->typeName();
        $drivers = self::$drivers[$name] ?? null;
         if ($drivers === null) {
-            throw new InvalidArgumentException(
+            throw new InvalidCacheArgumentException(
                 "No driver registered for {$name}"
             );
         }
 
-        return new $drivers($file);
+        return new $drivers($item);
     }
 
 }
