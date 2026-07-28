@@ -12,7 +12,7 @@ interface CacheInterface{
 
     /**
      * @param string|array<mixed>|int|null $data
-     * @return void
+     * @return bool
      */
     public function hasValidSignature(mixed $data):bool;
     /**
@@ -23,14 +23,23 @@ interface CacheInterface{
     public function ttl(int $ttl):static;
 
      /**
-     * @param string|array<mixed>|int|null $data
-     * @return bool
+     * @param mixed[] $data
+     * @return static
      */
-    public function set(mixed $data):bool;
+    public function set(mixed ...$data):static;
+
+    public function put():bool;
       /**
      * @return string|int|array<mixed>|null
      */
     public function get():mixed;
     public function delete():bool;
+
+    /**
+     * @param CType $type
+     * @param string $dir
+     * @return int
+     */
+    public static function clear(CType $type,string $dir):int;
 
 }

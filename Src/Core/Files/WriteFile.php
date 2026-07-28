@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace NCache\Core\Files;
 
 use NCache\Exceptions\CacheHandleException;
-use NCache\Exceptions\FailedWriteFileException;
+use NCache\Exceptions\FailedWriteCacheException;
 use Throwable;
 
 final class WriteFile
 {
     
-    private ?string $tmp = null;
+    private string $tmp = '';
     public function __construct(
         private readonly string $file,
         private readonly string $data
@@ -26,7 +26,7 @@ final class WriteFile
     {
         try {
             return $this->handle();
-        } catch (FailedWriteFileException $exception) {
+        } catch (FailedWriteCacheException $exception) {
             throw $exception;
         } catch (Throwable $exception) {
             throw new CacheHandleException(
@@ -44,13 +44,13 @@ final class WriteFile
         $directory = dirname($target);
 
         if (!is_dir($directory)) {
-            throw new FailedWriteFileException(
+            throw new FailedWriteCacheException(
                 "The directory '{$directory}' does not exist."
             );
         }
 
         if (!is_writable($directory)) {
-            throw new FailedWriteFileException(
+            throw new FailedWriteCacheException(
                 "The directory '{$directory}' is not writable."
             );
         }
@@ -59,7 +59,7 @@ final class WriteFile
         $handle = fopen($target, $mode);
 
         if ($handle === false) {
-            throw new FailedWriteFileException(
+            throw new FailedWriteCacheException(
                 "Cannot open file '{$target}' for writing."
             );
         }
@@ -71,7 +71,7 @@ final class WriteFile
             $locked = flock($handle, LOCK_EX);
 
             if (!$locked) {
-                throw new FailedWriteFileException(
+                throw new FailedWriteCacheException(
                     "Failed to lock file '{$target}'."
                 );
             }
@@ -81,13 +81,13 @@ final class WriteFile
              * with c+b. The temporary file created with xb is already empty.
              */
             if (!ftruncate($handle, 0)) {
-                throw new FailedWriteFileException(
+                throw new FailedWriteCacheException(
                     "Failed to truncate file '{$target}'."
                 );
             }
 
             if (fseek($handle, 0) !== 0) {
-                throw new FailedWriteFileException(
+                throw new FailedWriteCacheException(
                     "Failed to move the cursor in file '{$target}'."
                 );
             }
@@ -95,7 +95,7 @@ final class WriteFile
             $this->writeAll($handle, $target);
 
             if (!fflush($handle)) {
-                throw new FailedWriteFileException(
+                throw new FailedWriteCacheException(
                     "Failed to flush file '{$target}'."
                 );
             }
@@ -135,7 +135,7 @@ final class WriteFile
             );
 
             if ($written === false || $written === 0) {
-                throw new FailedWriteFileException(
+                throw new FailedWriteCacheException(
                     "Failed to write all data to file '{$file}'."
                 );
             }
@@ -152,7 +152,7 @@ final class WriteFile
                 @unlink($this->tmp);
             }
 
-            throw new FailedWriteFileException(
+            throw new FailedWriteCacheException(
                 "Failed to replace the cache file.\n"
                 . "Temporary file: {$this->tmp}\n"
                 . "Target file: {$this->file}"

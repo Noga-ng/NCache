@@ -18,6 +18,10 @@ final class SQLitePdo
         private readonly string $database
     ) {}
 
+    /**
+     * @throws RuntimeException
+     * @return PDO
+     */
     public function connect(): PDO
     {
         if ($this->pdo !== null) {
@@ -26,7 +30,7 @@ final class SQLitePdo
 
         try {
            
-            $this->pdo = new PDO(
+            $pdo = new PDO(
                 "sqlite:{$this->database}",
                 options: [
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -35,8 +39,9 @@ final class SQLitePdo
                 ]
             );
 
-            $this->configure($this->pdo);
-
+            $this->configure($pdo);
+            $this->pdo = $pdo;
+            
             return $this->pdo;
 
         } catch (PDOException $exception) {
@@ -68,11 +73,12 @@ final class SQLitePdo
 
     /**
      * @param array<int|string, mixed> $params
+     * @return PDOStatement
      */
     public function execute(
         string $sql,
         array $params = []
-    ): bool|PDOStatement {
+    ):PDOStatement {
         try {
             $statement = $this->connect()->prepare($sql);
             $statement->execute($params);
@@ -88,6 +94,7 @@ final class SQLitePdo
 
     /**
      * @param array<int|string,mixed> $params
+     * @return PDOStatement
      */
     public function create(
         string $sql,
@@ -105,6 +112,7 @@ final class SQLitePdo
         array $params = [],
         int $fetchMode = PDO::FETCH_ASSOC
     ): array {
+
         return $this
             ->execute($sql, $params)
             ->fetchAll($fetchMode);

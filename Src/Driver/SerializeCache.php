@@ -4,20 +4,32 @@ declare(strict_types=1);
 namespace NCache\Driver;
 
 use NCache\Core\CacheItem\CacheItem;
+use NCache\Core\Files\CacheCleaner;
 use NCache\Core\Files\WriteFile;
 use NCache\Core\Files\ReadFile;
 use NCache\Enum\CType;
 use NCache\Driver\CacheDriver;
+use NCache\Exceptions\InvalidCacheArgumentException;
 
 final class SerializeCache extends CacheDriver{
-  
+
     public function __construct(CacheItem $item){
         parent::__construct($item);
+        $this->cacheCleaner = new CacheCleaner(['nc']);
     }
 
     public function metaData(): array{
         $data = $this->get();
-        return array_diff(array_keys($data),["data"]);
+
+        if(!\is_array($data)){
+            throw new InvalidCacheArgumentException(
+                self::class." most be return array but ".\get_debug_type($data)." given"
+            );
+        }
+
+        unset($data['data']);
+
+        return $data;
     }
 
     protected function format():string{
@@ -54,11 +66,11 @@ final class SerializeCache extends CacheDriver{
     }
 
     public function delete(): bool{
-        return true;
+        return $this->cacheCleaner->delete($this->buildFile());
     }
 
     public function clear():int{
-        return 0;
+        return $this->cacheCleaner->clear($this->item->path());
     }
     
 }

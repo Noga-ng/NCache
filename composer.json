@@ -31,7 +31,8 @@
     "phpstan/phpstan": "^2.2",
     "phpstan/phpstan-deprecation-rules": "^2.0",
     "phpstan/phpstan-strict-rules": "^2.0",
-    "phpunit/phpunit": "^10.0"
+    "phpunit/phpunit": "^10.0",
+    "ukko/phpredis-phpdoc": "5.0.1-beta8@beta"
   },
 
   "minimum-stability": "stable",
@@ -45,7 +46,6 @@
   "scripts": {
     "phpunit": "phpunit",
     "analyse":"./vendor/phpstan/phpstan/phpstan analyse",
-    "dump": "composer dump-autoload -o",
-    "test":"./Tests/Test.php"
+    "dump": "composer dump-autoload -o"
   }
 }

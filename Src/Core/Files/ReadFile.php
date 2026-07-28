@@ -6,7 +6,7 @@ namespace NCache\Core\Files;
 
 use JsonException;
 use NCache\Enum\CType;
-use NCache\Exceptions\FailedReadFileException;
+use NCache\Exceptions\FailedReadCacheException;
 use Throwable;
 
 final class ReadFile
@@ -16,20 +16,20 @@ final class ReadFile
         private readonly CType $type
     ) {
         if (!is_file($this->file)) {
-            throw new FailedReadFileException(
+            throw new FailedReadCacheException(
                 "Le fichier '{$this->file}' n'existe pas."
             );
         }
 
         if (!is_readable($this->file)) {
-            throw new FailedReadFileException(
+            throw new FailedReadCacheException(
                 "Le fichier '{$this->file}' n'est pas lisible."
             );
         }
     }
 
     /**
-     * @return array<string, mixed>|string
+     * @return array<int|string, mixed>|string
      */
     public function get(): array|string
     {
@@ -37,11 +37,12 @@ final class ReadFile
             CType::SERIALIZE => $this->loadSerializedArray(),
             CType::JSON => $this->decodeJson(),
             CType::STRING => $this->read(),
+            default =>$this->read()
         };
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array<int|string,mixed>
      */
     private function decodeJson(): array
     {
@@ -53,14 +54,14 @@ final class ReadFile
                 JSON_THROW_ON_ERROR
             );
         } catch (JsonException $exception) {
-            throw new FailedReadFileException(
+            throw new FailedReadCacheException(
                 "Le fichier JSON '{$this->file}' est invalide.",
                 previous: $exception
             );
         }
 
         if (!\is_array($data)) {
-            throw new FailedReadFileException(
+            throw new FailedReadCacheException(
                 "Le fichier JSON '{$this->file}' doit contenir un tableau."
             );
         }
@@ -73,7 +74,7 @@ final class ReadFile
         $handle = fopen($this->file, 'rb');
 
         if ($handle === false) {
-            throw new FailedReadFileException(
+            throw new FailedReadCacheException(
                 "Impossible d'ouvrir le fichier '{$this->file}'."
             );
         }
@@ -84,7 +85,7 @@ final class ReadFile
             $locked = flock($handle, LOCK_SH);
 
             if (!$locked) {
-                throw new FailedReadFileException(
+                throw new FailedReadCacheException(
                     "Impossible de verrouiller le fichier '{$this->file}'."
                 );
             }
@@ -95,7 +96,7 @@ final class ReadFile
                 $chunk = fread($handle, 8192);
 
                 if ($chunk === false) {
-                    throw new FailedReadFileException(
+                    throw new FailedReadCacheException(
                         "Erreur pendant la lecture de '{$this->file}'."
                     );
                 }
@@ -113,11 +114,9 @@ final class ReadFile
         }
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    /**
- * @return array<string, mixed>
+/**
+ * @throws FailedReadCacheException
+ * @return array<int|string,mixed>
  */
 private function loadSerializedArray(): array
 {
@@ -129,14 +128,14 @@ private function loadSerializedArray(): array
             ['allowed_classes' => false]
         );
     } catch (Throwable $exception) {
-        throw new FailedReadFileException(
+        throw new FailedReadCacheException(
             "Le fichier de cache '{$this->file}' est corrompu.",
             previous: $exception
         );
     }
 
     if (!\is_array($data)) {
-        throw new FailedReadFileException(
+        throw new FailedReadCacheException(
             "Le fichier '{$this->file}' doit contenir un tableau sérialisé."
         );
     }

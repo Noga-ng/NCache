@@ -20,19 +20,51 @@ final class StringCache extends CacheDriver{
     }
 
     public function metaData(): array{
-        return [];
+        return [0=>""];
     }
 
-    protected function format(): string
-    {
-        if (!\is_string($this->item->getData())) {
-            throw new InvalidCacheArgumentException(
-                'StringFileCache accepts only string data.'
-            );
-        }
+    /**
+     * @return string
+     */
+  protected function format(): string
+{
+    $data = array_map(
+        static function (mixed $value): string {
+            if (\is_array($value) || \is_object($value)) {
+                return json_encode(
+                    $value,
+                    JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE
+                );
+            }
 
-        return (string)$this->item->getData();
-    }
+            return match (true) {
+                \is_string($value) => $value,
+                \is_int($value),
+                \is_float($value) => (string) $value,
+                \is_bool($value) => $value ? 'true' : 'false',
+                $value === null => 'null',
+
+                default => throw new \InvalidArgumentException(
+                    \sprintf(
+                        'the type %s cannot be convert to string.',
+                        get_debug_type($value)
+                    )
+                ),
+            };
+        },
+        $this->item->getData()
+    );
+    $content = implode(',', $data);
+
+    return "type : {$this->item->typeName()};".PHP_EOL.
+            "name : {$this->item->key()};".PHP_EOL.
+            "signature : {$this->item->getSignature()};".PHP_EOL.
+            "ttl : {$this->item->ttlValue()};".PHP_EOL.
+            "expiresAt : {$this->item->expiredAt()}; ".PHP_EOL.
+            "content : ".PHP_EOL.
+            "{$content};".PHP_EOL;
+}
+    
 
     public function save(): bool
     {
@@ -42,15 +74,27 @@ final class StringCache extends CacheDriver{
         ))->save();
     }
 
+    /**
+     * @return string
+     */
     public function get(): string{
-       return (new ReadFile(
+        $content = (new ReadFile(
         $this->buildFile(),
         $this->item->type()
        ))->get();
+            
+       if(!\is_string($content)){
+                throw new InvalidCacheArgumentException("cannot return array on this StringCache");
+            }
+
+       return $content;
     }
 
+    /**
+     * @return string
+     */
     public function buildFile():string{
-        return $this->item->file();
+        return (string)$this->item->file();
     }
 
     public function getFile(): string{

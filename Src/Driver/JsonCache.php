@@ -9,11 +9,13 @@ use NCache\Core\Files\WriteFile;
 use NCache\Core\Files\ReadFile;
 use NCache\Driver\CacheDriver;
 use NCache\Enum\CType;
+use NCache\Exceptions\InvalidCacheArgumentException;
 
 final class JsonCache extends CacheDriver{
 
     public function __construct(CacheItem $item){
         parent::__construct($item);
+        $this->cacheCleaner = new CacheCleaner(["json"]);
         }
 
     protected function format(): string{
@@ -23,14 +25,23 @@ final class JsonCache extends CacheDriver{
         );
     }
 
+    /**
+     * @return array<int|string,mixed>
+     */
     public function metaData(): array{
-        $data = $this->get();
+        $data = (array)$this->get();
         unset($data['data']);
        return $data;
     }
 
     private function buildFile():string{
         $file = $this->item->file();
+        if(!\is_string($file)){
+            throw new InvalidCacheArgumentException(
+                "file cannot be null"
+            );
+        }
+
         return str_ends_with($file,".json") ?
          $file : 
          "{$file}.json";
@@ -62,11 +73,11 @@ final class JsonCache extends CacheDriver{
     }
 
     public function delete(): bool{
-        return CacheCleaner::delete($this->buildFile());
+        return $this->cacheCleaner->delete($this->buildFile());
     }
 
     public function clear(): int{
-        return CacheCleaner::clear($this->buildFile());
+        return $this->cacheCleaner->clear($this->item->path());
     }
 
 }

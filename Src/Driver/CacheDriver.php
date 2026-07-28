@@ -4,9 +4,11 @@ declare(strict_types=1);
 namespace NCache\Driver;
 
 use NCache\Core\CacheItem\CacheItem;
+use NCache\Core\Files\CacheCleaner;
 
 abstract class CacheDriver{
 
+    protected CacheCleaner $cacheCleaner;
       public function __construct(
         protected CacheItem $item
         ){}
@@ -22,6 +24,9 @@ abstract class CacheDriver{
 
     abstract public function exists():bool;
 
+    /**
+     * @return array<int|string,mixed>
+     */
     abstract public function metaData():array;
     
      /**

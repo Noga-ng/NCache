@@ -13,14 +13,12 @@ final class CacheItem
 {
     private ?Expiration $expiration = null;
 
-    private ?string $name = null;
-
     private ?string $signature = null;
 
     /**
-     * @var array<mixed>|bool|int|string
+     * @var array<mixed>
      */
-    private mixed $data = [];
+    private array $data = [];
 
     public function __construct(
         private readonly string $key,
@@ -34,22 +32,21 @@ final class CacheItem
         $this->cachePath = $this->cachePath->dir($dir);
     }
 
-    public function setName(string $name): void
+    /**
+     * @param array<mixed>|float|int|string $signature
+     * @return void
+     */
+    public function setSignature(mixed $signature): void
     {
-        $this->name = $name;
-    }
-
-    public function setSignature(string $signature): void
-    {
-        $this->signature = (new Hash($signature))->get();
+        $this->signature = (new Hash($signature,'sha256'))->get();
     }
 
     /**
-     * @param array<mixed>|bool|int|string $data
+     * @param array<mixed> $data
      */
-    public function setData(mixed $data): void
+    public function setData(array $data): void
     {
-        $this->data = $data;
+        $this->data = [...$this->data,...$data];
     }
 
     public function setTtl(?int $ttl): void
@@ -103,12 +100,12 @@ final class CacheItem
         };
     }
 
-    public function getSignature():string{
+    public function getSignature():?string{
         return $this->signature;
     }
 
     /**
-     * @return array<mixed>|bool|int|string
+     * @return array<mixed>
      */
     public function getData():array{
         return $this->data;
@@ -120,12 +117,12 @@ final class CacheItem
     public function toArray(): array
     {
         return [
-            'type' => $this->type->name,
-            'name' => $this->name,
-            'key' => $this->key,
+            'type' => $this->typeName(),
+            'name' => $this->key(),
+            'key' => $this->hashedKey(),
             'signature' => $this->signature,
             'ttl' => $this->ttlValue(),
-            'expiredAt' => $this->expiredAt(),
+            'expiresAt' => $this->expiredAt(),
             'data' => $this->data,
         ];
     }

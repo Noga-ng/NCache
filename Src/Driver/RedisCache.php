@@ -5,18 +5,22 @@ namespace NCache\Driver;
 
 use NCache\Core\CacheItem\CacheItem;
 use NCache\Driver\CacheDriver;
+use Redis;
 
 final class RedisCache extends CacheDriver{
-
+    private Redis $redis;
     public function __construct(CacheItem $item) {
         parent::__construct($item);
+        $this->redis = new Redis();
     }
 
-    public function get(): mixed{
+
+    public function get(): int{
         return 0;
     }
 
-    public function format(): mixed{
+
+    public function format(): array{
         return $this->item->toArray();
     }
 
@@ -43,7 +47,7 @@ final class RedisCache extends CacheDriver{
     }
 
     public function metaData():array{
-        return [];
+        return [0=>""];
     }
 
     public function getFile(): string{

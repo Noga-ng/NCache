@@ -3,22 +3,35 @@ declare(strict_types=1);
 
 namespace NCache\Core\Files;
 
-use NCache\Config\CacheConfig;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 
 final class CacheCleaner
 {
 
-    public static function delete(string $filename): bool
+    /**
+     * @param string[] $extensionAllowed
+     */
+    public function __construct(
+        private readonly array $extensionAllowed
+        ){}
+
+    /**
+     * @return string[]
+     */
+    public function extensionAllowed():array{
+        return $this->extensionAllowed;
+    }
+    public function delete(string $filename): bool
     {
         if (!is_file($filename)) {
             return true;
         }
+
         return unlink($filename);
     }
 
-  public static function clear(string $dir): int
+  public function clear(string $dir): int
 {
     $files = new RecursiveIteratorIterator(
         new RecursiveDirectoryIterator(
@@ -39,13 +52,15 @@ final class CacheCleaner
             continue;
         }
 
-        if ($file->isFile() && !$file->isLink()) {
+        if (
+            $file->isFile() && !$file->isLink() && 
+            \in_array($file->getExtension(),$this->extensionAllowed,true)
+            ) {
             if (unlink($realPath)) {
                 $count++;
             }
-        } elseif ($file->isDir() && $realPath !== realpath($dir)) {
-            rmdir($realPath);
         }
+
     }
 
     return $count;

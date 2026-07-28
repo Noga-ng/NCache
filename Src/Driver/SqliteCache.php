@@ -6,11 +6,13 @@ namespace NCache\Driver;
 use NCache\Config\Connection\SQLitePdo;
 use NCache\Core\CacheItem\CacheItem;
 use NCache\Driver\CacheDriver;
+use NCache\Exceptions\FailedWriteCacheException;
+use NCache\Exceptions\FailedWriteFileException;
 use NCache\Exceptions\InvalidCacheArgumentException;
 
 final class SqliteCache extends CacheDriver{
 
-    private ?SQLitePdo $conn = null;
+    private SQLitePdo $conn;
 
     public function __construct(CacheItem $item){
         parent::__construct($item);
@@ -48,8 +50,8 @@ final class SqliteCache extends CacheDriver{
             )"  
         );
 
-        $stmt = $this->conn->execute(
-            'INSERT OR REPLACE INTO caches
+       $this->conn->execute(
+            'INSERT INTO caches
              (type,keys,signature,ttl, expiresAt,data)
              VALUES (:type,:keys, :signature,:ttl, :expiresAt,:data)',
              [
@@ -62,11 +64,11 @@ final class SqliteCache extends CacheDriver{
             ]
         );
 
-       if(!$stmt){
-        throw new InvalidCacheArgumentException(
-            "execution error : ".implode(',',$stmt->errorInfo())
-        );
-       }
+        $lastId = $this->conn->lastId();
+
+        if(!$lastId){
+            throw new FailedWriteCacheException("failed to write on insert this cache");
+        }
 
        return true;
 
