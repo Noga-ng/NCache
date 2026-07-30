@@ -123,10 +123,17 @@ private function loadSerializedArray(): array
     $content = $this->read();
 
     try {
-        $data = unserialize(
-            $content,
-            ['allowed_classes' => false]
-        );
+        $data = @unserialize(
+    $content,
+    ['allowed_classes' => false]
+);
+
+if ($data === false && $content !== serialize(false)) {
+    throw new FailedReadCacheException(
+        sprintf('Invalid serialized cache data in file: %s', $this->file)
+    );
+}
+
     } catch (Throwable $exception) {
         throw new FailedReadCacheException(
             "Le fichier de cache '{$this->file}' est corrompu.",

@@ -51,10 +51,10 @@ final class NCache implements CacheInterface{
     }
     
     /**
-     * @param mixed[] $data
+     * @param array<mixed>|string|int|bool $data
      * @return static
      */
-    public function set(mixed ...$data):static{
+    public function set(mixed $data):static{
         $this->cacheItem->setData($data);
         return $this;
     }

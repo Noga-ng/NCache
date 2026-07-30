@@ -19,4 +19,50 @@
             "name": "John"
         }
     ]
+,
+ "driver": {
+        "type": "SERIALIZE",
+        "name": "noga",
+        "key": "5b2de813fabc8a7fea8be854fdeac0e6",
+        "signature": "2444cf36ece6e343f302b218c67d9ef6eb59e3b212bb5aaa296ace83cdca8faa",
+        "ttl": 18000,
+        "expiresAt": 1785280137,
+        "data": [
+            {
+                "id": 1,
+                "name": "Noga"
+            },
+            {
+                "id": 2,
+                "name": "Germainio"
+            },
+            {
+                "id": 3,
+                "name": "Exethelene"
+            }
+        ]
+    },
+    "apiNCache": {
+        "type": "SERIALIZE",
+        "name": "noga",
+        "key": "5b2de813fabc8a7fea8be854fdeac0e6",
+        "signature": "2444cf36ece6e343f302b218c67d9ef6eb59e3b212bb5aaa296ace83cdca8faa",
+        "ttl": 18000,
+        "expiresAt": 1785280137,
+        "data": [
+            {
+                "id": 1,
+                "name": "Noga"
+            },
+            {
+                "id": 2,
+                "name": "Germainio"
+            },
+            {
+                "id": 3,
+                "name": "Exethelene"
+            }
+        ]
+    }
+
 }

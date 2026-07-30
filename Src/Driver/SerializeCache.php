@@ -70,7 +70,13 @@ final class SerializeCache extends CacheDriver{
     }
 
     public function clear():int{
-        return $this->cacheCleaner->clear($this->item->path());
+        $count = 0;
+        $this->cacheCleaner->fileDirectory($this->item->path());
+        if($this->cacheCleaner->isExtensionAllowed()){
+           $count = $this->cacheCleaner->clear();
+        }
+
+        return $count;
     }
     
 }

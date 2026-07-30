@@ -42,11 +42,11 @@ final class CacheItem
     }
 
     /**
-     * @param array<mixed> $data
+     * @param array<mixed>|string|int|bool $data
      */
-    public function setData(array $data): void
+    public function setData(mixed $data): void
     {
-        $this->data = [...$this->data,...$data];
+        $this->data[] = $data;
     }
 
     public function setTtl(?int $ttl): void

@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace NCache\Driver;
 
 use NCache\Core\CacheItem\CacheItem;
+use NCache\Core\Files\CacheCleaner;
 use NCache\Core\Files\ReadFile;
 use NCache\Core\Files\WriteFile;
 use NCache\Exceptions\InvalidCacheArgumentException;
@@ -12,6 +13,7 @@ final class StringCache extends CacheDriver{
 
     public function __construct(CacheItem $item){
         parent::__construct($item);
+        $this->cacheCleaner = new CacheCleaner(['']);
     }
 
     
@@ -103,11 +105,18 @@ final class StringCache extends CacheDriver{
 
 
     public function delete(): bool{
-        return true;
+        return $this->cacheCleaner->delete($this->buildFile());
     }
 
 
     public function clear(): int{
-        return 0;
+        $count = 0;
+        $this->cacheCleaner->fileDirectory($this->item->path());
+        if($this->cacheCleaner->isExtensionAllowed()){
+           $count = $this->cacheCleaner->clear();
+        }
+
+        return $count;
     }
+
 }

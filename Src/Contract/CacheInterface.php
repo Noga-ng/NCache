@@ -23,10 +23,10 @@ interface CacheInterface{
     public function ttl(int $ttl):static;
 
      /**
-     * @param mixed[] $data
+     * @param array<mixed>|string|int|bool $data
      * @return static
      */
-    public function set(mixed ...$data):static;
+    public function set(mixed $data):static;
 
     public function put():bool;
       /**
