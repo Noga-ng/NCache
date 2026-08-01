@@ -10,7 +10,7 @@ final class CacheConfig{
         private readonly string $baseDir
     )
     {   
-        $this->basePath = trim($this->baseDir,"/");
+        $this->basePath = rtrim($this->baseDir,"/\\");
     }
 
     public static function config(string $baseDir = ''):CacheConfig{
