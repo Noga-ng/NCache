@@ -1,0 +1,1 @@
+a:1:{s:32:"4c81bc6bfba3c6f371d7f7e620f72f03";a:6:{s:4:"type";s:9:"SERIALIZE";s:3:"key";s:32:"4c81bc6bfba3c6f371d7f7e620f72f03";s:4:"file";s:73:"I:\dev\php\NCache\Tests/../cache\cacheDB\4c81bc6bfba3c6f371d7f7e620f72f03";s:9:"signature";s:64:"cb5c14ecb9f8f0573b6650c8f8fd8870c7e22b248a82cf944facb202a85032b2";s:3:"ttl";i:172800;s:9:"expiresAt";i:1785692480;}}

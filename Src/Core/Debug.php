@@ -14,13 +14,13 @@ final class Debug{
     ){}
 
     /**
-     * @return array{content: array<mixed>|int|string|null, file: string|null, key: string|null}
+     * @return array{data: array<array-key,mixed>|int|string|null, file: string|null, key: string|null}
      */
     public function toArray():array{
         return [
             'key'=>$this->key,
             'file'=>$this->file,
-            'content'=>$this->content
+            'data'=>$this->content
         ];
     }
 }

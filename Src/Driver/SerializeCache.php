@@ -48,7 +48,7 @@ final class SerializeCache extends CacheDriver{
     }
 
     /**
-     * @return mixed
+     * @return array<array-key, mixed>|string
      */
     public function get(): mixed{
         return (new ReadFile(
@@ -66,17 +66,13 @@ final class SerializeCache extends CacheDriver{
     }
 
     public function delete(): bool{
-        return $this->cacheCleaner->delete($this->buildFile());
+        return $this->cacheCleaner
+                ->delete($this->buildFile());
     }
 
     public function clear():int{
-        $count = 0;
-        $this->cacheCleaner->fileDirectory($this->item->path());
-        if($this->cacheCleaner->isExtensionAllowed()){
-           $count = $this->cacheCleaner->clear();
-        }
-
-        return $count;
+      return $this->cacheCleaner
+               ->clear($this->item->path());
     }
     
 }

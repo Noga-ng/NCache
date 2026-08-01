@@ -72,7 +72,7 @@ final class SQLitePdo
     }
 
     /**
-     * @param array<int|string, mixed> $params
+     * @param array<array-key, mixed> $params
      * @return PDOStatement
      */
     public function execute(
@@ -93,7 +93,7 @@ final class SQLitePdo
     }
 
     /**
-     * @param array<int|string,mixed> $params
+     * @param array<array-key,mixed> $params
      * @return PDOStatement
      */
     public function create(
@@ -104,7 +104,7 @@ final class SQLitePdo
     }
 
     /**
-     * @param array<int|string, mixed> $params
+     * @param array<array-key, mixed> $params
      * @return array<mixed>
      */
     public function getAll(
@@ -119,7 +119,7 @@ final class SQLitePdo
     }
 
     /**
-     * @param array<int|string, mixed> $params
+     * @param array<array-key, mixed> $params
      */
     public function get(
         string $sql,

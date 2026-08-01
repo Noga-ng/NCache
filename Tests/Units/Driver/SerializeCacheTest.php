@@ -295,7 +295,7 @@ final class SerializeCacheTest extends TestCase
         self::assertIsArray($result);
         $v = ['version' => 2];
         self::assertSame(
-            [$v],
+            $v,
             $result['data']
         );
     }
@@ -327,7 +327,7 @@ final class SerializeCacheTest extends TestCase
         $result = $driver->get();
 
         self::assertIsArray($result);
-        self::assertSame([$data], $result['data']);
+        self::assertSame($data, $result['data']);
     }
 
     public function testSerializedCachePreservesNumericArrayKeys(): void
@@ -347,7 +347,7 @@ final class SerializeCacheTest extends TestCase
         $result = $driver->get();
 
         self::assertIsArray($result);
-        self::assertSame([$data], $result['data']);
+        self::assertSame($data, $result['data']);
     }
 
     public function testSerializedCachePreservesUnicodeContent(): void
@@ -366,7 +366,7 @@ final class SerializeCacheTest extends TestCase
         $result = $driver->get();
 
         self::assertIsArray($result);
-        self::assertSame([$data], $result['data']);
+        self::assertSame($data, $result['data']);
     }
 
     public function testCacheDirectoryIsCreatedAutomatically(): void
@@ -419,7 +419,7 @@ final class SerializeCacheTest extends TestCase
         self::assertIsArray($result);
         $v = ['version'=>3];
         self::assertSame(
-            [$v],
+            $v,
             $result['data']
         );
     }

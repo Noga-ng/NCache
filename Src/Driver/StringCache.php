@@ -13,16 +13,16 @@ final class StringCache extends CacheDriver{
 
     public function __construct(CacheItem $item){
         parent::__construct($item);
-        $this->cacheCleaner = new CacheCleaner(['']);
+        $this->cacheCleaner = new CacheCleaner(['txt']);
     }
-
     
     public function exists(): bool{
         return is_file($this->buildFile());
     }
 
     public function metaData(): array{
-        return [0=>""];
+        $data = $this->get();
+        return [$data];
     }
 
     /**
@@ -65,7 +65,7 @@ final class StringCache extends CacheDriver{
             "expiresAt : {$this->item->expiredAt()}; ".PHP_EOL.
             "content : ".PHP_EOL.
             "{$content};".PHP_EOL;
-}
+    }
     
 
     public function save(): bool
@@ -86,7 +86,9 @@ final class StringCache extends CacheDriver{
        ))->get();
             
        if(!\is_string($content)){
-                throw new InvalidCacheArgumentException("cannot return array on this StringCache");
+                throw new InvalidCacheArgumentException(
+                    "cannot return array on this StringCache"
+                );
             }
 
        return $content;
@@ -108,15 +110,9 @@ final class StringCache extends CacheDriver{
         return $this->cacheCleaner->delete($this->buildFile());
     }
 
-
     public function clear(): int{
-        $count = 0;
-        $this->cacheCleaner->fileDirectory($this->item->path());
-        if($this->cacheCleaner->isExtensionAllowed()){
-           $count = $this->cacheCleaner->clear();
-        }
-
-        return $count;
+       return $this->cacheCleaner
+                  ->clear($this->item->path());
     }
 
 }

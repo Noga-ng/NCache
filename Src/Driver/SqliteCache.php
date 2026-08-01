@@ -7,8 +7,6 @@ use NCache\Config\Connection\SQLitePdo;
 use NCache\Core\CacheItem\CacheItem;
 use NCache\Driver\CacheDriver;
 use NCache\Exceptions\FailedWriteCacheException;
-use NCache\Exceptions\FailedWriteFileException;
-use NCache\Exceptions\InvalidCacheArgumentException;
 
 final class SqliteCache extends CacheDriver{
 
@@ -42,7 +40,7 @@ final class SqliteCache extends CacheDriver{
             "CREATE TABLE IF NOT EXISTS caches(
             id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
             type TEXT NOT NULL,
-            keys TEXT NOT NULL,
+            keys TEXT UNIQUE NOT NULL,
             signature TEXT,
             ttl INTEGER NULL,
             expiresAt INTEGER NULL,
@@ -75,7 +73,7 @@ final class SqliteCache extends CacheDriver{
     }
 
     /**
-     * @return array<int|string,mixed>
+     * @return array<array-key,mixed>
      */
     public function get():array{
         return $this->conn
@@ -87,12 +85,12 @@ final class SqliteCache extends CacheDriver{
     }
 
     /**
-     * @return array<int|string,mixed>
+     * @return array<array-key,mixed>
      */
     public function metaData(): array{
         return $this->conn
                 ->getAll(
-                    "SELECT keys,signature,ttl,expiresAt
+                   "SELECT keys,signature,ttl,expiresAt
                          FROM caches
                          WHERE keys = :keys",
                     [':keys'=>$this->item->hashedKey()]
@@ -104,11 +102,26 @@ final class SqliteCache extends CacheDriver{
     }
 
      public function delete(): bool{
+        $this->conn->execute(
+            "DELETE FROM caches WHERE keys = :keys",
+            [":keys"=>$this->item->hashedKey()]
+        );
+
         return true;
     }
 
     public function clear():int{
-        return 0;
+        /**
+         * @var array<int>
+         */
+        $count = $this->conn->get(
+            "SELECT count(id) AS total FROM caches",
+            fetchMode:\PDO::FETCH_COLUMN
+        );
+
+        $this->conn->execute("DELETE FROM caches");
+
+        return $count['total'];
     }
 
 }

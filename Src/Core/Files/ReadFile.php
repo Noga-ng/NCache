@@ -9,6 +9,7 @@ use NCache\Enum\CType;
 use NCache\Exceptions\FailedReadCacheException;
 use Throwable;
 
+
 final class ReadFile
 {
     public function __construct(
@@ -17,19 +18,19 @@ final class ReadFile
     ) {
         if (!is_file($this->file)) {
             throw new FailedReadCacheException(
-                "Le fichier '{$this->file}' n'existe pas."
+                "this file '{$this->file}'is not exists."
             );
         }
 
         if (!is_readable($this->file)) {
             throw new FailedReadCacheException(
-                "Le fichier '{$this->file}' n'est pas lisible."
+                "the file '{$this->file}' is not readable."
             );
         }
     }
 
     /**
-     * @return array<int|string, mixed>|string
+     * @return array<array-key, mixed>|string
      */
     public function get(): array|string
     {
@@ -42,7 +43,7 @@ final class ReadFile
     }
 
     /**
-     * @return array<int|string,mixed>
+     * @return array<array-key,mixed>
      */
     private function decodeJson(): array
     {
@@ -55,14 +56,14 @@ final class ReadFile
             );
         } catch (JsonException $exception) {
             throw new FailedReadCacheException(
-                "Le fichier JSON '{$this->file}' est invalide.",
+                "Invalid json file'{$this->file}'.",
                 previous: $exception
             );
         }
 
         if (!\is_array($data)) {
             throw new FailedReadCacheException(
-                "Le fichier JSON '{$this->file}' doit contenir un tableau."
+                "the file JSON '{$this->file}'most be content array."
             );
         }
 
@@ -75,7 +76,7 @@ final class ReadFile
 
         if ($handle === false) {
             throw new FailedReadCacheException(
-                "Impossible d'ouvrir le fichier '{$this->file}'."
+                "cannot open this file '{$this->file}'."
             );
         }
 
@@ -86,7 +87,7 @@ final class ReadFile
 
             if (!$locked) {
                 throw new FailedReadCacheException(
-                    "Impossible de verrouiller le fichier '{$this->file}'."
+                    "cannot lock this file '{$this->file}'."
                 );
             }
 
@@ -97,7 +98,7 @@ final class ReadFile
 
                 if ($chunk === false) {
                     throw new FailedReadCacheException(
-                        "Erreur pendant la lecture de '{$this->file}'."
+                        "file reader error : '{$this->file}'."
                     );
                 }
 
@@ -116,7 +117,7 @@ final class ReadFile
 
 /**
  * @throws FailedReadCacheException
- * @return array<int|string,mixed>
+ * @return array<array-key,mixed>
  */
 private function loadSerializedArray(): array
 {

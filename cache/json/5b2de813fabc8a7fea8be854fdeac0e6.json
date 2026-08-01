@@ -1,0 +1,14 @@
+{
+    "type": "JSON",
+    "name": "noga",
+    "key": "5b2de813fabc8a7fea8be854fdeac0e6",
+    "signature": "88ec544439a51cdc3b7bc7bbda9505cd",
+    "ttl": 1125000,
+    "expiresAt": 1786682498,
+    "data": {
+        "Pays": "madagascar",
+        "Lang": "Malagasy",
+        "City": "Toamasina",
+        "Postal": 501
+    }
+}

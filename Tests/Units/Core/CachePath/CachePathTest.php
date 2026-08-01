@@ -91,9 +91,11 @@ final class CachePathTest extends TestCase
         $cachePath = new CachePath($this->basePath);
 
         $subPath = $cachePath->dir('users');
+        $newSubPath = $cachePath->dir("client");
 
-        self::assertNotSame($cachePath, $subPath);
-        self::assertSame($this->basePath, $cachePath->value());
+        self::assertNotSame($cachePath->value(), $subPath->value());
+        self::assertSame($this->basePath, $cachePath->geBasePath());
+        self::assertNotSame($newSubPath->value(),$subPath->value());
     }
 
     public function testEmptyDirKeepsTheSamePath(): void
@@ -112,7 +114,7 @@ final class CachePathTest extends TestCase
     {
         $cachePath = new CachePath($this->basePath);
 
-        $result = $cachePath->dir('/users/');
+        $result = $cachePath->dir('/users');
 
         self::assertSame(
             $this->basePath

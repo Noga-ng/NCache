@@ -9,14 +9,23 @@ use NCache\Core\CachePath;
 use NCache\Core\Hash;
 use NCache\Enum\CType;
 
+/**
+ * @phpstan-type ItemData array<array-key,mixed>|string|int|bool|float
+ */
 final class CacheItem
 {
+    /**
+     * @var Expiration|null
+     */
     private ?Expiration $expiration = null;
 
+    /**
+     * @var string|null
+     */
     private ?string $signature = null;
 
     /**
-     * @var array<mixed>
+     * @var array<array-key,mixed>
      */
     private array $data = [];
 
@@ -24,8 +33,7 @@ final class CacheItem
         private readonly string $key,
         private readonly CType $type,
         private CachePath $cachePath
-    ) {
-    }
+    ) {}
 
     public function setDir(string $dir): void
     {
@@ -33,22 +41,34 @@ final class CacheItem
     }
 
     /**
-     * @param array<mixed>|float|int|string $signature
+     * @param ItemData $signature
      * @return void
      */
     public function setSignature(mixed $signature): void
     {
-        $this->signature = (new Hash($signature,'sha256'))->get();
+        $this->signature = (new Hash($signature))->get();
     }
 
     /**
-     * @param array<mixed>|string|int|bool $data
+     * @param ItemData $data
      */
     public function setData(mixed $data): void
     {
-        $this->data[] = $data;
+        $this->data = \is_array($data) ? $data : [$data];
     }
 
+    /**
+     * @param ItemData $data
+     */
+    public function appendData(mixed $data):void{
+        $data = \is_array($data) ? $data : [$data];
+        $this->data = [...$this->data,...$data];
+    }
+
+    /**
+     * @param non-negative-int|null $ttl
+     * @return void
+     */
     public function setTtl(?int $ttl): void
     {
         $this->expiration = Expiration::fromTTL($ttl);
@@ -79,6 +99,10 @@ final class CacheItem
         return $this->cachePath->getPath();
     }
 
+    public function basePath():string{
+        return $this->cachePath->geBasePath();
+    }
+
     public function ttlValue(): ?int
     {
         return $this->expiration?->ttl();
@@ -89,6 +113,9 @@ final class CacheItem
         return $this->expiration?->timestamp();
     }
 
+    /**
+     * @return string|null
+     */
     public function file(): ?string
     {
         return match ($this->type) {
@@ -100,19 +127,30 @@ final class CacheItem
         };
     }
 
+    /**
+     * @return string|null
+     */
     public function getSignature():?string{
         return $this->signature;
     }
 
     /**
-     * @return array<mixed>
+     * @return array<array-key,mixed>
      */
     public function getData():array{
         return $this->data;
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array{
+     * data: array<array-key,mixed>, 
+     * expiresAt: int|null, 
+     * key: string, 
+     * name: string, 
+     * signature: string|null, 
+     * ttl: int|null, 
+     * type: string
+     * }
      */
     public function toArray(): array
     {

@@ -1,57 +1,34 @@
 <?php
 
-use NCache\Core\Files\CacheDirectory;
-
+use NCache\Config\Ttl\Duration;
+use NCache\Enum\CType;
+use NCache\NCache;
 
 require __DIR__."/../vendor/autoload.php";
 
-$f = new CacheDirectory([__DIR__."/../cache"]);
+Ncache::config(__DIR__."/../cache")->inspect();
 
-foreach($f->iterate() as $file){
-    if($file->isFile())
-    var_dump($file->getRealPath());
-}
+$data = [
+"Pays"=>"madagascar",
+"Lang"=>"Malagasy",
+"City"=>"Toamasina"
+];
 
+$append = ["Postal"=>501];
+$append2 = [12=>125.2];
 
-/**
- * @template T of object
- */
-abstract class AbstractRepository
-{
-    /**
-     * @var array<int, T>
-     */
-    protected array $entities = [];
+$n = NCache::key("info",CType::JSON)->dir("Json");
 
-    /**
-     * @param T $entity
-     */
-    public function save(object $entity): void
-    {
-        $this->entities[$this->getId($entity)] = $entity;
-    }
+$n->ttl(Duration::make(12,24,30));
 
-    /**
-     * @return T|null
-     */
-    public function find(int $id): ?object
-    {
-        return $this->entities[$id] ?? null;
-    }
+$n->signature($data);
 
-    /**
-     * @param T $entity
-     */
-    abstract protected function getId(object $entity): int;
-}
+$n->set($data);
 
-/**
- * @extends AbstractRepository<User>
- */
-final class UserRepository extends AbstractRepository
-{
-    protected function getId(object $entity): int
-    {
-        return $entity->id;
-    }
-}
+$n->append($append);
+
+$n->store();
+
+$s = $n->get();
+
+print_r($s);

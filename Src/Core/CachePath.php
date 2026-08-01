@@ -7,36 +7,29 @@ use NCache\Exceptions\FailedCreationDirException;
 
 final class CachePath
 {
+    private string $path = '';
     public function __construct(
-        private readonly string $path,
+        private readonly string $basePath,
         private readonly int $permission = 0755
-    ) {}
+    ) {
+        $this->path = $this->basePath;
+      }
 
     /**
      * Retourne une nouvelle instance avec un sous-dossier ajouté.
      */
-    public function dir(string $dir): static
+    public function dir(string $dir): CachePath
     {
-        $dir = trim($dir, "/\\");
-
-        if ($dir === '') {
-            return new static(
-                $this->path,
-                $this->permission
-            );
-        }
-
-        return new static(
-            rtrim($this->path, "/\\")
+        $clone = clone $this;
+        $clone->path = empty($dir) ? $clone->basePath : 
+            rtrim($clone->basePath, "/\\")
             . DIRECTORY_SEPARATOR
-            . $dir,
-            $this->permission
-        );
+            . trim($dir,'/\\'); 
+
+       return $clone;
     }
 
     /**
-     * Retourne le chemin et crée le dossier s'il n'existe pas.
-     *
      * @throws FailedCreationDirException
      */
     public function getPath(): string
@@ -62,9 +55,6 @@ final class CachePath
         return $this->path;
     }
 
-    /**
-     * Vérifie si le dossier existe.
-     */
     public function exists(): bool
     {
         return is_dir($this->path);
@@ -74,4 +64,24 @@ final class CachePath
     {
         return $this->path;
     }
+
+    public function geBasePath():string{
+        return $this->basePath;
+    }
 }
+
+//  $dir = trim($dir, "/\\");
+
+//         if ($dir === '') {
+//             return new static(
+//                 $this->path,
+//                 $this->permission
+//             );
+//         }
+
+//         return new static(
+//             rtrim($this->path, "/\\")
+//             . DIRECTORY_SEPARATOR
+//             . $dir,
+//             $this->permission
+//         );

@@ -68,9 +68,7 @@ final class CacheItemTest extends TestCase
         );
 
         self::assertSame(
-            [
                 ['id' => 1, 'name' => 'Noga'],
-            ],
             $item->getData()
         );
     }
@@ -80,17 +78,20 @@ final class CacheItemTest extends TestCase
         $item = $this->createItem('users');
 
         $item->setData(
-            ['id' => 1, 'name' => 'Noga'],
-        );
-
-        $item->setData(
-            ['id' => 2, 'name' => 'Germainio'],
-        );
-
-        self::assertSame(
             [
+                ['id' => 1, 'name' => 'Noga']
+            ]
+        );
+
+        $item->appendData(
+            [
+                ['id' => 2, 'name' => 'Germainio']
+            ]
+        );
+
+        self::assertSame([
                 ['id' => 1, 'name' => 'Noga'],
-                ['id' => 2, 'name' => 'Germainio'],
+                ['id' => 2, 'name' => 'Germainio']
             ],
             $item->getData()
         );
@@ -115,7 +116,7 @@ final class CacheItemTest extends TestCase
         $item->setSignature($signatureData);
 
         self::assertSame(
-            hash('sha256', serialize($signatureData)),
+            hash('xxh128', serialize($signatureData)),
             $item->getSignature()
         );
     }
@@ -212,15 +213,13 @@ final class CacheItemTest extends TestCase
             $result['key']
         );
         self::assertSame(
-            hash('sha256', 'users-version-1'),
+            hash('xxh128', 'users-version-1'),
             $result['signature']
         );
         self::assertSame(3600, $result['ttl']);
         self::assertIsInt($result['expiresAt']);
-        self::assertSame(
-            [
-                ['id' => 1, 'name' => 'Noga'],
-            ],
+        self::assertSame(    
+            ['id' => 1, 'name' => 'Noga'],
             $result['data']
         );
     }

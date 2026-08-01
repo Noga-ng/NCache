@@ -310,7 +310,7 @@ final class JsonCacheTest extends TestCase
         $result = $secondDriver->get();
 
         self::assertSame(
-            [['version' => 2]],
+            ['version' => 2],
             $result['data']
         );
     }

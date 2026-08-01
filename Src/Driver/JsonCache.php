@@ -73,11 +73,13 @@ final class JsonCache extends CacheDriver{
     }
 
     public function delete(): bool{
-        return $this->cacheCleaner->delete($this->buildFile());
+        return $this->cacheCleaner
+                ->delete($this->buildFile());
     }
 
     public function clear(): int{
-        return $this->cacheCleaner->clear($this->item->path());
+        return $this->cacheCleaner
+                ->clear($this->item->path());
     }
 
 }

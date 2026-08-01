@@ -3,3 +3,4 @@ DOCS/
 var/
 .vscode/
 cache.txt
+.phpunit.result.cache

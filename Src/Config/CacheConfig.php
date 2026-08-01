@@ -8,19 +8,22 @@ final class CacheConfig{
     private string $basePath = '';
     public function __construct(
         private readonly string $baseDir
-    ){   
+    )
+    {   
         $this->basePath = trim($this->baseDir,"/");
     }
 
     public static function config(string $baseDir = ''):CacheConfig{
-        if(self::$instance === null){
-            self::$instance = new CacheConfig($baseDir);
-        }
-        return self::$instance;
+        return self::$instance ??= new CacheConfig($baseDir);
     }
 
     public function getBasePath():string{
         return $this->basePath;
+    }
+
+    public function inspect(bool $autoDelete = false):static
+    {
+        return $this;
     }
 
 }

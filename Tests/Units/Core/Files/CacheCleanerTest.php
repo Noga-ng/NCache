@@ -32,7 +32,7 @@ final class CacheCleanerTest extends TestCase
 
         self::assertSame(
             ['php', 'json'],
-            $cleaner->extensionAllowed()
+            $cleaner->getExtensionAllowed()
         );
     }
 
@@ -108,7 +108,7 @@ final class CacheCleanerTest extends TestCase
 
     public function testClearDoesNotDeleteDirectories(): void
     {
-        mkdir($this->directory . '/cache');
+        mkdir("{$this->directory}/cache");
 
         $this->createFile(
             'cache/test.php',
@@ -120,7 +120,7 @@ final class CacheCleanerTest extends TestCase
         $cleaner->clear($this->directory);
 
         self::assertDirectoryExists(
-            $this->directory . '/cache'
+            "{$this->directory}/cache"
         );
     }
 
@@ -128,7 +128,7 @@ final class CacheCleanerTest extends TestCase
 {
     if (!function_exists('symlink')) {
         self::markTestSkipped(
-            'Les liens symboliques ne sont pas disponibles.'
+            'The link symbolic is not available.'
         );
     }
 
@@ -137,7 +137,7 @@ final class CacheCleanerTest extends TestCase
 
     if (!@symlink($target, $link)) {
         self::markTestSkipped(
-            'La création de liens symboliques n’est pas autorisée.'
+            'creation link symbolic is not authorized.'
         );
     }
 
