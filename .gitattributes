@@ -10,7 +10,6 @@
 /Tests export-ignore
 /phpunit.xml export-ignore
 /.phpunit.cache export-ignore
-/junit.xml export-ignore
 # Documentation (si tu ne souhaites pas l'inclure)
 #/docs export-ignore
 
