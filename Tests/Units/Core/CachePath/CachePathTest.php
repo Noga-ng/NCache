@@ -12,7 +12,7 @@
  */
 declare(strict_types=1);
 
-namespace NCache\Tests\Units\Core;
+namespace NCache\Tests\Units\Core\CachePath;
 
 use NCache\Core\CachePath;
 use PHPUnit\Framework\TestCase;

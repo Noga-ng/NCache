@@ -1,34 +1,31 @@
 <?php
 
+use NCache\Config\CacheConfig;
 use NCache\Config\Ttl\Duration;
+use NCache\Core\Files\CacheCleaner;
+use NCache\Core\Files\CacheDirectory;
 use NCache\Enum\CType;
 use NCache\NCache;
 
 require __DIR__."/../vendor/autoload.php";
 
-Ncache::config(__DIR__."/../cache")->inspect();
+NCache::config(__DIR__."/../cache");
 
-$data = [
-"Pays"=>"madagascar",
-"Lang"=>"Malagasy",
-"City"=>"Toamasina"
-];
+$data = ["noga","germainio","ultra max filex"];
 
-$append = ["Postal"=>501];
-$append2 = [12=>125.2];
+$append = ["theme"=>"black forever"];
 
-$n = NCache::key("info",CType::JSON)->dir("Json");
-
-$n->ttl(Duration::make(12,24,30));
-
-$n->signature($data);
+$n = NCache::key("noga",CType::JSON)->dir("json");
 
 $n->set($data);
 
 $n->append($append);
 
-$n->put();
+$n->signature($data+$append)
+    ->ttl(Duration::month(2));
 
-$s = $n->get();
+$r = $n->show();
 
-print_r($s);
+$s = $n->put();
+
+print_r([$r,$s]);

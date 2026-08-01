@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace NCache\Tests\Units\Core\Files;
 
 use NCache\Core\Files\CacheCleaner;
+use NCache\Core\Files\WriteFile;
 use PHPUnit\Framework\TestCase;
 
 final class CacheCleanerTest extends TestCase
@@ -13,11 +14,13 @@ final class CacheCleanerTest extends TestCase
 
     protected function setUp(): void
     {
+        parent::setUp();
+
         $this->directory = sys_get_temp_dir()
             . DIRECTORY_SEPARATOR
             . 'ncache-cleaner-'
             . bin2hex(random_bytes(8));
-
+ 
         mkdir($this->directory, 0777, true);
     }
 
@@ -52,7 +55,7 @@ final class CacheCleanerTest extends TestCase
 
         self::assertTrue(
             $cleaner->delete(
-                $this->directory . '/missing.php'
+                "{$this->directory}/missing.php"
             )
         );
     }
@@ -77,10 +80,9 @@ final class CacheCleanerTest extends TestCase
 
     public function testClearDeletesFilesRecursively(): void
     {
-        mkdir($this->directory . '/sub');
+        mkdir("{$this->directory}/sub");
 
-        $file = $this->directory
-            . '/sub/cache.php';
+        $file = "{$this->directory}/sub/cache.php";
 
         file_put_contents($file, 'cache');
 
@@ -88,7 +90,7 @@ final class CacheCleanerTest extends TestCase
 
         self::assertSame(
             1,
-            $cleaner->clear($this->directory)
+            $cleaner->clear("{$this->directory}")
         );
 
         self::assertFileDoesNotExist($file);
@@ -157,6 +159,7 @@ final class CacheCleanerTest extends TestCase
         is_link($link),
         'CacheCleaner ne doit pas supprimer le lien symbolique.'
     );
+
 }
 
     public function testDeleteCanBeCalledTwice(): void
@@ -183,7 +186,7 @@ final class CacheCleanerTest extends TestCase
             mkdir($dir, 0777, true);
         }
 
-        file_put_contents($file, $content);
+        @(new WriteFile($file, $content))->save();
 
         return $file;
     }

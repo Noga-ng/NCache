@@ -34,6 +34,10 @@ final class CacheCleaner
         $files = new CacheDirectory([$dir]);
 
         foreach ($files->iterate() as $file) {
+            if ($file->isLink()) {
+                continue;
+            }
+
             if (
                 $file->isFile() &&
                 $this->isExtensionAllowed(
@@ -64,8 +68,8 @@ final class CacheCleaner
     public function isExtensionAllowed(string $extension): bool
     {
         return \in_array(
-            $extension, 
-            $this->extensionAllowed, 
+            $extension,
+            $this->extensionAllowed,
             true
         );
     }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NCache\Tests\Units\Core;
+namespace NCache\Tests\Units\Core\CacheItem;
 
 use NCache\Core\CacheItem\CacheItem;
 use NCache\Core\CachePath;

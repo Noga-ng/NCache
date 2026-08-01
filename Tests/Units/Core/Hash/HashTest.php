@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NCache\Tests\Units\Core;
+namespace NCache\Tests\Units\Core\Hash;
 
 use NCache\Core\Hash;
 use PHPUnit\Framework\TestCase;
