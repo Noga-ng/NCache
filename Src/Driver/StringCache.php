@@ -94,12 +94,14 @@ final class StringCache extends CacheDriver{
        return $content;
     }
 
-    /**
-     * @return string
-     */
-    public function buildFile():string{
-        return (string)$this->item->file();
-    }
+  public function buildFile(): string
+{
+    $file = (string) $this->item->file();
+
+    return str_ends_with($file, '.txt')
+        ? $file
+        : "{$file}.txt";
+}
 
     public function getFile(): string{
         return $this->buildFile();

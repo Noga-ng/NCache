@@ -1,4 +1,9 @@
 {
+  "name": "noga-ng/ncache",
+  "description": "A multiple drivers cache.",
+  "type": "library",
+  "license": "MIT",
+  "homepage": "https://github.com/noga-ng/Ncache",
   "authors": [
     {
       "name": "noga-ng",
@@ -7,8 +12,7 @@
   ],
 
   "require": {
-    "php": ">=8.1",
-    "psr/simple-cache": "^3.0"
+    "php": ">=8.1"
   },
 
   "autoload": {

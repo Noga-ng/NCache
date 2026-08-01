@@ -49,7 +49,7 @@ interface CacheInterface{
      */
     public function append(mixed $data):static;
 
-    public function store():bool;
+    public function put():bool;
 
     /**
      * @return string|int|array<mixed>|null

@@ -27,7 +27,7 @@ $n->set($data);
 
 $n->append($append);
 
-$n->store();
+$n->put();
 
 $s = $n->get();
 

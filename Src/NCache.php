@@ -98,7 +98,7 @@ final class NCache implements CacheInterface
         return $this->driver()->exists();
     }
 
-    public function store(): bool
+    public function put(): bool
     {
         return $this->driver()->save();
     }

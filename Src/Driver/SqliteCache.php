@@ -1,6 +1,15 @@
 <?php 
 declare(strict_types=1);
 
+/**
+ * INSERT INTO caches (...)
+*VALUES (...)
+ *ON CONFLICT(keys) DO UPDATE SET
+  *  signature = excluded.signature,
+   * ttl = excluded.ttl,
+    *expiresAt = excluded.expiresAt,
+    *data = excluded.data
+ */
 namespace NCache\Driver;
 
 use NCache\Config\Connection\SQLitePdo;

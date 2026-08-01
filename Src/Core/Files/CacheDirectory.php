@@ -14,12 +14,6 @@ final class CacheDirectory
 {
 
     /**
-     *
-     * @var list<RecursiveIteratorIterator<RecursiveDirectoryIterator>>
-     */
-    private array $recursive = [];
-
-    /**
      * @param list<string> $directory
      */
     public function __construct(
@@ -31,25 +25,32 @@ final class CacheDirectory
      *
      * @return list<RecursiveIteratorIterator<RecursiveDirectoryIterator>>
      */
-    private function recursiveDirectory(array $directory): array
-    {
-        foreach ($directory as $dir) {
-           
-            $this->isValidDirectory($dir);
-      
-            $directoryIterator = new RecursiveDirectoryIterator(
+ private function recursiveDirectory(array $directory): array
+{
+     /**
+     *
+     * @var list<RecursiveIteratorIterator<RecursiveDirectoryIterator>>
+     */
+    $recursive = [];
+
+    foreach ($directory as $dir) {
+        $this->isValidDirectory($dir);
+
+        $directoryIterator =
+            new RecursiveDirectoryIterator(
                 $dir,
                 FilesystemIterator::SKIP_DOTS
             );
 
-            $this->recursive[] = new RecursiveIteratorIterator(
+        $recursive[] =
+            new RecursiveIteratorIterator(
                 $directoryIterator,
                 RecursiveIteratorIterator::CHILD_FIRST
             );
-        }
-
-        return $this->recursive;
     }
+
+    return $recursive;
+}
 
     private function isValidDirectory(string $directory):void
     {

@@ -21,7 +21,7 @@ final class CachePath
     public function dir(string $dir): CachePath
     {
         $clone = clone $this;
-        $clone->path = empty($dir) ? $clone->basePath : 
+        $clone->path = empty($dir) ? rtrim($clone->basePath,'/\\') : 
             rtrim($clone->basePath, "/\\")
             . DIRECTORY_SEPARATOR
             . trim($dir,'/\\'); 
@@ -36,8 +36,13 @@ final class CachePath
     {
         if (
             !is_dir($this->path)
-            && !mkdir($this->path, $this->permission, true)
-            && !is_dir($this->path)
+            && !mkdir(
+                $this->path, 
+            $this->permission, 
+            true
+            )
+            && 
+            !is_dir($this->path)
         ) {
             throw new FailedCreationDirException(
                 "Failed to create cache directory: {$this->path}"
@@ -66,22 +71,9 @@ final class CachePath
     }
 
     public function geBasePath():string{
-        return $this->basePath;
+        return rtrim(
+            $this->basePath,
+            '/\\'
+        );
     }
 }
-
-//  $dir = trim($dir, "/\\");
-
-//         if ($dir === '') {
-//             return new static(
-//                 $this->path,
-//                 $this->permission
-//             );
-//         }
-
-//         return new static(
-//             rtrim($this->path, "/\\")
-//             . DIRECTORY_SEPARATOR
-//             . $dir,
-//             $this->permission
-//         );

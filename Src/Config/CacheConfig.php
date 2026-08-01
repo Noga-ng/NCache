@@ -26,4 +26,8 @@ final class CacheConfig{
         return $this;
     }
 
+    public static function resetInstance():void{
+        self::$instance = null;
+    }
+
 }

@@ -11,14 +11,14 @@
          >
 
     <testsuites>
-        <testsuite name="Builder SQL Suite">
+        <testsuite name="NCache Tests Suite">
             <directory>./Tests</directory>
         </testsuite>
     </testsuites>
 
     <filter>
         <whitelist>
-            <directory suffix=".php">Tests</directory>
+            <directory suffix=".php">Test</directory>
         </whitelist>
     </filter>
 

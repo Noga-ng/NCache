@@ -2,5 +2,6 @@ vendor/
 DOCS/
 var/
 .vscode/
+cache/
 cache.txt
 .phpunit.result.cache
