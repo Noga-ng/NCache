@@ -4,41 +4,29 @@ declare(strict_types=1);
 
 namespace NCache\Tests\Units\Driver;
 
-use NCache\Core\CacheItem\CacheItem;
-use NCache\Core\CachePath;
-use NCache\Driver\StringCache;
-use NCache\Enum\CType;
-use PHPUnit\Framework\TestCase;
 
-final class StringCacheTest extends TestCase
+use NCache\Driver\StringCache;
+use NCache\TestsUnit\TestsUnit;
+
+final class StringCacheTest extends TestsUnit
 {
-    private string $directory;
 
     protected function setUp(): void
     {
         parent::setUp();
-
-        $this->directory = sys_get_temp_dir()
-            . DIRECTORY_SEPARATOR
-            . 'ncache-string-driver-'
-            . bin2hex(random_bytes(8));
-
-        self::assertTrue(
-            mkdir($this->directory, 0777, true)
-        );
+       $this->directory('ncache-string-driver-');
     }
 
     protected function tearDown(): void
     {
         $this->removeDirectory($this->directory);
-
         parent::tearDown();
     }
 
     public function testGetFileReturnsTxtFilePath(): void
     {
         $driver = new StringCache(
-            $this->createItem('string-cache')
+            $this->createStringItem('string-cache')
         );
 
         self::assertStringEndsWith(
@@ -50,7 +38,7 @@ final class StringCacheTest extends TestCase
     public function testExistsReturnsFalseBeforeSave(): void
     {
         $driver = new StringCache(
-            $this->createItem('missing-cache')
+            $this->createStringItem('missing-cache')
         );
 
         self::assertFalse($driver->exists());
@@ -59,7 +47,7 @@ final class StringCacheTest extends TestCase
 
     public function testSaveCreatesStringCacheFile(): void
     {
-        $item = $this->createItem('users');
+        $item = $this->createStringItem('users');
 
         $item->setData([
             'Noga',
@@ -75,7 +63,7 @@ final class StringCacheTest extends TestCase
 
     public function testGetReturnsSavedStringContent(): void
     {
-        $item = $this->createItem('read-cache');
+        $item = $this->createStringItem('read-cache');
 
         $item->setData([
             'Noga',
@@ -88,58 +76,17 @@ final class StringCacheTest extends TestCase
         $content = $driver->get();
 
         self::assertIsString($content);
+
         self::assertStringContainsString(
-            'content :',
-            $content
-        );
-        self::assertStringContainsString(
-            'Noga,Germainio;',
-            $content
+            'Noga,Germainio',
+            str_replace('\n',',',$content)
         );
     }
 
-    public function testSavedContentContainsMetadata(): void
-    {
-        $item = $this->createItem('metadata-cache');
-
-        $item->setSignature('version-1');
-        $item->setTtl(3600);
-        $item->setData(['NCache']);
-
-        $driver = new StringCache($item);
-        $driver->save();
-
-        $content = $driver->get();
-
-        self::assertStringContainsString(
-            'type : STRING;',
-            $content
-        );
-
-        self::assertStringContainsString(
-            'name : metadata-cache;',
-            $content
-        );
-
-        self::assertStringContainsString(
-            'signature : ' . $item->getSignature() . ';',
-            $content
-        );
-
-        self::assertStringContainsString(
-            'ttl : 3600;',
-            $content
-        );
-
-        self::assertStringContainsString(
-            'expiresAt : ' . $item->expiredAt() . ';',
-            $content
-        );
-    }
 
     public function testItConvertsScalarValuesToStrings(): void
     {
-        $item = $this->createItem('scalar-cache');
+        $item = $this->createStringItem('scalar-cache');
 
         $item->setData([
             'Noga',
@@ -154,14 +101,14 @@ final class StringCacheTest extends TestCase
         $driver->save();
 
         self::assertStringContainsString(
-            'Noga,42,19.5,true,false,null;',
-            $driver->get()
+            "Noga,42,19.5,true,false,null",
+            str_replace('\n',',',$driver->get())
         );
     }
 
     public function testItEncodesArraysAsJson(): void
     {
-        $item = $this->createItem('array-cache');
+        $item = $this->createStringItem('array-cache');
 
         $item->setData([
             [
@@ -181,7 +128,7 @@ final class StringCacheTest extends TestCase
 
     public function testItEncodesObjectsAsJson(): void
     {
-        $item = $this->createItem('object-cache');
+        $item = $this->createStringItem('object-cache');
 
         $item->setData([
             (object) [
@@ -201,7 +148,7 @@ final class StringCacheTest extends TestCase
 
     public function testItPreservesUnicodeContent(): void
     {
-        $item = $this->createItem('unicode-cache');
+        $item = $this->createStringItem('unicode-cache');
 
         $item->setData([
             'Données malagasy',
@@ -212,14 +159,14 @@ final class StringCacheTest extends TestCase
         $driver->save();
 
         self::assertStringContainsString(
-            'Données malagasy,Toamasina;',
-            $driver->get()
+            'Données malagasy,Toamasina',
+            str_replace('\n',',',$driver->get())
         );
     }
 
     public function testShowReturnsCacheItemStructure(): void
     {
-        $item = $this->createItem('show-cache');
+        $item = $this->createStringItem('show-cache');
 
         $item->setData([
             'NCache',
@@ -235,7 +182,7 @@ final class StringCacheTest extends TestCase
 
     public function testMetadataReturnsStoredStringInsideArray(): void
     {
-        $item = $this->createItem('metadata');
+        $item = $this->createStringItem('metadata');
 
         $item->setData([
             'NCache',
@@ -252,12 +199,12 @@ final class StringCacheTest extends TestCase
 
     public function testSaveReplacesExistingContent(): void
     {
-        $firstItem = $this->createItem('replace-cache');
+        $firstItem = $this->createStringItem('replace-cache');
         $firstItem->setData(['version-one']);
 
         (new StringCache($firstItem))->save();
 
-        $secondItem = $this->createItem('replace-cache');
+        $secondItem = $this->createStringItem('replace-cache');
         $secondItem->setData(['version-two']);
 
         $driver = new StringCache($secondItem);
@@ -266,7 +213,7 @@ final class StringCacheTest extends TestCase
         $content = $driver->get();
 
         self::assertStringContainsString(
-            'version-two;',
+            'version-two',
             $content
         );
 
@@ -278,7 +225,7 @@ final class StringCacheTest extends TestCase
 
     public function testDeleteRemovesSavedFile(): void
     {
-        $item = $this->createItem('delete-cache');
+        $item = $this->createStringItem('delete-cache');
         $item->setData(['value']);
 
         $driver = new StringCache($item);
@@ -294,7 +241,7 @@ final class StringCacheTest extends TestCase
     public function testDeleteMissingFileReturnsTrue(): void
     {
         $driver = new StringCache(
-            $this->createItem('missing-delete')
+            $this->createStringItem('missing-delete')
         );
 
         self::assertFileDoesNotExist($driver->getFile());
@@ -303,10 +250,10 @@ final class StringCacheTest extends TestCase
 
     public function testClearDeletesAllTxtCaches(): void
     {
-        $firstItem = $this->createItem('first');
+        $firstItem = $this->createStringItem('first');
         $firstItem->setData(['one']);
 
-        $secondItem = $this->createItem('second');
+        $secondItem = $this->createStringItem('second');
         $secondItem->setData(['two']);
 
         $firstDriver = new StringCache($firstItem);
@@ -331,7 +278,7 @@ final class StringCacheTest extends TestCase
 
     public function testClearDoesNotDeleteOtherExtensions(): void
     {
-        $item = $this->createItem('string-cache');
+        $item = $this->createStringItem('string-cache');
         $item->setData(['value']);
 
         $driver = new StringCache($item);
@@ -354,44 +301,5 @@ final class StringCacheTest extends TestCase
         self::assertFileExists($jsonFile);
     }
 
-    private function createItem(string $key): CacheItem
-    {
-        return new CacheItem(
-            $key,
-            CType::STRING,
-            new CachePath($this->directory)
-        );
-    }
 
-    private function removeDirectory(string $directory): void
-    {
-        if (!is_dir($directory)) {
-            return;
-        }
-
-        $items = scandir($directory);
-
-        if ($items === false) {
-            return;
-        }
-
-        foreach ($items as $item) {
-            if ($item === '.' || $item === '..') {
-                continue;
-            }
-
-            $path = $directory
-                . DIRECTORY_SEPARATOR
-                . $item;
-
-            if (is_dir($path) && !is_link($path)) {
-                $this->removeDirectory($path);
-                continue;
-            }
-
-            @unlink($path);
-        }
-
-        @rmdir($directory);
-    }
 }

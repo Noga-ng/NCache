@@ -14,25 +14,20 @@ namespace NCache\Tests\Units\Core\Files;
 
 use NCache\Core\Files\WriteFile;
 use NCache\Exceptions\FailedWriteCacheException;
-use PHPUnit\Framework\TestCase;
+use NCache\TestsUnit\TestsUnit;
 
-final class WriteFileTest extends TestCase
+final class WriteFileTest extends TestsUnit
 {
-    private string $directory;
-
     protected function setUp(): void
     {
-        $this->directory = sys_get_temp_dir()
-            . DIRECTORY_SEPARATOR
-            . 'ncache-write-file-tests-'
-            . bin2hex(random_bytes(8));
-
-        mkdir($this->directory, 0777, true);
+        parent::setUp();
+        $this->directory('ncache-write-file-tests-');
     }
 
     protected function tearDown(): void
     {
         $this->removeDirectory($this->directory);
+        parent::tearDown();
     }
 
     public function testSaveCreatesTheTargetFile(): void
@@ -292,37 +287,4 @@ final class WriteFileTest extends TestCase
         self::assertIsReadable($file);
     }
 
-    private function removeDirectory(string $directory): void
-    {
-        if (!is_dir($directory)) {
-            return;
-        }
-
-        $items = scandir($directory);
-
-        if ($items === false) {
-            return;
-        }
-
-        foreach ($items as $item) {
-            if ($item === '.' || $item === '..') {
-                continue;
-            }
-
-            $path = $directory
-                . DIRECTORY_SEPARATOR
-                . $item;
-
-            if (is_dir($path)) {
-                $this->removeDirectory($path);
-                continue;
-            }
-
-            @chmod($path, 0777);
-            @unlink($path);
-        }
-
-        @chmod($directory, 0777);
-        @rmdir($directory);
-    }
 }

@@ -1,41 +1,50 @@
-<?php
-declare (strict_types = 1);
+<?php declare(strict_types=1);
 
 namespace NCache;
 
 use NCache\Config\CacheConfig;
 use NCache\Contract\CacheInterface;
+use NCache\Contract\Clock;
 use NCache\Core\CacheItem\CacheItem;
+use NCache\Core\Clock\SystemClock;
+use NCache\Core\TtlManager\TtlManager;
 use NCache\Core\CachePath;
 use NCache\Core\Hash;
 use NCache\Driver\CacheDriver;
 use NCache\Enum\CType;
+use NCache\Exceptions\CacheHandleException;
+use NCache\Exceptions\InvalidCacheArgumentException;
+use NCache\Registry\CacheRegistry;
 use NCache\Registry\DriverRegistry;
+use Throwable;
 
 /**
- * @phpstan-type ItemData array<array-key,mixed>|string|int|bool|float
+ * @phpstan-type ItemData array<array-key,mixed>|string|int|bool|float|null
  */
 final class NCache implements CacheInterface
 {
     private CacheItem $cacheItem;
+    private Clock $clock;
 
     /**
-     * @param non-empty-string $key
+     * @param string $key
      * @param CType $type
      */
     private function __construct(string $key, CType $type)
     {
-        $basePath        = new CachePath(CacheConfig::config()->getBasePath());
+        $basePath = new CachePath(CacheConfig::config()->getBasePath());
         $this->cacheItem = new CacheItem($key, $type, $basePath);
+        $this->clock = new SystemClock();
     }
 
     /**
-     * @param non-empty-string $key
+     * @param string $key
      * @param CType $type
      * @return static
      */
     public static function key(string $key, CType $type): static
     {
+        self::obligatorKey($key);
         $instance = new NCache($key, $type);
         return $instance;
     }
@@ -64,12 +73,12 @@ final class NCache implements CacheInterface
     }
 
     /**
-     * @param non-negative-int $ttl
+     * @param positive-int|null $ttl
      * @return static
      */
-    public function ttl(int $ttl): static
+    public function ttl(?int $ttl): static
     {
-        $this->cacheItem->setTtl($ttl);
+        $this->cacheItem->setTtl($ttl, $this->clock);
         return $this;
     }
 
@@ -95,12 +104,49 @@ final class NCache implements CacheInterface
 
     public function has(): bool
     {
+        $registry = $this->registry();
+
+        if (!$registry->has()) {
+            return false;
+        }
+
+        if ($this->ttlManager($registry)->isExpired()) {
+            $this->delete();
+
+            return false;
+        }
+
         return $this->driver()->exists();
     }
 
     public function put(): bool
     {
-        return $this->driver()->save();
+        try {
+            $driver = $this->driver();
+            $registry = $this->registry();
+
+            $registry->setFile($driver->getFile());
+
+            $this
+                ->ttlManager($registry)
+                ->preserveStoredExpiration();
+
+            if (!$driver->save()) {
+                return false;
+            }
+
+            if (!$registry->save()) {
+                $driver->delete();
+
+                return false;
+            }
+
+            return true;
+        } catch (Throwable $e) {
+            CacheHandleException::handle($e);
+
+            return false;
+        }
     }
 
     /**
@@ -108,8 +154,45 @@ final class NCache implements CacheInterface
      */
     public function get(): mixed
     {
-        $data = $this->driver()->get();
-        return $data ?? null;
+        $registry = $this->registry();
+
+        if (!$registry->has()) {
+            return null;
+        }
+
+        $driver = $this->driver();
+
+        if (!$driver->exists()) {
+            $registry->remove();
+
+            return null;
+        }
+
+        if ($this->ttlManager($registry)->isExpired()) {
+            $driver->delete();
+            $registry->remove();
+
+            return null;
+        }
+
+        return $driver->get();
+    }
+
+
+    /**
+     * @return array<string, array{
+     * type: string,     
+     * name: string, 
+     * key: string, 
+     * file: string|null, 
+     * signature: string|null, 
+     * ttl: int|null, 
+     * expiresAt: int|null
+     * }>
+     */
+    public function getRegistry():array
+    {
+        return $this->registry()->getAll();
     }
 
     /**
@@ -120,9 +203,27 @@ final class NCache implements CacheInterface
         return $this->cacheItem->toArray();
     }
 
+    public function ttlRemaining():?int
+    {
+        return $this->ttlManager(
+            $this->registry()
+            )->remaining();
+    }
+
+    public function ttlState():?string{
+        return $this->ttlManager($this->registry())->state();
+    }
+
     public function delete(): bool
     {
-        return $this->driver()->delete();
+        $driver = $this->driver();
+        $registry = $this->registry();
+
+        if (!$driver->delete()) {
+            return false;
+        }
+
+        return $registry->remove();
     }
 
     /**
@@ -130,11 +231,19 @@ final class NCache implements CacheInterface
      * @param string $dir
      * @return int
      */
-    public static function clear(CType $type, string $dir = ""): int
+    public static function clear(CType $type, string $dir = ''): int
     {
-        $instance = new self("__key__", $type);
-        $instance->cacheItem->setDir($dir);
-        return $instance->driver()->clear();
+        $instance = new self('__internal__', $type);
+
+        if ($dir !== '') {
+            $instance->cacheItem->setDir($dir);
+        }
+
+        $deleted = $instance->driver()->clear();
+
+        $instance->registry()->removeMissing();
+
+        return $deleted;
     }
 
     /**
@@ -143,12 +252,14 @@ final class NCache implements CacheInterface
      */
     public function hasValidSignature(mixed $data): bool
     {
+        $registry = $this->registry();
         $signature = (new Hash($data))->get();
-        $cache     = $this->driver()->metaData();
+        $cache = $registry->get();
 
         return (isset($cache['signature']) &&
             $cache['signature'] === $signature);
     }
+
 
     /**
      * @return CacheDriver
@@ -156,6 +267,22 @@ final class NCache implements CacheInterface
     private function driver(): CacheDriver
     {
         return DriverRegistry::make(
+            $this->cacheItem
+        );
+    }
+
+    private function ttlManager(CacheRegistry $cacheRegistry): TtlManager
+    {
+        return new TtlManager(
+            $this->cacheItem,
+            $cacheRegistry,
+            $this->clock
+        );
+    }
+
+    private function registry(): CacheRegistry
+    {
+        return new CacheRegistry(
             $this->cacheItem
         );
     }
@@ -169,4 +296,22 @@ final class NCache implements CacheInterface
         return CacheConfig::config($baseDir);
     }
 
+    /**
+     * @param null|string $key
+     * @throws InvalidCacheArgumentException
+     * @return void
+     */
+    private static function obligatorKey(?string $key = null):void{
+        if($key === null){
+              throw new InvalidCacheArgumentException(
+                "Key cannot be empty"
+        );
+
+        }
+      
+    }
+
+    public function item():CacheItem{
+        return $this->cacheItem;
+    }
 }

@@ -10,13 +10,11 @@ use Throwable;
 
 final class WriteFile
 {
-    
     private string $tmp = '';
     public function __construct(
         private readonly string $file,
         private readonly string $data
-    ) {
-    }
+    ) {}
 
     private function tmp():string{
         $file = dirname($this->file);
@@ -54,7 +52,6 @@ final class WriteFile
                 "The directory '{$directory}' is not writable."
             );
         }
-
         $mode = 'xb';
         $handle = fopen($target, $mode);
 

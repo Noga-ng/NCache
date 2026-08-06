@@ -22,36 +22,27 @@ use NCache\Core\CacheItem\CacheItem;
 use NCache\Core\CachePath;
 use NCache\Driver\JsonCache;
 use NCache\Enum\CType;
-use PHPUnit\Framework\TestCase;
+use NCache\TestsUnit\TestsUnit;
 
-final class JsonCacheTest extends TestCase
+final class JsonCacheTest extends TestsUnit
 {
-    private string $directory;
 
     protected function setUp(): void
     {
         parent::setUp();
-
-        $this->directory = sys_get_temp_dir()
-            . DIRECTORY_SEPARATOR
-            . 'ncache-json-driver-'
-            . bin2hex(random_bytes(8));
-
-        self::assertTrue(
-            mkdir($this->directory, 0777, true)
-        );
+       $this->directory('ncache-json-driver');
     }
 
     protected function tearDown(): void
     {
         $this->removeDirectory($this->directory);
-
         parent::tearDown();
     }
 
+
     public function testGetFileReturnsJsonFilePath(): void
     {
-        $item = $this->createItem('user-cache');
+        $item = $this->createJsonItem('user-cache');
         $driver = new JsonCache($item);
 
         self::assertSame(
@@ -62,7 +53,7 @@ final class JsonCacheTest extends TestCase
 
     public function testGetFileDoesNotDuplicateJsonExtension(): void
     {
-        $item = $this->createItem('cache');
+        $item = $this->createJsonItem('cache');
 
         $expectedFile = $item->file() . '.json';
 
@@ -80,7 +71,7 @@ final class JsonCacheTest extends TestCase
     public function testExistsReturnsFalseBeforeSave(): void
     {
         $driver = new JsonCache(
-            $this->createItem('missing-cache')
+            $this->createJsonItem('missing-cache')
         );
 
         self::assertFalse($driver->exists());
@@ -88,7 +79,7 @@ final class JsonCacheTest extends TestCase
 
     public function testSaveCreatesJsonFile(): void
     {
-        $item = $this->createItem('users');
+        $item = $this->createJsonItem('users');
         $item->setData([
             'id' => 12,
             'name' => 'Noga',
@@ -103,7 +94,7 @@ final class JsonCacheTest extends TestCase
 
     public function testSaveWritesValidJson(): void
     {
-        $item = $this->createItem('valid-json');
+        $item = $this->createJsonItem('valid-json');
 
         $item->setData([
             'name' => 'Noga',
@@ -131,7 +122,7 @@ final class JsonCacheTest extends TestCase
 
     public function testSaveUsesPrettyPrintedJson(): void
 {
-    $item = $this->createItem('pretty-json');
+    $item = $this->createJsonItem('pretty-json');
 
     $item->setData([
         'name' => 'Noga',
@@ -155,10 +146,10 @@ final class JsonCacheTest extends TestCase
 
     public function testGetReturnsCompleteCacheArray(): void
     {
-        $item = $this->createItem('cache-data');
+        $item = $this->createJsonItem('cache-data');
 
         $item->setSignature('users-v1');
-        $item->setTtl(3600);
+        $item->setTtl(3600,$this->clock());
         $item->setData([
             'id' => 25,
             'name' => 'Noga',
@@ -175,7 +166,7 @@ final class JsonCacheTest extends TestCase
 
     public function testShowReturnsCurrentItemWithoutReadingFile(): void
     {
-        $item = $this->createItem('show-cache');
+        $item = $this->createJsonItem('show-cache');
 
         $item->setData([
             'framework' => 'NCache',
@@ -193,10 +184,10 @@ final class JsonCacheTest extends TestCase
 
     public function testMetadataReturnsDataWithoutCachePayload(): void
     {
-        $item = $this->createItem('metadata-cache');
+        $item = $this->createJsonItem('metadata-cache');
 
         $item->setSignature('signature');
-        $item->setTtl(120);
+        $item->setTtl(120,$this->clock());
         $item->setData([
             'secret' => 'payload',
         ]);
@@ -223,7 +214,7 @@ final class JsonCacheTest extends TestCase
 
     public function testDeleteRemovesSavedCache(): void
     {
-        $item = $this->createItem('delete-cache');
+        $item = $this->createJsonItem('delete-cache');
         $item->setData(['value' => 1]);
 
         $driver = new JsonCache($item);
@@ -239,7 +230,7 @@ final class JsonCacheTest extends TestCase
     public function testDeleteMissingCacheReturnsTrue(): void
     {
         $driver = new JsonCache(
-            $this->createItem('missing-delete')
+            $this->createJsonItem('missing-delete')
         );
 
         self::assertFileDoesNotExist($driver->getFile());
@@ -248,10 +239,11 @@ final class JsonCacheTest extends TestCase
 
     public function testClearDeletesAllJsonCachesInDirectory(): void
     {
-        $first = $this->createItem('first');
+        $type = CType::JSON;
+        $first = $this->createJsonItem('first');
         $first->setData(['id' => 1]);
 
-        $second = $this->createItem('second');
+        $second = $this->createJsonItem('second');
         $second->setData(['id' => 2]);
 
         $firstDriver = new JsonCache($first);
@@ -271,7 +263,7 @@ final class JsonCacheTest extends TestCase
 
     public function testClearDoesNotDeleteOtherExtensions(): void
     {
-        $item = $this->createItem('json-cache');
+        $item = $this->createJsonItem('json-cache');
         $item->setData(['value' => 1]);
 
         $driver = new JsonCache($item);
@@ -291,7 +283,7 @@ final class JsonCacheTest extends TestCase
 
     public function testSaveReplacesExistingCacheContent(): void
     {
-        $firstItem = $this->createItem('replace-cache');
+        $firstItem = $this->createJsonItem('replace-cache');
         $firstItem->setData([
             'version' => 1,
         ]);
@@ -299,7 +291,7 @@ final class JsonCacheTest extends TestCase
         $firstDriver = new JsonCache($firstItem);
         $firstDriver->save();
 
-        $secondItem = $this->createItem('replace-cache');
+        $secondItem = $this->createJsonItem('replace-cache');
         $secondItem->setData([
             'version' => 2,
         ]);
@@ -317,7 +309,7 @@ final class JsonCacheTest extends TestCase
 
     public function testJsonPreservesNestedDataTypes(): void
     {
-        $item = $this->createItem('nested-cache');
+        $item = $this->createJsonItem('nested-cache');
 
         $item->setData([
             'string' => 'NCache',
@@ -369,44 +361,6 @@ final class JsonCacheTest extends TestCase
         self::assertFileExists($driver->getFile());
     }
 
-    private function createItem(string $key): CacheItem
-    {
-        return new CacheItem(
-            $key,
-            CType::JSON,
-            new CachePath($this->directory)
-        );
-    }
+   
 
-    private function removeDirectory(string $directory): void
-    {
-        if (!is_dir($directory)) {
-            return;
-        }
-
-        $items = scandir($directory);
-
-        if ($items === false) {
-            return;
-        }
-
-        foreach ($items as $item) {
-            if ($item === '.' || $item === '..') {
-                continue;
-            }
-
-            $path = $directory
-                . DIRECTORY_SEPARATOR
-                . $item;
-
-            if (is_dir($path) && !is_link($path)) {
-                $this->removeDirectory($path);
-                continue;
-            }
-
-            @unlink($path);
-        }
-
-        @rmdir($directory);
-    }
 }

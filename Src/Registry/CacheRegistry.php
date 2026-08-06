@@ -11,6 +11,7 @@ use NCache\Enum\CType;
 /**
  * @phpstan-type CrEntry array{
  *     type: string,
+ *     name:string,
  *     key: string,
  *     file: string|null,
  *     signature: string|null,
@@ -22,8 +23,10 @@ use NCache\Enum\CType;
  */
 final class CacheRegistry
 {
+    private ?string $file = null;
+
     public function __construct(
-        private readonly CacheItem $item
+        private readonly CacheItem $item,
     ) {}
 
     /**
@@ -33,8 +36,9 @@ final class CacheRegistry
     {
         return [
             'type' => $this->item->typeName(),
+            'name' => $this->item->key(),
             'key' => $this->item->hashedKey(),
-            'file' => $this->item->file(),
+            'file' => $this->file,
             'signature' => $this->item->getSignature(),
             'ttl' => $this->item->ttlValue(),
             'expiresAt' => $this->item->expiredAt(),
@@ -61,6 +65,11 @@ final class CacheRegistry
             : [];
 
         return array_replace($data, $this->group());
+    }
+
+    public function setFile(?string $file): void
+    {
+        $this->file = $file;
     }
 
     private function path(): string
@@ -95,7 +104,7 @@ final class CacheRegistry
         }
 
         foreach ($data as $key => $entry) {
-            if (!\is_string($key) || !is_array($entry)) {
+            if (!\is_string($key) || !\is_array($entry)) {
                 throw new \UnexpectedValueException(
                     'Invalid cache registry entry.'
                 );
@@ -125,6 +134,15 @@ final class CacheRegistry
         ) {
             throw new \UnexpectedValueException(
                 'Registry entry type must be a string.'
+            );
+        }
+
+        if (
+            !isset($entry['name']) ||
+            !\is_string($entry['name'])
+        ) {
+            throw new \UnexpectedValueException(
+                'Registry entry name must be a string.'
             );
         }
 
@@ -169,7 +187,7 @@ final class CacheRegistry
     /**
      * @return CrRegistry
      */
-    public function getValues(): array
+    public function getAll(): array
     {
         return is_file($this->path())
             ? $this->readData()
@@ -181,7 +199,7 @@ final class CacheRegistry
      */
     public function get(): ?array
     {
-        $data = $this->getValues();
+        $data = $this->getAll();
         return $data[$this->item->hashedKey()] ?? null;
     }
 
@@ -189,22 +207,82 @@ final class CacheRegistry
     {
         return \array_key_exists(
             $this->item->hashedKey(),
-            $this->getValues()
+            $this->getAll()
         );
     }
 
     public function remove(): bool
     {
-        $data = $this->getValues();
+        $data = $this->getAll();
         $key = $this->item->hashedKey();
 
-        if (!array_key_exists($key, $data)) {
+        if (!\array_key_exists($key, $data)) {
             return true;
         }
 
         unset($data[$key]);
 
-        if ($data === []) {
+        return $this->writeData($data);
+    }
+
+    public function removeMissing(): int
+    {
+        $data = $this->getAll();
+        $count = 0;
+
+        $currentType = $this->item->typeName();
+        $currentDirectory = $this->item->path();
+
+        foreach ($data as $key => $entry) {
+            if ($entry['type'] !== $currentType) {
+                continue;
+            }
+
+            $file = $entry['file'];
+
+            if ($file === null) {
+                continue;
+            }
+
+            if (dirname($file) !== $currentDirectory) {
+                continue;
+            }
+
+            if (is_file($file)) {
+                continue;
+            }
+
+            unset($data[$key]);
+            $count++;
+        }
+
+        if ($count === 0) {
+            return 0;
+        }
+
+        $this->writeData($data);
+
+        return $count;
+    }
+
+    public function clear(): int
+    {
+        $count = \count(
+            $this->getAll()
+        );
+
+        (new CacheCleaner(['nc']))
+            ->delete($this->path());
+
+        return $count;
+    }
+
+    /**
+     * @param CrRegistry $data
+     */
+    private function writeData(array $data): bool
+    {
+       if ($data === []) {
             return (new CacheCleaner(['nc']))
                 ->delete($this->path());
         }
@@ -213,17 +291,5 @@ final class CacheRegistry
             $this->path(),
             serialize($data)
         ))->save();
-    }
-
-    public function clear(): int
-    {
-        $count = count(
-            $this->getValues()
-        );
-
-        (new CacheCleaner(['nc']))
-            ->delete($this->path());
-
-        return $count;
     }
 }

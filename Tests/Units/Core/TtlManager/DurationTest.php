@@ -1,13 +1,18 @@
-<?php
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
-namespace NCache\Tests\Units\Config\Ttl;
+namespace NCache\Tests\Units\Core\TtlManager;
 
-use NCache\Config\Ttl\Duration;
+use NCache\Core\Clock\Duration;
+use NCache\TestsUnit\TestsUnit;
 use PHPUnit\Framework\TestCase;
 
-final class DurationTest extends TestCase
+final class DurationTest extends TestsUnit
 {
+    public function testSecond(): void
+    {
+        self::assertSame(60, Duration::second(60));
+    }
+
     public function testMinutes(): void
     {
         self::assertSame(60, Duration::minutes(1));

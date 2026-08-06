@@ -49,7 +49,7 @@ final class JsonCache extends CacheDriver{
 
     public function save(): bool{
         return (new WriteFile(
-            $this->buildFile(),
+            (string)$this->buildFile(),
             $this->format()
         ))->save();
     }

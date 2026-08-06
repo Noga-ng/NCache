@@ -1,32 +1,26 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace NCache\Core\CacheItem;
 
-use NCache\Config\Ttl\Expiration;
+use NCache\Contract\Clock;
 use NCache\Core\CachePath;
 use NCache\Core\Hash;
+use NCache\Core\TtlManager\Expiration;
 use NCache\Enum\CType;
 
 /**
- * @phpstan-type ItemData array<array-key,mixed>|string|int|bool|float
+ * @phpstan-type ItemData array<array-key,mixed>|string|int|bool|float|null
  */
 final class CacheItem
 {
-    /**
-     * @var Expiration|null
-     */
+    /** @var Expiration|null */
     private ?Expiration $expiration = null;
+    private bool $ttlDefined = false;
 
-    /**
-     * @var string|null
-     */
+    /** @var string|null */
     private ?string $signature = null;
-
-    /**
-     * @var array<array-key,mixed>
-     */
+    
+    /** @var array<array-key,mixed> */
     private array $data = [];
 
     public function __construct(
@@ -60,18 +54,40 @@ final class CacheItem
     /**
      * @param ItemData $data
      */
-    public function appendData(mixed $data):void{
+    public function appendData(mixed $data): void
+    {
         $data = \is_array($data) ? $data : [$data];
-        $this->data = [...$this->data,...$data];
+        $this->data = [...$this->data, ...$data];
     }
 
     /**
      * @param non-negative-int|null $ttl
      * @return void
      */
-    public function setTtl(?int $ttl): void
+    public function setTtl(?int $ttl,Clock $clock): void
     {
-        $this->expiration = Expiration::fromTTL($ttl);
+        $this->expiration = Expiration::fromTTL($ttl,$clock);
+        $this->ttlDefined = true;
+    }
+
+    /**
+     * @param int|null $ttl
+     * @param int|null $expiration
+     * @param Clock $clock
+     * @return void
+     */
+    public function restoreExpiration(?int $ttl, ?int $expiration,Clock $clock): void
+    {
+        $this->expiration = Expiration::restore(
+            $ttl, 
+            $expiration,
+            $clock
+            );
+    }
+
+    public function ttlWasDefined(): bool
+    {
+        return $this->ttlDefined;
     }
 
     public function key(): string
@@ -99,15 +115,22 @@ final class CacheItem
         return $this->cachePath->getPath();
     }
 
-    public function basePath():string{
-        return $this->cachePath->geBasePath();
+    public function basePath(): string
+    {
+        return $this->cachePath->getBasePath();
     }
 
+    /**
+     * @return int|null
+     */
     public function ttlValue(): ?int
     {
         return $this->expiration?->ttl();
     }
 
+    /**
+     * @return int|null
+     */
     public function expiredAt(): ?int
     {
         return $this->expiration?->timestamp();
@@ -121,7 +144,7 @@ final class CacheItem
         return match ($this->type) {
             CType::REDIS => null,
             CType::SQLite => $this->path(),
-            default => rtrim($this->path(), "/\\")
+            default => rtrim($this->path(), '/\\')
                 . DIRECTORY_SEPARATOR
                 . $this->hashedKey(),
         };
@@ -130,25 +153,27 @@ final class CacheItem
     /**
      * @return string|null
      */
-    public function getSignature():?string{
+    public function getSignature(): ?string
+    {
         return $this->signature;
     }
 
     /**
      * @return array<array-key,mixed>
      */
-    public function getData():array{
+    public function getData(): array
+    {
         return $this->data;
     }
 
     /**
      * @return array{
-     * data: array<array-key,mixed>, 
-     * expiresAt: int|null, 
-     * key: string, 
-     * name: string, 
-     * signature: string|null, 
-     * ttl: int|null, 
+     * data: array<array-key,mixed>,
+     * expiresAt: int|null,
+     * key: string,
+     * name: string,
+     * signature: string|null,
+     * ttl: int|null,
      * type: string
      * }
      */
@@ -158,7 +183,7 @@ final class CacheItem
             'type' => $this->typeName(),
             'name' => $this->key(),
             'key' => $this->hashedKey(),
-            'signature' => $this->signature,
+            'signature' => $this->getSignature(),
             'ttl' => $this->ttlValue(),
             'expiresAt' => $this->expiredAt(),
             'data' => $this->data,

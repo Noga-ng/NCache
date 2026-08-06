@@ -1,31 +1,41 @@
 <?php
 
-use NCache\Config\CacheConfig;
-use NCache\Config\Ttl\Duration;
-use NCache\Core\Files\CacheCleaner;
+use NCache\Core\Clock\Duration;
 use NCache\Core\Files\CacheDirectory;
+use NCache\Core\Files\ReadFile;
 use NCache\Enum\CType;
 use NCache\NCache;
-
 require __DIR__."/../vendor/autoload.php";
 
-NCache::config(__DIR__."/../cache");
+NCache::config(__DIR__."/../Cache");
 
-$data = ["noga","germainio","ultra max filex"];
+    function normalizePath(string $path): string 
+    {
+        return str_replace(
+            ['/', '\\'],
+            DIRECTORY_SEPARATOR,
+            $path
+        );
+    }
+  function extractPaths(array $files): array
+    {
+        $paths = array_map(
+            fn (SplFileInfo $file): string =>
+                normalizePath(
+                    $file->getPathname()
+                ),
+            $files
+        );
 
-$append = ["theme"=>"black forever"];
+        sort($paths);
 
-$n = NCache::key("noga",CType::JSON)->dir("json");
+        return $paths;
+    }
 
-$n->set($data);
+    $filesPaths = [__DIR__."/Units/Driver"];
 
-$n->append($append);
+    $dir = (new CacheDirectory($filesPaths))->iterate();
 
-$n->signature($data+$append)
-    ->ttl(Duration::month(2));
+    $paths = extractPaths($dir);
 
-$r = $n->show();
-
-$s = $n->put();
-
-print_r([$r,$s]);
+    print_r($paths);

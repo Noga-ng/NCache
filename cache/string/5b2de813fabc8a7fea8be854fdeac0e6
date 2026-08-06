@@ -1,7 +1,0 @@
-type : STRING;
-name : noga;
-signature : 5b2de813fabc8a7fea8be854fdeac0e6;
-ttl : 432000;
-expiresAt : 1785667756; 
-content : 
-noga,germainio,black,red;

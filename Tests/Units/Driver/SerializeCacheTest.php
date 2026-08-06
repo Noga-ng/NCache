@@ -19,36 +19,27 @@ use NCache\Core\CacheItem\CacheItem;
 use NCache\Core\CachePath;
 use NCache\Driver\SerializeCache;
 use NCache\Enum\CType;
-use PHPUnit\Framework\TestCase;
+use NCache\TestsUnit\TestsUnit;
 
-final class SerializeCacheTest extends TestCase
+final class SerializeCacheTest extends TestsUnit
 {
-    private string $directory;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->directory = sys_get_temp_dir()
-            . DIRECTORY_SEPARATOR
-            . 'ncache-serialize-driver-'
-            . bin2hex(random_bytes(8));
-
-        self::assertTrue(
-            mkdir($this->directory, 0777, true)
-        );
+      $this->directory('ncache-serialize-driver-');
     }
 
     protected function tearDown(): void
     {
         $this->removeDirectory($this->directory);
-
         parent::tearDown();
     }
 
     public function testGetFileReturnsNcFilePath(): void
     {
-        $item = $this->createItem('user-cache');
+        $item = $this->createSerializeItem('user-cache');
         $driver = new SerializeCache($item);
 
         self::assertSame(
@@ -65,7 +56,7 @@ final class SerializeCacheTest extends TestCase
     public function testExistsReturnsFalseBeforeSave(): void
     {
         $driver = new SerializeCache(
-            $this->createItem('missing-cache')
+            $this->createSerializeItem('missing-cache')
         );
 
         self::assertFalse($driver->exists());
@@ -74,7 +65,7 @@ final class SerializeCacheTest extends TestCase
 
     public function testSaveCreatesSerializedCacheFile(): void
     {
-        $item = $this->createItem('users');
+        $item = $this->createSerializeItem('users');
 
         $item->setData([
             'id' => 12,
@@ -90,7 +81,7 @@ final class SerializeCacheTest extends TestCase
 
     public function testSaveWritesValidSerializedData(): void
     {
-        $item = $this->createItem('valid-serialized-data');
+        $item = $this->createSerializeItem('valid-serialized-data');
 
         $item->setData([
             'name' => 'Noga',
@@ -116,10 +107,10 @@ final class SerializeCacheTest extends TestCase
 
     public function testGetReturnsCompleteCacheArray(): void
     {
-        $item = $this->createItem('complete-cache');
+        $item = $this->createSerializeItem('complete-cache');
 
         $item->setSignature('users-v1');
-        $item->setTtl(3600);
+        $item->setTtl(3600,$this->clock());
         $item->setData([
             'id' => 25,
             'name' => 'Noga',
@@ -136,7 +127,7 @@ final class SerializeCacheTest extends TestCase
 
     public function testShowReturnsCurrentItemWithoutReadingFile(): void
     {
-        $item = $this->createItem('show-cache');
+        $item = $this->createSerializeItem('show-cache');
 
         $item->setData([
             'framework' => 'NCache',
@@ -154,10 +145,10 @@ final class SerializeCacheTest extends TestCase
 
     public function testMetadataReturnsCacheInformationWithoutPayload(): void
     {
-        $item = $this->createItem('metadata-cache');
+        $item = $this->createSerializeItem('metadata-cache');
 
         $item->setSignature('serialized-signature');
-        $item->setTtl(120);
+        $item->setTtl(120,$this->clock());
         $item->setData([
             'secret' => 'payload',
         ]);
@@ -184,7 +175,7 @@ final class SerializeCacheTest extends TestCase
 
     public function testDeleteRemovesSavedCache(): void
     {
-        $item = $this->createItem('delete-cache');
+        $item = $this->createSerializeItem('delete-cache');
 
         $item->setData([
             'value' => 1,
@@ -203,7 +194,7 @@ final class SerializeCacheTest extends TestCase
     public function testDeleteMissingCacheReturnsTrue(): void
     {
         $driver = new SerializeCache(
-            $this->createItem('missing-delete')
+            $this->createSerializeItem('missing-delete')
         );
 
         self::assertFileDoesNotExist($driver->getFile());
@@ -212,10 +203,10 @@ final class SerializeCacheTest extends TestCase
 
     public function testClearDeletesAllNcFilesInDirectory(): void
     {
-        $firstItem = $this->createItem('first');
+        $firstItem = $this->createSerializeItem('first');
         $firstItem->setData(['id' => 1]);
 
-        $secondItem = $this->createItem('second');
+        $secondItem = $this->createSerializeItem('second');
         $secondItem->setData(['id' => 2]);
 
         $firstDriver = new SerializeCache($firstItem);
@@ -238,7 +229,7 @@ final class SerializeCacheTest extends TestCase
 
     public function testClearDoesNotDeleteOtherFileExtensions(): void
     {
-        $item = $this->createItem('serialized-cache');
+        $item = $this->createSerializeItem('serialized-cache');
         $item->setData(['value' => 1]);
 
         $driver = new SerializeCache($item);
@@ -272,7 +263,7 @@ final class SerializeCacheTest extends TestCase
 
     public function testSaveReplacesExistingCacheContent(): void
     {
-        $firstItem = $this->createItem('replace-cache');
+        $firstItem = $this->createSerializeItem('replace-cache');
 
         $firstItem->setData([
             'version' => 1,
@@ -281,7 +272,7 @@ final class SerializeCacheTest extends TestCase
         $firstDriver = new SerializeCache($firstItem);
         $firstDriver->save();
 
-        $secondItem = $this->createItem('replace-cache');
+        $secondItem = $this->createSerializeItem('replace-cache');
 
         $secondItem->setData([
             'version' => 2,
@@ -318,7 +309,7 @@ final class SerializeCacheTest extends TestCase
             ],
         ];
 
-        $item = $this->createItem('nested-cache');
+        $item = $this->createSerializeItem('nested-cache');
         $item->setData($data);
 
         $driver = new SerializeCache($item);
@@ -338,7 +329,7 @@ final class SerializeCacheTest extends TestCase
             50 => 'Go',
         ];
 
-        $item = $this->createItem('numeric-keys');
+        $item = $this->createSerializeItem('numeric-keys');
         $item->setData($data);
 
         $driver = new SerializeCache($item);
@@ -357,7 +348,7 @@ final class SerializeCacheTest extends TestCase
             'country' => 'Madagascar',
         ];
 
-        $item = $this->createItem('unicode-cache');
+        $item = $this->createSerializeItem('unicode-cache');
         $item->setData($data);
 
         $driver = new SerializeCache($item);
@@ -402,7 +393,7 @@ final class SerializeCacheTest extends TestCase
         $key = 'successive-cache';
 
         foreach ([1, 2, 3] as $version) {
-            $item = $this->createItem($key);
+            $item = $this->createSerializeItem($key);
 
             $item->setData([
                 'version' => $version,
@@ -411,7 +402,7 @@ final class SerializeCacheTest extends TestCase
             (new SerializeCache($item))->save();
         }
 
-        $readerItem = $this->createItem($key);
+        $readerItem = $this->createSerializeItem($key);
         $driver = new SerializeCache($readerItem);
 
         $result = $driver->get();
@@ -424,45 +415,6 @@ final class SerializeCacheTest extends TestCase
         );
     }
 
-    private function createItem(string $key): CacheItem
-    {
-        return new CacheItem(
-            $key,
-            CType::SERIALIZE,
-            new CachePath($this->directory)
-        );
-    }
 
-    private function removeDirectory(string $directory): void
-    {
-        if (!is_dir($directory)) {
-            return;
-        }
-
-        $items = scandir($directory);
-
-        if ($items === false) {
-            return;
-        }
-
-        foreach ($items as $item) {
-            if ($item === '.' || $item === '..') {
-                continue;
-            }
-
-            $path = $directory
-                . DIRECTORY_SEPARATOR
-                . $item;
-
-            if (is_dir($path) && !is_link($path)) {
-                $this->removeDirectory($path);
-                continue;
-            }
-
-            @unlink($path);
-        }
-
-        @rmdir($directory);
-    }
 }
 

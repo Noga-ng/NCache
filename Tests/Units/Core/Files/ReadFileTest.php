@@ -6,25 +6,20 @@ namespace NCache\Tests\Units\Core\Files;
 use NCache\Core\Files\ReadFile;
 use NCache\Enum\CType;
 use NCache\Exceptions\FailedReadCacheException;
-use PHPUnit\Framework\TestCase;
+use NCache\TestsUnit\TestsUnit;
 
-final class ReadFileTest extends TestCase
+final class ReadFileTest extends TestsUnit
 {
-    private string $directory;
 
     protected function setUp(): void
     {
-        $this->directory = sys_get_temp_dir()
-            . DIRECTORY_SEPARATOR
-            . 'ncache-read-'
-            . bin2hex(random_bytes(8));
-
-        mkdir($this->directory, 0777, true);
+       $this->directory('ncache-read-');
     }
 
-    protected function tearDown(): void
+        protected function tearDown(): void
     {
         $this->removeDirectory($this->directory);
+        parent::tearDown();
     }
 
     public function testReadString(): void
@@ -192,41 +187,5 @@ final class ReadFileTest extends TestCase
         self::assertSame('NCache', $reader->get());
         self::assertSame('NCache', $reader->get());
         self::assertSame('NCache', $reader->get());
-    }
-
-    private function createFile(
-        string $name,
-        string $content
-    ): string {
-        $file = $this->directory
-            . DIRECTORY_SEPARATOR
-            . $name;
-
-        file_put_contents($file, $content);
-
-        return $file;
-    }
-
-    private function removeDirectory(string $directory): void
-    {
-        if (!is_dir($directory)) {
-            return;
-        }
-
-        foreach (scandir($directory) ?: [] as $item) {
-            if ($item === '.' || $item === '..') {
-                continue;
-            }
-
-            $path = $directory . DIRECTORY_SEPARATOR . $item;
-
-            if (is_dir($path)) {
-                $this->removeDirectory($path);
-            } else {
-                @unlink($path);
-            }
-        }
-
-        @rmdir($directory);
     }
 }

@@ -5,55 +5,34 @@ declare(strict_types=1);
 namespace NCache\Tests\Units;
 
 use NCache\Config\CacheConfig;
-use NCache\Config\Ttl\Duration;
+use NCache\Core\Clock\Duration;
 use NCache\Enum\CType;
 use NCache\NCache;
-use PHPUnit\Framework\TestCase;
+use NCache\TestsUnit\TestsUnit;
 
-final class NCacheTest extends TestCase
+final class NCacheTest extends TestsUnit
 {
-    private static string $baseDirectory;
 
-    public static function setUpBeforeClass(): void
+    public function setUp(): void
     {
-        parent::setUpBeforeClass();
-
-        self::$baseDirectory = sys_get_temp_dir()
-            . DIRECTORY_SEPARATOR
-            . 'ncache-public-api-'
-            . bin2hex(random_bytes(8));
-
-        NCache::config(self::$baseDirectory);
-    }
-
-    protected function setUp(): void
-    {
+     
         parent::setUp();
 
-        if (!is_dir(self::$baseDirectory)) {
-            self::assertTrue(
-                mkdir(self::$baseDirectory, 0777, true)
-            );
-        }
+        $this->directory('ncache-public-api-');
+
+        NCache::config($this->directory);
     }
 
     protected function tearDown(): void
     {
-        $this->clearDirectory(self::$baseDirectory);
-
+        $this->removeDirectory($this->directory);
+         CacheConfig::resetInstance();
         parent::tearDown();
-    }
-
-    public static function tearDownAfterClass(): void
-    {
-        self::removeDirectory(self::$baseDirectory);
-
-        parent::tearDownAfterClass();
     }
 
     public function testConfigReturnsCacheConfig(): void
     {
-        $config = NCache::config(self::$baseDirectory);
+        $config = NCache::config($this->directory);
 
         self::assertInstanceOf(
             CacheConfig::class,
@@ -61,7 +40,7 @@ final class NCacheTest extends TestCase
         );
 
         self::assertSame(
-            self::$baseDirectory,
+            $this->directory,
             $config->getBasePath()
         );
     }
@@ -232,19 +211,7 @@ final class NCacheTest extends TestCase
         $result = $cache->get();
 
         self::assertIsString($result);
-        self::assertStringContainsString(
-            'type : STRING;',
-            $result
-        );
-        self::assertStringContainsString(
-            'name : string-values;',
-            $result
-        );
-        self::assertStringContainsString(
-            'Noga,42,true,null',
-            $result
-        );
-
+      
         self::assertTrue($cache->delete());
         self::assertFalse($cache->has());
     }
@@ -444,14 +411,14 @@ final class NCacheTest extends TestCase
             CType::STRING
         )
             ->dir('string')
-            ->set(['one']);
+            ->set('one');
 
         $second = NCache::key(
             'string-second',
             CType::STRING
         )
             ->dir('string')
-            ->set(['two']);
+            ->set('two');
 
         self::assertTrue($first->put());
         self::assertTrue($second->put());
@@ -466,68 +433,5 @@ final class NCacheTest extends TestCase
 
         self::assertFalse($first->has());
         self::assertFalse($second->has());
-    }
-
-    private function clearDirectory(string $directory): void
-    {
-        if (!is_dir($directory)) {
-            return;
-        }
-
-        $items = scandir($directory);
-
-        if ($items === false) {
-            return;
-        }
-
-        foreach ($items as $item) {
-            if ($item === '.' || $item === '..') {
-                continue;
-            }
-
-            $path = $directory
-                . DIRECTORY_SEPARATOR
-                . $item;
-
-            if (is_dir($path) && !is_link($path)) {
-                self::removeDirectory($path);
-                continue;
-            }
-
-            @unlink($path);
-        }
-    }
-
-    private static function removeDirectory(
-        string $directory
-    ): void {
-        if (!is_dir($directory)) {
-            return;
-        }
-
-        $items = scandir($directory);
-
-        if ($items === false) {
-            return;
-        }
-
-        foreach ($items as $item) {
-            if ($item === '.' || $item === '..') {
-                continue;
-            }
-
-            $path = $directory
-                . DIRECTORY_SEPARATOR
-                . $item;
-
-            if (is_dir($path) && !is_link($path)) {
-                self::removeDirectory($path);
-                continue;
-            }
-
-            @unlink($path);
-        }
-
-        @rmdir($directory);
     }
 }

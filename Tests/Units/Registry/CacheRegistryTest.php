@@ -1,35 +1,19 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace NCache\Tests\Units\Registry;
 
-use NCache\Core\CacheItem\CacheItem;
-use NCache\Core\CachePath;
 use NCache\Enum\CType;
 use NCache\Registry\CacheRegistry;
-use PHPUnit\Framework\TestCase;
+use NCache\TestsUnit\TestsUnit;
 use UnexpectedValueException;
 
-final class CacheRegistryTest extends TestCase
+final class CacheRegistryTest extends TestsUnit
 {
-    private string $directory;
-
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->directory = sys_get_temp_dir()
-            . DIRECTORY_SEPARATOR
-            . 'ncache-registry-'
-            . bin2hex(random_bytes(8));
-
-        self::assertTrue(
-            mkdir(
-                $this->directory, 
-                0777, 
-                true)
-        );
+        $this->directory('ncache-registry-');
     }
 
     protected function tearDown(): void
@@ -45,7 +29,7 @@ final class CacheRegistryTest extends TestCase
             $this->createItem('missing-registry')
         );
 
-        self::assertSame([], $registry->getValues());
+        self::assertSame([], $registry->getAll());
     }
 
     public function testGetReturnsNullWhenEntryDoesNotExist(): void
@@ -89,9 +73,11 @@ final class CacheRegistryTest extends TestCase
             'version' => 1,
         ]);
 
-        $item->setTtl(3600);
+        $item->setTtl(3600, $this->clock());
 
         $registry = new CacheRegistry($item);
+
+        $registry->setFile($item->file());
 
         self::assertTrue($registry->save());
 
@@ -104,9 +90,15 @@ final class CacheRegistryTest extends TestCase
             $entry['key']
         );
         self::assertSame(
+            $item->key(),
+            $entry['name']
+        );
+
+        self::assertSame(
             $item->file(),
             $entry['file']
         );
+
         self::assertSame(
             $item->getSignature(),
             $entry['signature']
@@ -168,7 +160,7 @@ final class CacheRegistryTest extends TestCase
         self::assertTrue($firstRegistry->save());
         self::assertTrue($secondRegistry->save());
 
-        $values = $firstRegistry->getValues();
+        $values = $firstRegistry->getAll();
 
         self::assertCount(2, $values);
 
@@ -191,7 +183,7 @@ final class CacheRegistryTest extends TestCase
         );
 
         $firstItem->setSignature('version-one');
-        $firstItem->setTtl(60);
+        $firstItem->setTtl(60, $this->clock());
 
         $firstRegistry = new CacheRegistry($firstItem);
 
@@ -203,13 +195,13 @@ final class CacheRegistryTest extends TestCase
         );
 
         $secondItem->setSignature('version-two');
-        $secondItem->setTtl(3600);
+        $secondItem->setTtl(3600, $this->clock());
 
         $secondRegistry = new CacheRegistry($secondItem);
 
         self::assertTrue($secondRegistry->save());
 
-        $values = $secondRegistry->getValues();
+        $values = $secondRegistry->getAll();
 
         self::assertCount(1, $values);
 
@@ -257,7 +249,7 @@ final class CacheRegistryTest extends TestCase
 
         self::assertCount(
             1,
-            $secondRegistry->getValues()
+            $secondRegistry->getAll()
         );
     }
 
@@ -352,6 +344,7 @@ final class CacheRegistryTest extends TestCase
         $invalidRegistry = [
             $item->hashedKey() => [
                 'type' => 123,
+                'name' => $item->key(),
                 'key' => $item->hashedKey(),
                 'file' => $item->file(),
                 'signature' => null,
@@ -377,7 +370,7 @@ final class CacheRegistryTest extends TestCase
             'Registry entry type must be a string.'
         );
 
-        $registry->getValues();
+        $registry->getAll();
     }
 
     public function testInvalidTtlTypeThrowsException(): void
@@ -387,6 +380,7 @@ final class CacheRegistryTest extends TestCase
         $invalidRegistry = [
             $item->hashedKey() => [
                 'type' => 'JSON',
+                'name' => $item->key(),
                 'key' => $item->hashedKey(),
                 'file' => $item->file(),
                 'signature' => null,
@@ -412,7 +406,7 @@ final class CacheRegistryTest extends TestCase
             'ttl must be an integer or null.'
         );
 
-        $registry->getValues();
+        $registry->getAll();
     }
 
     public function testInvalidExpiresAtTypeThrowsException(): void
@@ -424,6 +418,7 @@ final class CacheRegistryTest extends TestCase
         $invalidRegistry = [
             $item->hashedKey() => [
                 'type' => 'JSON',
+                'name' => $item->key(),
                 'key' => $item->hashedKey(),
                 'file' => $item->file(),
                 'signature' => null,
@@ -449,60 +444,16 @@ final class CacheRegistryTest extends TestCase
             'expiresAt must be an integer or null.'
         );
 
-        $registry->getValues();
-    }
-
-    private function createItem(
-        string $key,
-        CType $type = CType::JSON
-    ): CacheItem {
-        return new CacheItem(
-            $key,
-            $type,
-            new CachePath($this->directory)
-        );
+        $registry->getAll();
     }
 
     private function registryPath(): string
     {
         return rtrim(
             $this->directory,
-            "/\\"
+            '/\\'
         )
             . DIRECTORY_SEPARATOR
             . 'NCache.nc';
-    }
-
-    private function removeDirectory(
-        string $directory
-    ): void {
-        if (!is_dir($directory)) {
-            return;
-        }
-
-        $items = scandir($directory);
-
-        if ($items === false) {
-            return;
-        }
-
-        foreach ($items as $item) {
-            if ($item === '.' || $item === '..') {
-                continue;
-            }
-
-            $path = $directory
-                . DIRECTORY_SEPARATOR
-                . $item;
-
-            if (is_dir($path) && !is_link($path)) {
-                $this->removeDirectory($path);
-                continue;
-            }
-
-            @unlink($path);
-        }
-
-        @rmdir($directory);
     }
 }

@@ -15,9 +15,6 @@ final class CachePath
         $this->path = $this->basePath;
       }
 
-    /**
-     * Retourne une nouvelle instance avec un sous-dossier ajouté.
-     */
     public function dir(string $dir): CachePath
     {
         $clone = clone $this;
@@ -52,9 +49,6 @@ final class CachePath
         return $this->path;
     }
 
-    /**
-     * Retourne le chemin sans créer le dossier.
-     */
     public function value(): string
     {
         return $this->path;
@@ -70,7 +64,7 @@ final class CachePath
         return $this->path;
     }
 
-    public function geBasePath():string{
+    public function getBasePath():string{
         return rtrim(
             $this->basePath,
             '/\\'

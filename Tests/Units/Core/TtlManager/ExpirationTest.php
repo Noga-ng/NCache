@@ -2,23 +2,24 @@
 
 declare(strict_types=1);
 
-namespace NCache\Tests\Units\Config\Ttl;
+namespace NCache\Tests\Units\Core\TtlManager;
 
-use NCache\Config\Ttl\Expiration;
-use PHPUnit\Framework\TestCase;
+use NCache\Core\Clock\SystemClock;
+use NCache\Core\TtlManager\Expiration;
+use NCache\TestsUnit\TestsUnit;
 
-final class ExpirationTest extends TestCase
+final class ExpirationTest extends TestsUnit
 {
     public function testConstructorStoresTtl(): void
     {
-        $expiration = new Expiration(3600, 2_000_000_000);
+        $expiration = $this->expiration(3600, 2_000_000_000);
 
         self::assertSame(3600, $expiration->ttl());
     }
 
     public function testConstructorStoresExpirationTimestamp(): void
     {
-        $expiration = new Expiration(3600, 2_000_000_000);
+        $expiration = $this->expiration(3600, 2_000_000_000);
 
         self::assertSame(
             2_000_000_000,
@@ -28,7 +29,7 @@ final class ExpirationTest extends TestCase
 
     public function testItAcceptsNullTtlAndTimestamp(): void
     {
-        $expiration = new Expiration(null, null);
+        $expiration = $this->expiration(null,null);
 
         self::assertNull($expiration->ttl());
         self::assertNull($expiration->timestamp());
@@ -38,7 +39,7 @@ final class ExpirationTest extends TestCase
     {
         $before = time();
 
-        $expiration = Expiration::fromTTL(3600);
+        $expiration = Expiration::fromTTL(3600,$this->clock());
 
         $after = time();
 
@@ -57,56 +58,47 @@ final class ExpirationTest extends TestCase
 
     public function testFromNullTtlCreatesNoExpiration(): void
     {
-        $expiration = Expiration::fromTTL(null);
+        $expiration = Expiration::fromTTL(null,$this->clock());
 
         self::assertNull($expiration->ttl());
         self::assertNull($expiration->timestamp());
-        self::assertFalse($expiration->expired());
+        self::assertFalse($expiration->isExpired());
     }
 
     public function testFutureTimestampIsNotExpired(): void
     {
-        $expiration = new Expiration(
-            3600,
-            time() + 3600
-        );
+        $expiration = $this->expiration(3600,$this->clock()->now() + 3600);
 
-        self::assertFalse($expiration->expired());
+        self::assertFalse($expiration->isExpired());
     }
 
     public function testPastTimestampIsExpired(): void
     {
-        $expiration = new Expiration(
-            3600,
-            time() - 1
-        );
+        $expiration = $this->expiration(3600,$this->clock()->now() - 1);
 
-        self::assertTrue($expiration->expired());
+        self::assertTrue($expiration->isExpired());
     }
 
     public function testCurrentTimestampIsExpired(): void
     {
-        $expiration = new Expiration(
-            0,
-            time()
-        );
+        $expiration = $this->expiration(0,$this->clock()->now());
 
-        self::assertTrue($expiration->expired());
+        self::assertTrue($expiration->isExpired());
     }
 
     public function testZeroTtlExpiresImmediately(): void
     {
-        $expiration = Expiration::fromTTL(0);
+        $expiration = Expiration::fromTTL(0,$this->clock());
 
         self::assertSame(0, $expiration->ttl());
-        self::assertTrue($expiration->expired());
+        self::assertTrue($expiration->isExpired());
     }
 
-    public function testNegativeTtlIsAlreadyExpired(): void
-    {
-        $expiration = Expiration::fromTTL(-10);
-
-        self::assertSame(-10, $expiration->ttl());
-        self::assertTrue($expiration->expired());
+    private function expiration(?int $ttl,?int $expiresAt):Expiration{
+        return new Expiration(
+            $ttl,
+            $expiresAt,
+            $this->clock()
+        );
     }
 }

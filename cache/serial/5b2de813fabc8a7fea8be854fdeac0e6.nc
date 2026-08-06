@@ -1,1 +1,0 @@
-a:7:{s:4:"type";s:9:"SERIALIZE";s:4:"name";s:4:"noga";s:3:"key";s:32:"5b2de813fabc8a7fea8be854fdeac0e6";s:9:"signature";s:64:"2444cf36ece6e343f302b218c67d9ef6eb59e3b212bb5aaa296ace83cdca8faa";s:3:"ttl";i:18000;s:9:"expiresAt";i:1785281619;s:4:"data";a:2:{i:0;s:4:"noga";i:1;s:9:"germainio";}}

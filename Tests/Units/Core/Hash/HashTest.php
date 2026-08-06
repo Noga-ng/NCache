@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace NCache\Tests\Units\Core\Hash;
 
 use NCache\Core\Hash;
-use PHPUnit\Framework\TestCase;
+use NCache\TestsUnit\TestsUnit;
 
-final class HashTest extends TestCase
+final class HashTest extends TestsUnit
 {
     public function testItGeneratesTheExpectedDefaultHash(): void
     {

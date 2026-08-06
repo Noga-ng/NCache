@@ -4,27 +4,23 @@ declare(strict_types=1);
 
 namespace NCache\Tests\Units\Core\CacheItem;
 
-use NCache\Core\CacheItem\CacheItem;
-use NCache\Core\CachePath;
 use NCache\Core\Hash;
 use NCache\Enum\CType;
-use PHPUnit\Framework\TestCase;
+use NCache\TestsUnit\TestsUnit;
 
-final class CacheItemTest extends TestCase
+final class CacheItemTest extends TestsUnit
 {
-    private string $basePath;
 
     protected function setUp(): void
     {
-        $this->basePath = sys_get_temp_dir()
-            . DIRECTORY_SEPARATOR
-            . 'ncache-item-tests-'
-            . uniqid('', true);
+        $this->directory('ncache-item-tests-');
+        parent::setUp();
     }
 
     protected function tearDown(): void
     {
-        $this->removeDirectory($this->basePath);
+        $this->removeDirectory($this->directory);
+        parent::tearDown();
     }
 
     public function testItReturnsTheOriginalKey(): void
@@ -46,7 +42,7 @@ final class CacheItemTest extends TestCase
 
     public function testItReturnsTheConfiguredType(): void
     {
-        $item = $this->createItem('users', CType::JSON);
+        $item = $this->createItem('users');
 
         self::assertSame(CType::JSON, $item->type());
         self::assertSame('JSON', $item->typeName());
@@ -135,7 +131,7 @@ final class CacheItemTest extends TestCase
 
         $before = time();
 
-        $item->setTtl(3600);
+        $item->setTtl(3600,$this->clock());
 
         $after = time();
 
@@ -158,7 +154,7 @@ final class CacheItemTest extends TestCase
         $item->setDir('api');
 
         self::assertSame(
-            $this->basePath
+            $this->directory
             . DIRECTORY_SEPARATOR
             . 'api',
             $item->path()
@@ -170,7 +166,7 @@ final class CacheItemTest extends TestCase
         $item = $this->createItem('users', CType::JSON);
 
         self::assertSame(
-            $this->basePath
+            $this->directory
             . DIRECTORY_SEPARATOR
             . (new Hash('users'))->get(),
             $item->file()
@@ -189,7 +185,7 @@ final class CacheItemTest extends TestCase
         $item = $this->createItem('users', CType::SQLite);
 
         self::assertSame(
-            $this->basePath,
+            $this->directory,
             $item->file()
         );
     }
@@ -202,7 +198,7 @@ final class CacheItemTest extends TestCase
         $item->setData(
             ['id' => 1, 'name' => 'Noga'],
         );
-        $item->setTtl(3600);
+        $item->setTtl(3600,$this->clock());
 
         $result = $item->toArray();
 
@@ -222,46 +218,5 @@ final class CacheItemTest extends TestCase
             ['id' => 1, 'name' => 'Noga'],
             $result['data']
         );
-    }
-
-    private function createItem(
-        string $key,
-        CType $type = CType::JSON
-    ): CacheItem {
-        return new CacheItem(
-            $key,
-            $type,
-            new CachePath($this->basePath)
-        );
-    }
-
-    private function removeDirectory(string $directory): void
-    {
-        if (!is_dir($directory)) {
-            return;
-        }
-
-        $items = scandir($directory);
-
-        if ($items === false) {
-            return;
-        }
-
-        foreach ($items as $item) {
-            if ($item === '.' || $item === '..') {
-                continue;
-            }
-
-            $path = $directory . DIRECTORY_SEPARATOR . $item;
-
-            if (is_dir($path)) {
-                $this->removeDirectory($path);
-                continue;
-            }
-
-            unlink($path);
-        }
-
-        rmdir($directory);
-    }
+    } 
 }

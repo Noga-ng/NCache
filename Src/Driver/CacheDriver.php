@@ -5,6 +5,7 @@ namespace NCache\Driver;
 
 use NCache\Core\CacheItem\CacheItem;
 use NCache\Core\Files\CacheCleaner;
+use NCache\Registry\CacheRegistry;
 
 abstract class CacheDriver{
 
@@ -12,7 +13,6 @@ abstract class CacheDriver{
       public function __construct(
         protected CacheItem $item
         ){}
-
     /**
      * @return array<string,mixed>
      */
@@ -20,7 +20,10 @@ abstract class CacheDriver{
         return $this->item->toArray();
     }
 
-    abstract function getFile():string;
+    /**
+     * @return string|null
+     */
+    abstract public function getFile():?string;
 
     abstract public function exists():bool;
 

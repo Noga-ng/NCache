@@ -4,34 +4,26 @@ declare(strict_types=1);
 
 namespace NCache\Tests\Units\Core\Files;
 
-use NCache\Core\Files\CacheCleaner;
-use NCache\Core\Files\WriteFile;
-use PHPUnit\Framework\TestCase;
+use NCache\TestsUnit\TestsUnit;
 
-final class CacheCleanerTest extends TestCase
+final class CacheCleanerTest extends TestsUnit
 {
-    private string $directory;
 
     protected function setUp(): void
     {
         parent::setUp();
-
-        $this->directory = sys_get_temp_dir()
-            . DIRECTORY_SEPARATOR
-            . 'ncache-cleaner-'
-            . bin2hex(random_bytes(8));
- 
-        mkdir($this->directory, 0777, true);
+        $this->directory('ncache-cleaner-');
     }
 
     protected function tearDown(): void
     {
         $this->removeDirectory($this->directory);
+        parent::tearDown();
     }
 
     public function testExtensionAllowedReturnsConstructorValue(): void
     {
-        $cleaner = new CacheCleaner(['php', 'json']);
+        $cleaner = $this->cacheCleaner(['php', 'json']);
 
         self::assertSame(
             ['php', 'json'],
@@ -43,7 +35,7 @@ final class CacheCleanerTest extends TestCase
     {
         $file = $this->createFile('cache.php');
 
-        $cleaner = new CacheCleaner(['php']);
+        $cleaner = $this->cacheCleaner('php');
 
         self::assertTrue($cleaner->delete($file));
         self::assertFileDoesNotExist($file);
@@ -51,7 +43,7 @@ final class CacheCleanerTest extends TestCase
 
     public function testDeleteMissingFileReturnsTrue(): void
     {
-        $cleaner = new CacheCleaner(['php']);
+        $cleaner = $this->cacheCleaner('php');
 
         self::assertTrue(
             $cleaner->delete(
@@ -66,7 +58,7 @@ final class CacheCleanerTest extends TestCase
         $json = $this->createFile('b.json');
         $txt = $this->createFile('c.txt');
 
-        $cleaner = new CacheCleaner(['php', 'json']);
+        $cleaner = $this->cacheCleaner(['php', 'json']);
 
         self::assertSame(
             2,
@@ -86,7 +78,7 @@ final class CacheCleanerTest extends TestCase
 
         file_put_contents($file, 'cache');
 
-        $cleaner = new CacheCleaner(['php']);
+        $cleaner = $this->cacheCleaner('php');
 
         self::assertSame(
             1,
@@ -100,7 +92,7 @@ final class CacheCleanerTest extends TestCase
     {
         $this->createFile('cache.txt');
 
-        $cleaner = new CacheCleaner(['php']);
+        $cleaner = $this->cacheCleaner('php');
 
         self::assertSame(
             0,
@@ -117,7 +109,7 @@ final class CacheCleanerTest extends TestCase
             'cache'
         );
 
-        $cleaner = new CacheCleaner(['php']);
+        $cleaner = $this->cacheCleaner('php');
 
         $cleaner->clear($this->directory);
 
@@ -146,7 +138,7 @@ final class CacheCleanerTest extends TestCase
     self::assertTrue(is_link($link));
     self::assertFileExists($target);
 
-    $cleaner = new CacheCleaner(['php']);
+    $cleaner = $this->cacheCleaner('php');
 
     self::assertSame(
         1,
@@ -166,51 +158,10 @@ final class CacheCleanerTest extends TestCase
     {
         $file = $this->createFile('cache.php');
 
-        $cleaner = new CacheCleaner(['php']);
+        $cleaner = $this->cacheCleaner('php');
 
         self::assertTrue($cleaner->delete($file));
         self::assertTrue($cleaner->delete($file));
     }
-
-    private function createFile(
-        string $name,
-        string $content = 'cache'
-    ): string {
-        $file = $this->directory
-            . DIRECTORY_SEPARATOR
-            . $name;
-
-        $dir = dirname($file);
-
-        if (!is_dir($dir)) {
-            mkdir($dir, 0777, true);
-        }
-
-        @(new WriteFile($file, $content))->save();
-
-        return $file;
-    }
-
-    private function removeDirectory(string $directory): void
-    {
-        if (!is_dir($directory)) {
-            return;
-        }
-
-        foreach (scandir($directory) ?: [] as $item) {
-            if ($item === '.' || $item === '..') {
-                continue;
-            }
-
-            $path = $directory . DIRECTORY_SEPARATOR . $item;
-
-            if (is_dir($path) && !is_link($path)) {
-                $this->removeDirectory($path);
-            } else {
-                @unlink($path);
-            }
-        }
-
-        @rmdir($directory);
-    }
+ 
 }

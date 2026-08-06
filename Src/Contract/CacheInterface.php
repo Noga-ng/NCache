@@ -32,10 +32,10 @@ interface CacheInterface{
     public function signature(mixed $signature):static;
 
     /**
-     * @param non-negative-int $ttl
+     * @param positive-int|null $ttl
      * @return static
      */
-    public function ttl(int $ttl):static;
+    public function ttl(?int $ttl):static;
 
     /**
      * @param ItemData $data
