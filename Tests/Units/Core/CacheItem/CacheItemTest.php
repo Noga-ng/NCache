@@ -6,7 +6,7 @@ namespace NCache\Tests\Units\Core\CacheItem;
 
 use NCache\Core\Hash;
 use NCache\Enum\CType;
-use NCache\TestsUnit\TestsUnit;
+use NCache\Tests\TestsUnit\TestsUnit;
 
 final class CacheItemTest extends TestsUnit
 {

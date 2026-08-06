@@ -12,7 +12,7 @@ use NCache\Driver\StringCache;
 use NCache\Enum\CType;
 use NCache\Exceptions\InvalidCacheArgumentException;
 use NCache\Registry\DriverRegistry;
-use NCache\TestsUnit\TestsUnit;
+use NCache\Tests\TestsUnit\TestsUnit;
 
 final class DriverRegistryTest extends TestsUnit
 {

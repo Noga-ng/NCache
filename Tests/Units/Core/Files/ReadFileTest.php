@@ -6,7 +6,7 @@ namespace NCache\Tests\Units\Core\Files;
 use NCache\Core\Files\ReadFile;
 use NCache\Enum\CType;
 use NCache\Exceptions\FailedReadCacheException;
-use NCache\TestsUnit\TestsUnit;
+use NCache\Tests\TestsUnit\TestsUnit;
 
 final class ReadFileTest extends TestsUnit
 {

@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace NCache\Tests\Units\Core\TtlManager;
 
-use NCache\Core\Clock\SystemClock;
 use NCache\Core\TtlManager\Expiration;
-use NCache\TestsUnit\TestsUnit;
+use NCache\Tests\TestsUnit\TestsUnit;
 
 final class ExpirationTest extends TestsUnit
 {

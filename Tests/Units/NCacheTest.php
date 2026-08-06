@@ -8,7 +8,7 @@ use NCache\Config\CacheConfig;
 use NCache\Core\Clock\Duration;
 use NCache\Enum\CType;
 use NCache\NCache;
-use NCache\TestsUnit\TestsUnit;
+use NCache\Tests\TestsUnit\TestsUnit;
 
 final class NCacheTest extends TestsUnit
 {

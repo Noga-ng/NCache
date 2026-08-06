@@ -19,7 +19,7 @@ use NCache\Core\CacheItem\CacheItem;
 use NCache\Core\CachePath;
 use NCache\Driver\SerializeCache;
 use NCache\Enum\CType;
-use NCache\TestsUnit\TestsUnit;
+use NCache\Tests\TestsUnit\TestsUnit;
 
 final class SerializeCacheTest extends TestsUnit
 {

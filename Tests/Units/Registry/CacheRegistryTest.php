@@ -4,7 +4,7 @@ namespace NCache\Tests\Units\Registry;
 
 use NCache\Enum\CType;
 use NCache\Registry\CacheRegistry;
-use NCache\TestsUnit\TestsUnit;
+use NCache\Tests\TestsUnit\TestsUnit;
 use UnexpectedValueException;
 
 final class CacheRegistryTest extends TestsUnit

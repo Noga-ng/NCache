@@ -14,7 +14,7 @@ namespace NCache\Tests\Units\Core\Files;
 
 use NCache\Core\Files\WriteFile;
 use NCache\Exceptions\FailedWriteCacheException;
-use NCache\TestsUnit\TestsUnit;
+use NCache\Tests\TestsUnit\TestsUnit;
 
 final class WriteFileTest extends TestsUnit
 {

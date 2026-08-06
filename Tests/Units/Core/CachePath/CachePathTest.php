@@ -15,7 +15,7 @@ declare(strict_types=1);
 namespace NCache\Tests\Units\Core\CachePath;
 
 use NCache\Core\CachePath;
-use NCache\TestsUnit\TestsUnit;
+use NCache\Tests\TestsUnit\TestsUnit;
 
 final class CachePathTest extends TestsUnit
 {

@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace NCache\Tests\Units\Config;
 
 use NCache\Config\CacheConfig;
+use NCache\Tests\TestsUnit\TestsUnit;
 use Override;
-use PHPUnit\Framework\TestCase;
 
-final class CacheConfigTest extends TestCase
+final class CacheConfigTest extends TestsUnit
 {
     public function testConfigReturnsSingleton(): void
     {

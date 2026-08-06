@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace NCache\Tests\Units\Core\Hash;
 
 use NCache\Core\Hash;
-use NCache\TestsUnit\TestsUnit;
+use NCache\Tests\TestsUnit\TestsUnit;
 
 final class HashTest extends TestsUnit
 {

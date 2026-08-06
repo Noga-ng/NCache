@@ -22,7 +22,7 @@ use NCache\Core\CacheItem\CacheItem;
 use NCache\Core\CachePath;
 use NCache\Driver\JsonCache;
 use NCache\Enum\CType;
-use NCache\TestsUnit\TestsUnit;
+use NCache\Tests\TestsUnit\TestsUnit;
 
 final class JsonCacheTest extends TestsUnit
 {

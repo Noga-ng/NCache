@@ -6,7 +6,7 @@ namespace NCache\Tests\Units\Driver;
 
 
 use NCache\Driver\StringCache;
-use NCache\TestsUnit\TestsUnit;
+use NCache\Tests\TestsUnit\TestsUnit;
 
 final class StringCacheTest extends TestsUnit
 {

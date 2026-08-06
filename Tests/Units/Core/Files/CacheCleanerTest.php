@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NCache\Tests\Units\Core\Files;
 
-use NCache\TestsUnit\TestsUnit;
+use NCache\Tests\TestsUnit\TestsUnit;
 
 final class CacheCleanerTest extends TestsUnit
 {

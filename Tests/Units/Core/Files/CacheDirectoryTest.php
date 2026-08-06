@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace NCache\Tests\Units\Core\Files;
 
 use NCache\Exceptions\InvalidCacheArgumentException;
-use NCache\TestsUnit\TestsUnit;
+use NCache\Tests\TestsUnit\TestsUnit;
 use SplFileInfo;
 
 final class CacheDirectoryTest extends TestsUnit

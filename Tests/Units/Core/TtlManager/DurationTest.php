@@ -3,8 +3,7 @@
 namespace NCache\Tests\Units\Core\TtlManager;
 
 use NCache\Core\Clock\Duration;
-use NCache\TestsUnit\TestsUnit;
-use PHPUnit\Framework\TestCase;
+use NCache\Tests\TestsUnit\TestsUnit;
 
 final class DurationTest extends TestsUnit
 {

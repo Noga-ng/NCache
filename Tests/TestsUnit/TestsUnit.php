@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace NCache\TestsUnit;
+namespace NCache\Tests\TestsUnit;
 
 use NCache\Contract\Clock;
 use NCache\Core\CacheItem\CacheItem;
