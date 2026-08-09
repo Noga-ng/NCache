@@ -1,126 +1,191 @@
 <?php declare(strict_types=1);
 
-/**
- * INSERT INTO caches (...)
- * VALUES (...)
- * ON CONFLICT(keys) DO UPDATE SET
- *  signature = excluded.signature,
- * ttl = excluded.ttl,
- * expiresAt = excluded.expiresAt,
- * data = excluded.data
- */
-
 namespace NCache\Driver;
 
 use NCache\Config\Connection\SQLitePdo;
-use NCache\Core\CacheItem\CacheItem;
-use NCache\Driver\CacheDriver;
+use NCache\Core\Hash;
+use NCache\Exceptions\InvalidCacheArgumentException;
 
 final class SqliteCache extends CacheDriver
 {
-    public function __construct(CacheItem $item)
-    {
-        parent::__construct($item);
-    }
+    private ?SQLitePdo $connection = null;
 
     private function conn(): SQLitePdo
     {
-        return new SQLitePdo($this->buildFile());
+        return $this->connection ??=
+            new SQLitePdo(
+                $this->buildFile()
+            );
+    }
+
+    private function table(): string
+    {
+        $t = $this->item->getDir();
+        if ($t === null) {
+            throw new InvalidCacheArgumentException(
+                'SQLite cache requires a directory.'
+            );
+        }
+        return 'cache_' . (new Hash($t))->get();
+    }
+
+    private function ensureTable(): void
+    {
+        $conn = $this->conn();
+        $table = $this->table();
+        $conn->execute(
+            "CREATE TABLE IF NOT EXISTS {$table} (
+                key TEXT PRIMARY KEY,
+                data BLOB NULL
+            )"
+        );
+
+        $this->ensureTableRegistry();
+
+        $conn->execute(
+            'INSERT OR IGNORE INTO cache_table(name) VALUES(:name)',
+            [':name' => $table]
+        );
+    }
+
+    private function ensureTableRegistry(): void
+    {
+        $this->conn()->execute(
+            'CREATE TABLE IF NOT EXISTS cache_table(
+            name TEXT PRIMARY KEY
+            )'
+        );
     }
 
     protected function format(): string
     {
-        return serialize($this->item->getData());
-    }
-
-    public function exists(): bool
-    {
-        $key = $this->conn()->get(
-            'SELECT keys FROM caches WHERE keys = :keys',
-            [':keys' => $this->item->hashedKey()]
+        return serialize(
+            $this->item->getData()
         );
-
-        return !empty($key);
     }
 
     public function buildFile(): string
     {
-        $file = $this->item->basePath() . '/CacheDb/nc.db';
-        return $file;
+        return rtrim(
+            $this->item->basePath(),
+            '/\\'
+        )
+            . DIRECTORY_SEPARATOR
+            . 'CacheDb'
+            . DIRECTORY_SEPARATOR
+            . 'nc.db';
     }
 
     public function save(): bool
     {
-        $this->conn()->create(
-            'CREATE TABLE IF NOT EXISTS caches(
-            id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-            type TEXT NOT NULL,
-            keys TEXT UNIQUE NOT NULL,
-            signature TEXT,
-            ttl INTEGER NULL,
-            expiresAt INTEGER NULL,
-            data TEXT NULL
-            )'
-        );
-
+        $this->ensureTable();
+        $table = $this->table();
         $this->conn()->execute(
-            'INSERT OR REPLACE INTO caches
-             (type,keys,signature,ttl, expiresAt,data)
-             VALUES (:type,:keys, :signature,:ttl, :expiresAt,:data)',
+            "INSERT INTO {$table} (key, data)
+             VALUES (:key, :data)
+             ON CONFLICT(key)
+             DO UPDATE SET
+                 data = excluded.data",
             [
-                ':type' => $this->item->typeName(),
-                ':keys' => $this->item->hashedKey(),
-                ':signature' => $this->item->getSignature(),
-                ':ttl' => $this->item->ttlValue(),
-                ':expiresAt' => $this->item->expiredAt(),
-                ':data' => $this->format()
+                ':key' => $this->item->hashedKey(),
+                ':data' => $this->format(),
             ]
         );
-
-        $lastId = $this->conn()->lastId();
 
         return true;
     }
 
-    /**
-     * @return array<array-key,mixed>
-     */
-    public function get(): array
+    private function tableExists(): bool
     {
-        return $this
-            ->conn()
-            ->getAll(
-                'SELECT * FROM caches 
-                          WHERE keys=:keys',
-                [':keys' => $this->item->hashedKey()]
-            );
+        $this->ensureTableRegistry();
+        $table = $this->table();
+        return $this->conn()->get(
+            'SELECT 1
+         FROM cache_table
+         WHERE name = :name
+         LIMIT 1',
+            [
+                ':name' => $table,
+            ]
+        ) !== null;
+    }
+
+    public function exists(): bool
+    {
+        if (!$this->tableExists()) {
+            return false;
+        }
+
+        return $this->conn()->get(
+            "SELECT 1
+             FROM {$this->table()}
+             WHERE key = :key
+             LIMIT 1",
+            [
+                ':key' => $this->item->hashedKey(),
+            ]
+        ) !== null;
     }
 
     /**
-     * @return array<array-key,mixed>
+     * @return array<array-key, mixed>|null
      */
-    public function metaData(): array
+    public function get(): ?array
     {
-        return $this
-            ->conn()
-            ->getAll(
-                'SELECT keys,signature,ttl,expiresAt
-                         FROM caches
-                         WHERE keys = :keys',
-                [':keys' => $this->item->hashedKey()]
-            );
-    }
+        if (!$this->tableExists()) {
+            return null;
+        }
 
-    public function getFile(): string
-    {
-        return $this->buildFile();
+        $table = $this->table();
+
+        $result = $this->conn()->get(
+            "SELECT data
+         FROM {$table}
+         WHERE key = :key
+         LIMIT 1",
+            [
+                ':key' => $this->item->hashedKey(),
+            ]
+        );
+
+        if ($result === null) {
+            return null;
+        }
+
+        $raw = $result['data'] ?? null;
+
+        if (!\is_string($raw)) {
+            throw new InvalidCacheArgumentException(
+                'SQLite cache data must be a serialized string.'
+            );
+        }
+
+        $data = unserialize(
+            $raw,
+            ['allowed_classes' => false]
+        );
+
+        if (!\is_array($data)) {
+            throw new InvalidCacheArgumentException(
+                'Invalid SQLite cache data.'
+            );
+        }
+
+        return $data;
     }
 
     public function delete(): bool
     {
+        if (!$this->tableExists()) {
+            return true;
+        }
+
         $this->conn()->execute(
-            'DELETE FROM caches WHERE keys = :keys',
-            [':keys' => $this->item->hashedKey()]
+            "DELETE FROM {$this->table()}
+             WHERE key = :key",
+            [
+                ':key' => $this->item->hashedKey(),
+            ]
         );
 
         return true;
@@ -128,14 +193,97 @@ final class SqliteCache extends CacheDriver
 
     public function clear(): int
     {
-        /** @var array<int> */
-        $count = $this->conn()->get(
-            'SELECT count(id) AS total FROM caches',
-            fetchMode: \PDO::FETCH_COLUMN
+        if (!$this->tableExists()) {
+            return 0;
+        }
+
+        $table = $this->table();
+
+        $result = $this->conn()->get(
+            "SELECT COUNT(*) AS total
+         FROM {$table}"
         );
 
-        $this->conn()->execute('DELETE FROM caches');
+        if ($result === null) {
+            return 0;
+        }
 
-        return $count['total'];
+        $total = $result['total'] ?? null;
+
+        if (
+            !\is_int($total) &&
+            !\is_string($total)
+        ) {
+            throw new InvalidCacheArgumentException(
+                'SQLite cache count must be numeric.'
+            );
+        }
+
+        if (!is_numeric($total)) {
+            throw new InvalidCacheArgumentException(
+                'SQLite cache count must be numeric.'
+            );
+        }
+
+        $count = (int) $total;
+
+        if ($count > 0) {
+            $this->conn()->execute(
+                "DELETE FROM {$table}"
+            );
+        }
+
+        return $count;
+    }
+
+    public function clearAll(): int
+    {
+        $this->ensureTableRegistry();
+
+        $tables = $this->conn()->getAll(
+            'SELECT name FROM cache_table'
+        );
+
+        $count = 0;
+
+        foreach ($tables as $row) {
+            $table = $row['name'] ?? null;
+
+            if (
+                !\is_string($table) ||
+                !$this->isValidTableName($table)
+            ) {
+                continue;
+            }
+
+            $result = $this->conn()->get(
+                "SELECT COUNT(*) AS total FROM {$table}"
+            );
+
+            $total = $result['total'] ?? 0;
+
+            if (is_numeric($total)) {
+                $count += (int) $total;
+            }
+
+            $this->conn()->execute(
+                "DELETE FROM {$table}"
+            );
+        }
+
+        return $count;
+    }
+
+    private function isValidTableName(string $table): bool
+    {
+        return preg_match(
+            '/^cache_[a-f0-9]+$/',
+            $table
+        ) === 1;
+    }
+
+    public function getFile(): ?string
+    {
+        return null;
     }
 }

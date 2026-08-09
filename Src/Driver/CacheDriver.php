@@ -5,7 +5,6 @@ namespace NCache\Driver;
 
 use NCache\Core\CacheItem\CacheItem;
 use NCache\Core\Files\CacheCleaner;
-use NCache\Registry\CacheRegistry;
 
 abstract class CacheDriver{
 
@@ -26,11 +25,6 @@ abstract class CacheDriver{
     abstract public function getFile():?string;
 
     abstract public function exists():bool;
-
-    /**
-     * @return array<int|string,mixed>
-     */
-    abstract public function metaData():array;
     
      /**
      * @return string|int|array<mixed>|null

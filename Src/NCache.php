@@ -12,6 +12,7 @@ use NCache\Core\CachePath;
 use NCache\Core\Hash;
 use NCache\Driver\CacheDriver;
 use NCache\Enum\CType;
+use NCache\Enum\TtlState;
 use NCache\Exceptions\CacheHandleException;
 use NCache\Exceptions\InvalidCacheArgumentException;
 use NCache\Registry\CacheRegistry;
@@ -178,21 +179,20 @@ final class NCache implements CacheInterface
         return $driver->get();
     }
 
-
     /**
-     * @return array<string, array{
-     * type: string,     
-     * name: string, 
-     * key: string, 
-     * file: string|null, 
-     * signature: string|null, 
-     * ttl: int|null, 
+     * @return array{
+     * type: string,
+     * name: string,
+     * key: string,
+     * file: string|null,
+     * signature: string|null,
+     * ttl: int|null,
      * expiresAt: int|null
-     * }>
+     * }|null
      */
-    public function getRegistry():array
+    public function getRegistry(): ?array
     {
-        return $this->registry()->getAll();
+        return $this->registry()->get();
     }
 
     /**
@@ -203,15 +203,18 @@ final class NCache implements CacheInterface
         return $this->cacheItem->toArray();
     }
 
-    public function ttlRemaining():?int
+    public function ttlRemaining(): ?int
     {
         return $this->ttlManager(
             $this->registry()
-            )->remaining();
+        )->remaining();
     }
 
-    public function ttlState():?string{
-        return $this->ttlManager($this->registry())->state();
+    public function ttlState(): ?TtlState
+    {
+        return $this->ttlManager(
+            $this->registry()
+        )->state();
     }
 
     public function delete(): bool
@@ -239,9 +242,16 @@ final class NCache implements CacheInterface
             $instance->cacheItem->setDir($dir);
         }
 
-        $deleted = $instance->driver()->clear();
+        $driver = $instance->driver();
+        $registry = $instance->registry();
 
-        $instance->registry()->removeMissing();
+        $deleted = $driver->clear();
+
+        if ($type === CType::SQLite) {
+            $registry->removeCurrentScope();
+        } else {
+            $registry->removeMissing();
+        }
 
         return $deleted;
     }
@@ -259,7 +269,6 @@ final class NCache implements CacheInterface
         return (isset($cache['signature']) &&
             $cache['signature'] === $signature);
     }
-
 
     /**
      * @return CacheDriver
@@ -301,17 +310,17 @@ final class NCache implements CacheInterface
      * @throws InvalidCacheArgumentException
      * @return void
      */
-    private static function obligatorKey(?string $key = null):void{
-        if($key === null){
-              throw new InvalidCacheArgumentException(
-                "Key cannot be empty"
-        );
-
+    private static function obligatorKey(?string $key = null): void
+    {
+        if ($key === null) {
+            throw new InvalidCacheArgumentException(
+                'Key cannot be empty'
+            );
         }
-      
     }
 
-    public function item():CacheItem{
+    public function item(): CacheItem
+    {
         return $this->cacheItem;
     }
 }

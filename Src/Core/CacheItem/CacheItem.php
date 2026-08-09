@@ -97,7 +97,12 @@ final class CacheItem
 
     public function hashedKey(): string
     {
-        return (new Hash($this->key))->get();
+        $dir = $this->getDir() ?? "default";
+        return (new Hash([
+        'type' => $this->typeName(),
+        'dir' => $dir,
+        'key' => $this->key(),
+    ]))->get();
     }
 
     public function type(): CType
@@ -108,6 +113,11 @@ final class CacheItem
     public function typeName(): string
     {
         return $this->type->name;
+    }
+
+    public function getDir():?string
+    {
+        return $this->cachePath->dirname();
     }
 
     public function path(): string

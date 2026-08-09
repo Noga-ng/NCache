@@ -77,10 +77,10 @@ final class Expiration
         );
     }
 
-    public function state():string{
+    public function state():TtlState{
         return $this->analyzer->state(
             $this->expiresAt
-            )->name;
+            );
     }
 
     /**

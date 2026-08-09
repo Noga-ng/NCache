@@ -46,9 +46,6 @@ final class RedisCache extends CacheDriver{
         );
     }
 
-    public function metaData():array{
-        return [0=>""];
-    }
 
     public function getFile(): string{
         return "";

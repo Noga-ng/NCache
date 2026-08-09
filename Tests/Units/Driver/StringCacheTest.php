@@ -178,24 +178,7 @@ final class StringCacheTest extends TestsUnit
             $item->toArray(),
             $driver->show()
         );
-    }
-
-    public function testMetadataReturnsStoredStringInsideArray(): void
-    {
-        $item = $this->createStringItem('metadata');
-
-        $item->setData([
-            'NCache',
-        ]);
-
-        $driver = new StringCache($item);
-        $driver->save();
-
-        self::assertSame(
-            [$driver->get()],
-            $driver->metaData()
-        );
-    }
+    } 
 
     public function testSaveReplacesExistingContent(): void
     {

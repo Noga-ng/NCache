@@ -20,19 +20,11 @@ final class JsonCache extends CacheDriver{
 
     protected function format(): string{
         return json_encode(
-            $this->item->toArray(),
+            $this->item->getData(),
             JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR
         );
     }
 
-    /**
-     * @return array<int|string,mixed>
-     */
-    public function metaData(): array{
-        $data = (array)$this->get();
-        unset($data['data']);
-       return $data;
-    }
 
     private function buildFile():string{
         $file = $this->item->file();

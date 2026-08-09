@@ -9,7 +9,6 @@ use NCache\Core\Files\WriteFile;
 use NCache\Core\Files\ReadFile;
 use NCache\Enum\CType;
 use NCache\Driver\CacheDriver;
-use NCache\Exceptions\InvalidCacheArgumentException;
 
 final class SerializeCache extends CacheDriver{
 
@@ -18,22 +17,9 @@ final class SerializeCache extends CacheDriver{
         $this->cacheCleaner = new CacheCleaner(['nc']);
     }
 
-    public function metaData(): array{
-        $data = $this->get();
-
-        if(!\is_array($data)){
-            throw new InvalidCacheArgumentException(
-                self::class." most be return array but ".\get_debug_type($data)." given"
-            );
-        }
-
-        unset($data['data']);
-
-        return $data;
-    }
 
     protected function format():string{
-        return serialize($this->item->toArray());
+        return serialize($this->item->getData());
     }
 
     private function buildFile():string{

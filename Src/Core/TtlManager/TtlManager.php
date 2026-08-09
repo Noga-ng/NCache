@@ -6,6 +6,7 @@ namespace NCache\Core\TtlManager;
 
 use NCache\Contract\Clock;
 use NCache\Core\CacheItem\CacheItem;
+use NCache\Enum\TtlState;
 use NCache\Registry\CacheRegistry;
 
 final class TtlManager
@@ -47,7 +48,7 @@ final class TtlManager
                     ?->remaining();
     }
 
-    public function state():?string
+    public function state():?TtlState
     {
         return $this->storedExpiration()?->state();
     }

@@ -8,6 +8,7 @@ use NCache\Exceptions\FailedCreationDirException;
 final class CachePath
 {
     private string $path = '';
+    private ?string $dir = null;
     public function __construct(
         private readonly string $basePath,
         private readonly int $permission = 0755
@@ -18,10 +19,11 @@ final class CachePath
     public function dir(string $dir): CachePath
     {
         $clone = clone $this;
-        $clone->path = empty($dir) ? rtrim($clone->basePath,'/\\') : 
+        $clone->dir = $dir;
+        $clone->path = empty($clone->dir) ? rtrim($clone->basePath,'/\\') : 
             rtrim($clone->basePath, "/\\")
             . DIRECTORY_SEPARATOR
-            . trim($dir,'/\\'); 
+            . trim($clone->dir,'/\\'); 
 
        return $clone;
     }
@@ -52,6 +54,10 @@ final class CachePath
     public function value(): string
     {
         return $this->path;
+    }
+
+    public function dirname():?string{
+        return $this->dir;
     }
 
     public function exists(): bool

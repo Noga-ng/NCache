@@ -1,21 +1,18 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace NCache\Tests\Units;
 
 use NCache\Config\CacheConfig;
 use NCache\Core\Clock\Duration;
+use NCache\Core\Hash;
 use NCache\Enum\CType;
-use NCache\NCache;
 use NCache\Tests\TestsUnit\TestsUnit;
+use NCache\NCache;
 
 final class NCacheTest extends TestsUnit
 {
-
     public function setUp(): void
     {
-     
         parent::setUp();
 
         $this->directory('ncache-public-api-');
@@ -26,7 +23,7 @@ final class NCacheTest extends TestsUnit
     protected function tearDown(): void
     {
         $this->removeDirectory($this->directory);
-         CacheConfig::resetInstance();
+        CacheConfig::resetInstance();
         parent::tearDown();
     }
 
@@ -139,12 +136,12 @@ final class NCacheTest extends TestsUnit
 
         self::assertTrue($cache->has());
 
-        $result = $cache->get();
+        $result = $cache->getRegistry();
 
         self::assertIsArray($result);
         self::assertSame('JSON', $result['type']);
         self::assertSame('json-users', $result['name']);
-        self::assertSame($data, $result['data']);
+        self::assertSame($data, $cache->get());
 
         self::assertTrue($cache->delete());
         self::assertFalse($cache->has());
@@ -174,11 +171,11 @@ final class NCacheTest extends TestsUnit
         self::assertTrue($cache->put());
         self::assertTrue($cache->has());
 
-        $result = $cache->get();
+        $registry = $cache->getRegistry();
 
-        self::assertIsArray($result);
-        self::assertSame('SERIALIZE', $result['type']);
-        self::assertSame($data, $result['data']);
+        self::assertIsArray($registry);
+        self::assertSame('SERIALIZE', $registry['type']);
+        self::assertSame($data, $cache->get());
 
         self::assertTrue($cache->delete());
         self::assertFalse($cache->has());
@@ -211,7 +208,7 @@ final class NCacheTest extends TestsUnit
         $result = $cache->get();
 
         self::assertIsString($result);
-      
+
         self::assertTrue($cache->delete());
         self::assertFalse($cache->has());
     }
@@ -316,7 +313,7 @@ final class NCacheTest extends TestsUnit
         $result = $cache->get();
 
         self::assertIsArray($result);
-        self::assertSame($data, $result['data']);
+        self::assertSame($data, $result);
     }
 
     public function testSerializeCachePreservesNumericKeys(): void
@@ -339,8 +336,162 @@ final class NCacheTest extends TestsUnit
         $result = $cache->get();
 
         self::assertIsArray($result);
-        self::assertSame($data, $result['data']);
+        self::assertSame($data, $result);
     }
+
+
+    public function testSQLiteCacheCompleteLifecycle(): void
+{
+    $cache = NCache::key(
+        'sqlite-lifecycle',
+        CType::SQLite
+    )
+        ->set([
+            'name' => 'NCache',
+            'version' => 1,
+        ]);
+
+    self::assertFalse($cache->has());
+
+    self::assertTrue(
+        $cache->put()
+    );
+
+    self::assertTrue(
+        $cache->has()
+    );
+
+    self::assertSame(
+        [
+            'name' => 'NCache',
+            'version' => 1,
+        ],
+        $cache->get()
+    );
+
+    self::assertTrue(
+        $cache->delete()
+    );
+
+    self::assertFalse(
+        $cache->has()
+    );
+
+    self::assertNull(
+        $cache->get()
+    );
+}
+
+
+public function testSQLitePutPreservesExpirationWhenTtlDoesNotChange(): void
+{
+    $cache = NCache::key(
+        'sqlite-preserve-ttl',
+        CType::SQLite
+    )
+        ->ttl(60)
+        ->set([
+            'version' => 1,
+        ]);
+
+    self::assertTrue(
+        $cache->put()
+    );
+
+    $firstRegistry = $cache->getRegistry();
+
+    self::assertNotNull($firstRegistry);
+
+
+    $firstExpiration = $firstRegistry['expiresAt'];
+
+    $cache
+        ->set([
+            'version' => 2,
+        ]);
+
+    self::assertTrue(
+        $cache->put()
+    );
+
+    $secondRegistry = $cache->getRegistry();
+
+    self::assertNotNull($secondRegistry);
+
+    self::assertSame(
+        $firstExpiration,
+        $secondRegistry['expiresAt']
+    );
+
+    self::assertSame(
+        ['version' => 2],
+        $cache->get()
+    );
+}
+
+public function testSQLiteChangingTtlCreatesNewExpiration(): void
+{
+    $cache = NCache::key(
+        'sqlite-change-ttl',
+        CType::SQLite
+    )
+        ->ttl(60)
+        ->set(['version' => 1]);
+
+    self::assertTrue($cache->put());
+
+    $first = $cache->getRegistry();
+
+    self::assertNotNull($first);
+
+    $cache
+        ->ttl(120)
+        ->set(['version' => 2]);
+
+    self::assertTrue($cache->put());
+
+    $second = $cache->getRegistry();
+
+    self::assertNotNull($second);
+
+    self::assertNotSame(
+        $first['expiresAt'],
+        $second['expiresAt']
+    );
+
+    self::assertSame(
+        120,
+        $second['ttl']
+    );
+}
+
+public function testClearDeletesSQLiteCaches(): void
+{
+    self::assertTrue(
+        NCache::key('sqlite-a', CType::SQLite)
+            ->set(['id' => 1])
+            ->put()
+    );
+
+    self::assertTrue(
+        NCache::key('sqlite-b', CType::SQLite)
+            ->set(['id' => 2])
+            ->put()
+    );
+
+    self::assertSame(
+        2,
+        NCache::clear(CType::SQLite)
+    );
+
+    self::assertFalse(
+        NCache::key('sqlite-a', CType::SQLite)->has()
+    );
+
+    self::assertFalse(
+        NCache::key('sqlite-b', CType::SQLite)->has()
+    );
+}
 
     public function testClearDeletesJsonCachesFromSelectedDirectory(): void
     {
@@ -433,5 +584,71 @@ final class NCacheTest extends TestsUnit
 
         self::assertFalse($first->has());
         self::assertFalse($second->has());
+    }
+
+    public function testClearOnlyRemovesSelectedTypeAndDirectory(): void
+    {
+        $json = NCache::key(
+            'json-cache',
+            CType::JSON
+        )
+            ->dir('json')
+            ->set(['id' => 1]);
+
+        $serialize = NCache::key(
+            'serialize-cache',
+            CType::SERIALIZE
+        )
+            ->dir('serialize')
+            ->set(['id' => 2]);
+
+        self::assertTrue($json->put());
+        self::assertTrue($serialize->put());
+
+        self::assertTrue($json->has());
+        self::assertTrue($serialize->has());
+
+        self::assertSame(
+            1,
+            NCache::clear(
+                CType::JSON,
+                'json'
+            )
+        );
+
+        self::assertFalse($json->has());
+
+        self::assertTrue($serialize->has());
+    }
+
+    public function testClearOnlyRemovesSelectedDirectory(): void
+    {
+        $first = NCache::key(
+            'first',
+            CType::JSON
+        )
+            ->dir('json/a')
+            ->set(['id' => 1]);
+
+        $second = NCache::key(
+            'second',
+            CType::JSON
+        )
+            ->dir('json/b')
+            ->set(['id' => 2]);
+
+        self::assertTrue($first->put());
+        self::assertTrue($second->put());
+
+        self::assertSame(
+            1,
+            NCache::clear(
+                CType::JSON,
+                'json/a'
+            )
+        );
+
+        self::assertFalse($first->has());
+        self::assertTrue($second->has());
     }
 }

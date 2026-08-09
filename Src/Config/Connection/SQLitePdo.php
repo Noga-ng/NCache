@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace NCache\Config\Connection;
 
@@ -18,32 +16,28 @@ final class SQLitePdo
         private readonly string $database
     ) {}
 
-    /**
-     * @throws RuntimeException
-     * @return PDO
-     */
     public function connect(): PDO
     {
         if ($this->pdo !== null) {
             return $this->pdo;
         }
 
+        $this->ensureDirectory();
+
         try {
-           
             $pdo = new PDO(
                 "sqlite:{$this->database}",
                 options: [
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                    PDO::ATTR_EMULATE_PREPARES => false,
                 ]
             );
 
             $this->configure($pdo);
-            $this->pdo = $pdo;
-            
-            return $this->pdo;
 
+            $this->pdo = $pdo;
+
+            return $this->pdo;
         } catch (PDOException $exception) {
             $this->pdo = null;
 
@@ -59,6 +53,7 @@ final class SQLitePdo
         $pdo->exec('PRAGMA foreign_keys = ON');
         $pdo->exec('PRAGMA journal_mode = WAL');
         $pdo->exec('PRAGMA synchronous = NORMAL');
+        $pdo->exec('PRAGMA busy_timeout = 5000');
     }
 
     public function isConnected(): bool
@@ -73,14 +68,14 @@ final class SQLitePdo
 
     /**
      * @param array<array-key, mixed> $params
-     * @return PDOStatement
      */
-    public function execute(
-        string $sql,
-        array $params = []
-    ):PDOStatement {
+    public function execute(string $sql, array $params = []): PDOStatement
+    {
         try {
-            $statement = $this->connect()->prepare($sql);
+            $statement = $this
+                ->connect()
+                ->prepare($sql);
+
             $statement->execute($params);
 
             return $statement;
@@ -93,44 +88,35 @@ final class SQLitePdo
     }
 
     /**
-     * @param array<array-key,mixed> $params
-     * @return PDOStatement
-     */
-    public function create(
-        string $sql,
-        array $params = []
-        ):PDOStatement{
-        return $this->execute($sql,$params);
-    }
-
-    /**
      * @param array<array-key, mixed> $params
-     * @return array<mixed>
+     * @return list<array<string, mixed>>
      */
-    public function getAll(
-        string $sql,
-        array $params = [],
-        int $fetchMode = PDO::FETCH_ASSOC
-    ): array {
-
-        return $this
-            ->execute($sql, $params)
-            ->fetchAll($fetchMode);
-    }
-
-    /**
-     * @param array<array-key, mixed> $params
-     */
-    public function get(
-        string $sql,
-        array $params = [],
-        int $fetchMode = PDO::FETCH_ASSOC
-    ): mixed {
+    public function getAll(string $sql, array $params = []): array
+    {
         $result = $this
             ->execute($sql, $params)
-            ->fetch($fetchMode);
+            ->fetchAll(PDO::FETCH_ASSOC);
 
-        return $result === false ? null : $result;
+        /** @var list<array<string, mixed>> $result */
+        return $result;
+    }
+
+    /**
+     * @param array<array-key, mixed> $params
+     * @return array<string, mixed>|null
+     */
+    public function get(string $sql, array $params = []): ?array
+    {
+        $result = $this
+            ->execute($sql, $params)
+            ->fetch(PDO::FETCH_ASSOC);
+
+        if ($result === false) {
+            return null;
+        }
+
+        /** @var array<string, mixed> $result */
+        return $result;
     }
 
     /**
@@ -142,6 +128,12 @@ final class SQLitePdo
     {
         $pdo = $this->connect();
 
+        if ($pdo->inTransaction()) {
+            throw new RuntimeException(
+                'A SQLite transaction is already active.'
+            );
+        }
+
         try {
             $pdo->beginTransaction();
 
@@ -151,10 +143,8 @@ final class SQLitePdo
 
             return $result;
         } catch (Throwable $exception) {
-            if ($pdo->inTransaction()) {
                 $pdo->rollBack();
-            }
-
+            
             throw new RuntimeException(
                 'SQLite transaction failed.',
                 previous: $exception
@@ -162,8 +152,23 @@ final class SQLitePdo
         }
     }
 
-    public function lastId(): string|false
+    private function ensureDirectory(): void
     {
-        return $this->connect()->lastInsertId();
+        $directory = dirname(
+            $this->database
+        );
+
+        if (is_dir($directory)) {
+            return;
+        }
+
+        if (
+            !mkdir($directory, 0777, true) &&
+            !is_dir($directory)
+        ) {
+            throw new RuntimeException(
+                "Unable to create SQLite directory: {$directory}"
+            );
+        }
     }
 }

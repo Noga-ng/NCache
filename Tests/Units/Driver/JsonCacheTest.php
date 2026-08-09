@@ -1,19 +1,4 @@
 <?php
-
-// Cette suite contient 16 tests et couvre :
-
-// getFile();
-// exists();
-// save();
-// get();
-// show() hérité de CacheDriver;
-// metaData();
-// delete();
-// clear();
-// l’écrasement d’un cache existant;
-// les données imbriquées;
-// la création automatique du dossier.
-
 declare(strict_types=1);
 
 namespace NCache\Tests\Units\Driver;
@@ -117,7 +102,7 @@ final class JsonCacheTest extends TestsUnit
         );
 
         self::assertIsArray($decoded);
-        self::assertSame($item->toArray(), $decoded);
+        self::assertSame($item->getData(), $decoded);
     }
 
     public function testSaveUsesPrettyPrintedJson(): void
@@ -159,7 +144,7 @@ final class JsonCacheTest extends TestsUnit
         $driver->save();
 
         self::assertSame(
-            $item->toArray(),
+            $item->getData(),
             $driver->get()
         );
     }
@@ -182,35 +167,6 @@ final class JsonCacheTest extends TestsUnit
         );
     }
 
-    public function testMetadataReturnsDataWithoutCachePayload(): void
-    {
-        $item = $this->createJsonItem('metadata-cache');
-
-        $item->setSignature('signature');
-        $item->setTtl(120,$this->clock());
-        $item->setData([
-            'secret' => 'payload',
-        ]);
-
-        $driver = new JsonCache($item);
-        $driver->save();
-
-        $metadata = $driver->metaData();
-
-        self::assertArrayNotHasKey('data', $metadata);
-
-        self::assertSame(
-            [
-                'type' => CType::JSON->name,
-                'name' => 'metadata-cache',
-                'key' => $item->hashedKey(),
-                'signature' => $item->getSignature(),
-                'ttl' => 120,
-                'expiresAt' => $item->expiredAt(),
-            ],
-            $metadata
-        );
-    }
 
     public function testDeleteRemovesSavedCache(): void
     {
@@ -239,7 +195,6 @@ final class JsonCacheTest extends TestsUnit
 
     public function testClearDeletesAllJsonCachesInDirectory(): void
     {
-        $type = CType::JSON;
         $first = $this->createJsonItem('first');
         $first->setData(['id' => 1]);
 
@@ -303,7 +258,7 @@ final class JsonCacheTest extends TestsUnit
 
         self::assertSame(
             ['version' => 2],
-            $result['data']
+            $result
         );
     }
 
@@ -329,7 +284,7 @@ final class JsonCacheTest extends TestsUnit
 
         self::assertSame(
             $item->getData(),
-            $result['data']
+            $result
         );
     }
 

@@ -1,16 +1,4 @@
 <?php
-//  Cette suite comprend 17 tests. Elle vérifie notamment :
-
-// la construction du fichier .nc ;
-// l’écriture et la lecture sérialisées ;
-// la conservation précise des types PHP ;
-// les clés numériques, contrairement au JSON qui peut modifier certaines structures ;
-// les métadonnées ;
-// la suppression et le nettoyage ;
-// l’écrasement du cache ;
-// la création automatique du répertoire ;
-// les sauvegardes successives. 
-
 declare(strict_types=1);
 
 namespace NCache\Tests\Units\Driver;
@@ -102,7 +90,7 @@ final class SerializeCacheTest extends TestsUnit
         );
 
         self::assertIsArray($decoded);
-        self::assertSame($item->toArray(), $decoded);
+        self::assertSame($item->getData(), $decoded);
     }
 
     public function testGetReturnsCompleteCacheArray(): void
@@ -120,7 +108,7 @@ final class SerializeCacheTest extends TestsUnit
         $driver->save();
 
         self::assertSame(
-            $item->toArray(),
+            $item->getData(),
             $driver->get()
         );
     }
@@ -141,37 +129,7 @@ final class SerializeCacheTest extends TestsUnit
             $item->toArray(),
             $driver->show()
         );
-    }
-
-    public function testMetadataReturnsCacheInformationWithoutPayload(): void
-    {
-        $item = $this->createSerializeItem('metadata-cache');
-
-        $item->setSignature('serialized-signature');
-        $item->setTtl(120,$this->clock());
-        $item->setData([
-            'secret' => 'payload',
-        ]);
-
-        $driver = new SerializeCache($item);
-        $driver->save();
-
-        $metadata = $driver->metaData();
-
-        self::assertArrayNotHasKey('data', $metadata);
-
-        self::assertSame(
-            [
-                'type' => CType::SERIALIZE->name,
-                'name' => 'metadata-cache',
-                'key' => $item->hashedKey(),
-                'signature' => $item->getSignature(),
-                'ttl' => 120,
-                'expiresAt' => $item->expiredAt(),
-            ],
-            $metadata
-        );
-    }
+    } 
 
     public function testDeleteRemovesSavedCache(): void
     {
@@ -287,7 +245,7 @@ final class SerializeCacheTest extends TestsUnit
         $v = ['version' => 2];
         self::assertSame(
             $v,
-            $result['data']
+            $result
         );
     }
 
@@ -318,7 +276,7 @@ final class SerializeCacheTest extends TestsUnit
         $result = $driver->get();
 
         self::assertIsArray($result);
-        self::assertSame($data, $result['data']);
+        self::assertSame($data, $result);
     }
 
     public function testSerializedCachePreservesNumericArrayKeys(): void
@@ -338,7 +296,7 @@ final class SerializeCacheTest extends TestsUnit
         $result = $driver->get();
 
         self::assertIsArray($result);
-        self::assertSame($data, $result['data']);
+        self::assertSame($data, $result);
     }
 
     public function testSerializedCachePreservesUnicodeContent(): void
@@ -357,7 +315,7 @@ final class SerializeCacheTest extends TestsUnit
         $result = $driver->get();
 
         self::assertIsArray($result);
-        self::assertSame($data, $result['data']);
+        self::assertSame($data, $result);
     }
 
     public function testCacheDirectoryIsCreatedAutomatically(): void
@@ -411,7 +369,7 @@ final class SerializeCacheTest extends TestsUnit
         $v = ['version'=>3];
         self::assertSame(
             $v,
-            $result['data']
+            $result
         );
     }
 

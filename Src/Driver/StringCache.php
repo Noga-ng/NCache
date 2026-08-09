@@ -21,12 +21,6 @@ final class StringCache extends CacheDriver
         return is_file($this->buildFile());
     }
 
-    public function metaData(): array
-    {
-        $data = $this->get();
-        return [$data];
-    }
-
     /**
      * @return string
      */
@@ -58,7 +52,7 @@ final class StringCache extends CacheDriver
             },
             $this->item->getData()
         );
-        $content = implode('\n',\array_values($data));
+        $content = implode("\n",\array_values($data));
 
         return $content;
     }
