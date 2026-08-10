@@ -79,7 +79,7 @@ final class StringCacheTest extends TestsUnit
 
         self::assertStringContainsString(
             'Noga,Germainio',
-            str_replace('\n',',',$content)
+            str_replace(PHP_EOL,',',$content)
         );
     }
 
@@ -102,7 +102,7 @@ final class StringCacheTest extends TestsUnit
 
         self::assertStringContainsString(
             "Noga,42,19.5,true,false,null",
-            str_replace('\n',',',$driver->get())
+            str_replace(PHP_EOL,',',$driver->get())
         );
     }
 
@@ -160,7 +160,7 @@ final class StringCacheTest extends TestsUnit
 
         self::assertStringContainsString(
             'Données malagasy,Toamasina',
-            str_replace('\n',',',$driver->get())
+            str_replace(PHP_EOL,',',$driver->get())
         );
     }
 

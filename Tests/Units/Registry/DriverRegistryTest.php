@@ -75,20 +75,6 @@ final class DriverRegistryTest extends TestsUnit
         );
     }
 
-    public function testMakeThrowsExceptionForUnregisteredType(): void
-    {
-        $this->expectException(
-            InvalidCacheArgumentException::class
-        );
-
-        $this->expectExceptionMessage(
-            'No driver registered for MEMCACHED'
-        );
-
-        DriverRegistry::make(
-            $this->DrItem(CType::MEMCACHED)
-        );
-    }
 
     public function testRegisterRejectsClassThatDoesNotExtendCacheDriver(): void
     {

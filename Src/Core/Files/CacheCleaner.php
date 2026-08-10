@@ -16,7 +16,7 @@ final class CacheCleaner
     public function delete(string $filename): bool
     {
         /** @var string */
-        $ext = (string) \pathinfo($filename, \PATHINFO_EXTENSION);
+        $ext = \pathinfo($filename, \PATHINFO_EXTENSION);
         if (!is_file($filename)) {
             return true;
         }

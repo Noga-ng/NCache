@@ -3,7 +3,7 @@
   "description": "A multiple drivers cache.",
   "type": "library",
   "license": "MIT",
-  "homepage": "https://github.com/noga-ng/Ncache",
+  "homepage": "https://github.com/Noga-ng/NCache",
   "authors": [
     {
       "name": "noga-ng",
@@ -12,7 +12,8 @@
   ],
 
   "require": {
-    "php": ">=8.1"
+    "php": ">=8.1",
+    "ext-memcached": "*"
   },
 
   "autoload": {

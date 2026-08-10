@@ -247,7 +247,7 @@ final class NCache implements CacheInterface
 
         $deleted = $driver->clear();
 
-        if ($type === CType::SQLite) {
+        if (\in_array($type,[CType::SQLite,CType::REDIS,CType::MEMCACHED],true)) {
             $registry->removeCurrentScope();
         } else {
             $registry->removeMissing();

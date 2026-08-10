@@ -52,7 +52,7 @@ final class StringCache extends CacheDriver
             },
             $this->item->getData()
         );
-        $content = implode("\n",\array_values($data));
+        $content = implode(\PHP_EOL,\array_values($data));
 
         return $content;
     }

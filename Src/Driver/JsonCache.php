@@ -41,13 +41,13 @@ final class JsonCache extends CacheDriver{
 
     public function save(): bool{
         return (new WriteFile(
-            (string)$this->buildFile(),
+            $this->buildFile(),
             $this->format()
         ))->save();
     }
 
     /**
-     * @return mixed
+     * @return array<array-key, mixed>|string
      */
     public function get(): mixed{
         return (new ReadFile(

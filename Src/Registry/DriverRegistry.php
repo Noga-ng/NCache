@@ -5,6 +5,7 @@ namespace NCache\Registry;
 use NCache\Core\CacheItem\CacheItem;
 use NCache\Driver\CacheDriver;
 use NCache\Driver\JsonCache;
+use NCache\Driver\MemCache;
 use NCache\Driver\RedisCache;
 use NCache\Driver\SerializeCache;
 use NCache\Driver\SqliteCache;
@@ -22,7 +23,8 @@ final class DriverRegistry
         'JSON' => JsonCache::class,
         'STRING' => StringCache::class,
         'REDIS' => RedisCache::class,
-        'SQLite' => SqliteCache::class
+        'SQLite' => SqliteCache::class,
+        'MEMCACHED'=>MemCache::class
     ];
 
     public static function register(CType $type, string $driver): void

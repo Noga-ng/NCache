@@ -144,7 +144,7 @@ final class WriteFile
     private function replaceTarget(): void
     {
 
-        if (!rename($this->tmp, $this->file)) {
+        if (!@rename($this->tmp, $this->file)) {
             if (is_file($this->tmp)) {
                 @unlink($this->tmp);
             }

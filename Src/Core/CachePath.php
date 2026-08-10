@@ -16,11 +16,11 @@ final class CachePath
         $this->path = $this->basePath;
       }
 
-    public function dir(string $dir): CachePath
+    public function dir(?string $dir): CachePath
     {
         $clone = clone $this;
         $clone->dir = $dir;
-        $clone->path = empty($clone->dir) ? rtrim($clone->basePath,'/\\') : 
+        $clone->path = $clone->dir === null || $clone->dir === '' ? rtrim($clone->basePath,'/\\') : 
             rtrim($clone->basePath, "/\\")
             . DIRECTORY_SEPARATOR
             . trim($clone->dir,'/\\'); 
@@ -33,22 +33,7 @@ final class CachePath
      */
     public function getPath(): string
     {
-        if (
-            !is_dir($this->path)
-            && !mkdir(
-                $this->path, 
-            $this->permission, 
-            true
-            )
-            && 
-            !is_dir($this->path)
-        ) {
-            throw new FailedCreationDirException(
-                "Failed to create cache directory: {$this->path}"
-            );
-        }
-
-        return $this->path;
+        return $this->create($this->path);
     }
 
     public function value(): string
@@ -71,9 +56,28 @@ final class CachePath
     }
 
     public function getBasePath():string{
-        return rtrim(
+        return $this->create(rtrim(
             $this->basePath,
             '/\\'
-        );
+        ));
+    }
+    private function create(string $path):string{
+        
+         if (
+            !is_dir($path)
+            && !mkdir(
+                $path, 
+            $this->permission, 
+            true
+            )
+            && 
+            !is_dir($path)
+        ) {
+            throw new FailedCreationDirException(
+                "Failed to create cache directory: {$path}"
+            );
+        }
+        
+        return $path;
     }
 }

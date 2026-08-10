@@ -1,87 +1,78 @@
-name: NCache CI
+name: Tests
 
 on:
   push:
-    branches:
-      - main
-      - develop
-
   pull_request:
-    branches:
-      - main
-      - develop
-
-permissions:
-  contents: read
-
-concurrency:
-  group: ncache-ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
-  phpunit:
-    name: PHPUnit — PHP ${{ matrix.php }}
-
+  tests:
     runs-on: ubuntu-latest
+
+    services:
+      redis:
+        image: redis:8
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+      memcached:
+        image: memcached:latest
+        ports:
+          - 11211:11211
 
     strategy:
-      fail-fast: false
       matrix:
-        php:
-          - "8.1"
-          - "8.2"
-          - "8.3"
-          - "8.4"
-          - "8.5"
+        php-version:
+          - '8.1'
+          - '8.2'
+          - '8.3'
+          - '8.4'
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ matrix.php }}
+          php-version: ${{ matrix.php-version }}
+          extensions: >
+            json,
+            pdo_sqlite,
+            sqlite3,
+            redis,
+            memcached
           coverage: none
-          tools: composer:v2
-          extensions: json
 
-      - name: Show environment
+      - name: Validate Composer
+        run: composer validate --strict
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Check Redis
         run: |
-          php --version
-          composer --version
+          php -r '
+          $redis = new Redis();
+          $redis->connect("127.0.0.1", 6379);
+          var_dump($redis->ping());
+          '
 
-      - name: Validate Composer configuration
-        run: composer validate --strict
+      - name: Check Memcached
+        run: |
+          php -r '
+          $m = new Memcached();
+          $m->addServer("127.0.0.1", 11211);
+          $m->set("ci-test", "ok", 30);
+          var_dump($m->get("ci-test"));
+          '
 
-      - name: Install dependencies
-        run: composer install --no-interaction --no-progress --prefer-dist
+      - name: PHPStan
+        run: vendor/bin/phpstan analyse Src --level=9
 
-      - name: Run PHPUnit
-        run: php ./vendor/bin/phpunit Tests/Units --display-errors --display-warnings --display-notices --display-deprecations
-
-  phpstan:
-    name: PHPStan — Level 9
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: "8.4"
-          coverage: none
-          tools: composer:v2
-          extensions: json
-
-      - name: Validate Composer configuration
-        run: composer validate --strict
-
-      - name: Install dependencies
-        run: composer install --no-interaction --no-progress --prefer-dist
-
-      - name: Run PHPStan
-        run: php ./vendor/phpstan/phpstan/phpstan analyse ./Src --level=9 --no-progress
+      - name: PHPUnit
+        run: vendor/bin/phpunit Tests/Units/

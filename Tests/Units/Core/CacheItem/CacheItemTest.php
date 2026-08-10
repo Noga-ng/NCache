@@ -33,9 +33,13 @@ final class CacheItemTest extends TestsUnit
     public function testItReturnsTheHashedKey(): void
     {
         $item = $this->createItem('users');
-
-        self::assertSame(
-            (new Hash('users'))->get(),
+        $dir = $item->getDir() ?? "default";
+        self::assertSame(  
+        (new Hash([
+        'type' => $item->typeName(),
+        'dir' => $dir,
+        'key' => $item->key(),
+    ]))->get(),
             $item->hashedKey()
         );
     }
@@ -164,11 +168,15 @@ final class CacheItemTest extends TestsUnit
     public function testFileReturnsHashedFilePath(): void
     {
         $item = $this->createItem('users', CType::JSON);
-
+         $dir = $item->getDir() ?? "default";
         self::assertSame(
             $this->directory
             . DIRECTORY_SEPARATOR
-            . (new Hash('users'))->get(),
+            .(new Hash([
+            'type' => $item->typeName(),
+            'dir' => $dir,
+            'key' => $item->key(),
+            ]))->get(),
             $item->file()
         );
     }
@@ -201,11 +209,15 @@ final class CacheItemTest extends TestsUnit
         $item->setTtl(3600,$this->clock());
 
         $result = $item->toArray();
-
+        $dir = $item->getDir() ?? "default";
         self::assertSame('JSON', $result['type']);
         self::assertSame('users', $result['name']);
         self::assertSame(
-            (new Hash('users'))->get(),
+            (new Hash([
+            'type' => $item->typeName(),
+            'dir' => $dir,
+            'key' => $item->key(),
+            ]))->get(),
             $result['key']
         );
         self::assertSame(

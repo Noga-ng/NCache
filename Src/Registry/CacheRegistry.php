@@ -6,7 +6,6 @@ use NCache\Core\CacheItem\CacheItem;
 use NCache\Core\Files\CacheCleaner;
 use NCache\Core\Files\ReadFile;
 use NCache\Core\Files\WriteFile;
-use NCache\Core\Hash;
 use NCache\Enum\CType;
 use NCache\Exceptions\InvalidCacheArgumentException;
 
