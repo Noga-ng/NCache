@@ -44,6 +44,8 @@ jobs:
           php-version: ${{ matrix.php-version }}
           extensions: json,pdo_sqlite,sqlite3,redis,memcached
           coverage: none
+      - name: Update composer
+        run: composer update
 
       - name: Validate Composer
         run: composer validate --strict
