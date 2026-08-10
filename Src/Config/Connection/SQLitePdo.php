@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace NCache\Config\Connection;
 
@@ -143,8 +145,8 @@ final class SQLitePdo
 
             return $result;
         } catch (Throwable $exception) {
-                $pdo->rollBack();
-            
+            $pdo->rollBack();
+
             throw new RuntimeException(
                 'SQLite transaction failed.',
                 previous: $exception
@@ -163,8 +165,8 @@ final class SQLitePdo
         }
 
         if (
-            !mkdir($directory, 0777, true) &&
-            !is_dir($directory)
+            !mkdir($directory, 0o777, true)
+            && !is_dir($directory)
         ) {
             throw new RuntimeException(
                 "Unable to create SQLite directory: {$directory}"

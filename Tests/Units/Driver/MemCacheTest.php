@@ -20,8 +20,8 @@ final class MemCacheTest extends TestsUnit
         parent::setUp();
         $this->directory("memcached-driver");
         $this->client = (new MCached())->connect();
-      
-      assertTrue($this->client->flush());
+
+        assertTrue($this->client->flush());
     }
 
     protected function tearDown(): void

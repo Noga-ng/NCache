@@ -28,7 +28,7 @@ final class ExpirationTest extends TestsUnit
 
     public function testItAcceptsNullTtlAndTimestamp(): void
     {
-        $expiration = $this->expiration(null,null);
+        $expiration = $this->expiration(null, null);
 
         self::assertNull($expiration->ttl());
         self::assertNull($expiration->timestamp());
@@ -38,7 +38,7 @@ final class ExpirationTest extends TestsUnit
     {
         $before = time();
 
-        $expiration = Expiration::fromTTL(3600,$this->clock());
+        $expiration = Expiration::fromTTL(3600, $this->clock());
 
         $after = time();
 
@@ -57,7 +57,7 @@ final class ExpirationTest extends TestsUnit
 
     public function testFromNullTtlCreatesNoExpiration(): void
     {
-        $expiration = Expiration::fromTTL(null,$this->clock());
+        $expiration = Expiration::fromTTL(null, $this->clock());
 
         self::assertNull($expiration->ttl());
         self::assertNull($expiration->timestamp());
@@ -66,34 +66,35 @@ final class ExpirationTest extends TestsUnit
 
     public function testFutureTimestampIsNotExpired(): void
     {
-        $expiration = $this->expiration(3600,$this->clock()->now() + 3600);
+        $expiration = $this->expiration(3600, $this->clock()->now() + 3600);
 
         self::assertFalse($expiration->isExpired());
     }
 
     public function testPastTimestampIsExpired(): void
     {
-        $expiration = $this->expiration(3600,$this->clock()->now() - 1);
+        $expiration = $this->expiration(3600, $this->clock()->now() - 1);
 
         self::assertTrue($expiration->isExpired());
     }
 
     public function testCurrentTimestampIsExpired(): void
     {
-        $expiration = $this->expiration(0,$this->clock()->now());
+        $expiration = $this->expiration(0, $this->clock()->now());
 
         self::assertTrue($expiration->isExpired());
     }
 
     public function testZeroTtlExpiresImmediately(): void
     {
-        $expiration = Expiration::fromTTL(0,$this->clock());
+        $expiration = Expiration::fromTTL(0, $this->clock());
 
         self::assertSame(0, $expiration->ttl());
         self::assertTrue($expiration->isExpired());
     }
 
-    private function expiration(?int $ttl,?int $expiresAt):Expiration{
+    private function expiration(?int $ttl, ?int $expiresAt): Expiration
+    {
         return new Expiration(
             $ttl,
             $expiresAt,

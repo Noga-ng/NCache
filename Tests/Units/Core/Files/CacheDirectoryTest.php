@@ -10,7 +10,6 @@ use SplFileInfo;
 
 final class CacheDirectoryTest extends TestsUnit
 {
-
     protected function setUp(): void
     {
         parent::setUp();
@@ -99,7 +98,7 @@ final class CacheDirectoryTest extends TestsUnit
             . 'nested';
 
         self::assertTrue(
-            mkdir($nestedDirectory, 0777, true)
+            mkdir($nestedDirectory, 0o777, true)
         );
 
         $this->createFile('nested/cache.json');
@@ -108,8 +107,8 @@ final class CacheDirectoryTest extends TestsUnit
 
         $directories = array_filter(
             $results,
-            static fn (SplFileInfo $file): bool =>
-                $file->isDir()
+            static fn(SplFileInfo $file): bool
+                => $file->isDir()
         );
 
         self::assertNotEmpty($directories);
@@ -131,10 +130,10 @@ final class CacheDirectoryTest extends TestsUnit
 
         self::assertTrue(
             mkdir(
-                $secondDirectory, 
-                0777, 
+                $secondDirectory,
+                0o777,
                 true
-                )
+            )
         );
 
         try {
@@ -192,7 +191,7 @@ final class CacheDirectoryTest extends TestsUnit
             $this->extractPaths($secondIteration)
         );
     }
-   
+
 
     /**
      * @param list<SplFileInfo> $files
@@ -201,8 +200,8 @@ final class CacheDirectoryTest extends TestsUnit
     private function extractPaths(array $files): array
     {
         $paths = array_map(
-            fn (SplFileInfo $file): string =>
-                $this->normalizePath(
+            fn(SplFileInfo $file): string
+                => $this->normalizePath(
                     $file->getPathname()
                 ),
             $files
@@ -220,8 +219,8 @@ final class CacheDirectoryTest extends TestsUnit
     private function sortPaths(array $paths): array
     {
         $paths = array_map(
-            fn (string $path): string =>
-                $this->normalizePath($path),
+            fn(string $path): string
+                => $this->normalizePath($path),
             $paths
         );
 
@@ -230,7 +229,7 @@ final class CacheDirectoryTest extends TestsUnit
         return array_values($paths);
     }
 
-    private function normalizePath(string $path): string 
+    private function normalizePath(string $path): string
     {
         return str_replace(
             ['/', '\\'],

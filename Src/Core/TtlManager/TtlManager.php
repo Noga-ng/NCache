@@ -48,7 +48,7 @@ final class TtlManager
                     ?->remaining();
     }
 
-    public function state():?TtlState
+    public function state(): ?TtlState
     {
         return $this->storedExpiration()?->state();
     }

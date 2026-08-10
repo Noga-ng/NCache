@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace NCache\Driver;
 
@@ -52,7 +54,7 @@ final class StringCache extends CacheDriver
             },
             $this->item->getData()
         );
-        $content = implode(\PHP_EOL,\array_values($data));
+        $content = implode(\PHP_EOL, \array_values($data));
 
         return $content;
     }

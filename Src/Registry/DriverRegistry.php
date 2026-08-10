@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace NCache\Registry;
 
@@ -24,7 +26,7 @@ final class DriverRegistry
         'STRING' => StringCache::class,
         'REDIS' => RedisCache::class,
         'SQLite' => SqliteCache::class,
-        'MEMCACHED'=>MemCache::class
+        'MEMCACHED' => MemCache::class,
     ];
 
     public static function register(CType $type, string $driver): void

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace NCache\Tests\Units\Core\Files;
@@ -10,13 +11,12 @@ use NCache\Tests\TestsUnit\TestsUnit;
 
 final class ReadFileTest extends TestsUnit
 {
-
     protected function setUp(): void
     {
-       $this->directory('ncache-read-');
+        $this->directory('ncache-read-');
     }
 
-        protected function tearDown(): void
+    protected function tearDown(): void
     {
         $this->removeDirectory($this->directory);
         parent::tearDown();

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace NCache\Tests\Units\Driver;
@@ -11,12 +12,11 @@ use NCache\Tests\TestsUnit\TestsUnit;
 
 final class SerializeCacheTest extends TestsUnit
 {
-
     protected function setUp(): void
     {
         parent::setUp();
 
-      $this->directory('ncache-serialize-driver-');
+        $this->directory('ncache-serialize-driver-');
     }
 
     protected function tearDown(): void
@@ -98,7 +98,7 @@ final class SerializeCacheTest extends TestsUnit
         $item = $this->createSerializeItem('complete-cache');
 
         $item->setSignature('users-v1');
-        $item->setTtl(3600,$this->clock());
+        $item->setTtl(3600, $this->clock());
         $item->setData([
             'id' => 25,
             'name' => 'Noga',
@@ -129,7 +129,7 @@ final class SerializeCacheTest extends TestsUnit
             $item->toArray(),
             $driver->show()
         );
-    } 
+    }
 
     public function testDeleteRemovesSavedCache(): void
     {
@@ -366,7 +366,7 @@ final class SerializeCacheTest extends TestsUnit
         $result = $driver->get();
 
         self::assertIsArray($result);
-        $v = ['version'=>3];
+        $v = ['version' => 3];
         self::assertSame(
             $v,
             $result
@@ -375,4 +375,3 @@ final class SerializeCacheTest extends TestsUnit
 
 
 }
-

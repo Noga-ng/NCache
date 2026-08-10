@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace NCache;
 
@@ -247,7 +249,7 @@ final class NCache implements CacheInterface
 
         $deleted = $driver->clear();
 
-        if (\in_array($type,[CType::SQLite,CType::REDIS,CType::MEMCACHED],true)) {
+        if (\in_array($type, [CType::SQLite,CType::REDIS,CType::MEMCACHED], true)) {
             $registry->removeCurrentScope();
         } else {
             $registry->removeMissing();
@@ -266,8 +268,8 @@ final class NCache implements CacheInterface
         $signature = (new Hash($data))->get();
         $cache = $registry->get();
 
-        return (isset($cache['signature']) &&
-            $cache['signature'] === $signature);
+        return (isset($cache['signature'])
+            && $cache['signature'] === $signature);
     }
 
     /**

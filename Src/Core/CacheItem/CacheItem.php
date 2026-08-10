@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace NCache\Core\CacheItem;
 
@@ -19,7 +21,7 @@ final class CacheItem
 
     /** @var string|null */
     private ?string $signature = null;
-    
+
     /** @var array<array-key,mixed> */
     private array $data = [];
 
@@ -64,9 +66,9 @@ final class CacheItem
      * @param non-negative-int|null $ttl
      * @return void
      */
-    public function setTtl(?int $ttl,Clock $clock): void
+    public function setTtl(?int $ttl, Clock $clock): void
     {
-        $this->expiration = Expiration::fromTTL($ttl,$clock);
+        $this->expiration = Expiration::fromTTL($ttl, $clock);
         $this->ttlDefined = true;
     }
 
@@ -76,13 +78,13 @@ final class CacheItem
      * @param Clock $clock
      * @return void
      */
-    public function restoreExpiration(?int $ttl, ?int $expiration,Clock $clock): void
+    public function restoreExpiration(?int $ttl, ?int $expiration, Clock $clock): void
     {
         $this->expiration = Expiration::restore(
-            $ttl, 
+            $ttl,
             $expiration,
             $clock
-            );
+        );
     }
 
     public function ttlWasDefined(): bool
@@ -99,10 +101,10 @@ final class CacheItem
     {
         $dir = $this->getDir() ?? "default";
         return (new Hash([
-        'type' => $this->typeName(),
-        'dir' => $dir,
-        'key' => $this->key(),
-    ]))->get();
+            'type' => $this->typeName(),
+            'dir' => $dir,
+            'key' => $this->key(),
+        ]))->get();
     }
 
     public function type(): CType
@@ -115,7 +117,7 @@ final class CacheItem
         return $this->type->name;
     }
 
-    public function getDir():?string
+    public function getDir(): ?string
     {
         return $this->cachePath->dirname();
     }

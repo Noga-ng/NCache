@@ -12,7 +12,6 @@ use SplFileInfo;
 
 final class CacheDirectory
 {
-
     /**
      * @param list<string> $directory
      */
@@ -25,40 +24,40 @@ final class CacheDirectory
      *
      * @return list<RecursiveIteratorIterator<RecursiveDirectoryIterator>>
      */
- private function recursiveDirectory(array $directory): array
-{
-     /**
-     *
-     * @var list<RecursiveIteratorIterator<RecursiveDirectoryIterator>>
-     */
-    $recursive = [];
+    private function recursiveDirectory(array $directory): array
+    {
+        /**
+        *
+        * @var list<RecursiveIteratorIterator<RecursiveDirectoryIterator>>
+        */
+        $recursive = [];
 
-    foreach ($directory as $dir) {
-        $this->isValidDirectory($dir);
+        foreach ($directory as $dir) {
+            $this->isValidDirectory($dir);
 
-        $directoryIterator =
-            new RecursiveDirectoryIterator(
-                $dir,
-                FilesystemIterator::SKIP_DOTS
-            );
+            $directoryIterator
+                = new RecursiveDirectoryIterator(
+                    $dir,
+                    FilesystemIterator::SKIP_DOTS
+                );
 
-        $recursive[] =
-            new RecursiveIteratorIterator(
-                $directoryIterator,
-                RecursiveIteratorIterator::CHILD_FIRST
-            );
+            $recursive[]
+                = new RecursiveIteratorIterator(
+                    $directoryIterator,
+                    RecursiveIteratorIterator::CHILD_FIRST
+                );
+        }
+
+        return $recursive;
     }
 
-    return $recursive;
-}
-
-    private function isValidDirectory(string $directory):void
+    private function isValidDirectory(string $directory): void
     {
-         if (!is_dir($directory)) {
-                throw new InvalidCacheArgumentException(
-                    "cannot find a directory on {$directory}"
-                );
-            }
+        if (!is_dir($directory)) {
+            throw new InvalidCacheArgumentException(
+                "cannot find a directory on {$directory}"
+            );
+        }
     }
 
     /**
@@ -73,7 +72,7 @@ final class CacheDirectory
          */
         $iterate = [];
 
-       foreach ($iterators as $iterator) {
+        foreach ($iterators as $iterator) {
             foreach ($iterator as $file) {
                 if (!$file instanceof SplFileInfo) {
                     continue;

@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace NCache\Driver;
 
@@ -194,10 +196,10 @@ final class SqliteCache extends CacheDriver
     public function clear(): int
     {
 
-        if($this->item->getDir() === null){
+        if ($this->item->getDir() === null) {
             return $this->clearAll();
         }
-        
+
         if (!$this->tableExists()) {
             return 0;
         }
@@ -216,8 +218,8 @@ final class SqliteCache extends CacheDriver
         $total = $result['total'] ?? null;
 
         if (
-            !\is_int($total) &&
-            !\is_string($total)
+            !\is_int($total)
+            && !\is_string($total)
         ) {
             throw new InvalidCacheArgumentException(
                 'SQLite cache count must be numeric.'
@@ -255,8 +257,8 @@ final class SqliteCache extends CacheDriver
             $table = $row['name'] ?? null;
 
             if (
-                !\is_string($table) ||
-                !$this->isValidTableName($table)
+                !\is_string($table)
+                || !$this->isValidTableName($table)
             ) {
                 continue;
             }

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace NCache\Driver;
@@ -11,14 +12,16 @@ use NCache\Driver\CacheDriver;
 use NCache\Enum\CType;
 use NCache\Exceptions\InvalidCacheArgumentException;
 
-final class JsonCache extends CacheDriver{
-
-    public function __construct(CacheItem $item){
+final class JsonCache extends CacheDriver
+{
+    public function __construct(CacheItem $item)
+    {
         parent::__construct($item);
         $this->cacheCleaner = new CacheCleaner(["json"]);
-        }
+    }
 
-    protected function format(): string{
+    protected function format(): string
+    {
         return json_encode(
             $this->item->getData(),
             JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR
@@ -26,20 +29,22 @@ final class JsonCache extends CacheDriver{
     }
 
 
-    private function buildFile():string{
+    private function buildFile(): string
+    {
         $file = $this->item->file();
-        if(!\is_string($file)){
+        if (!\is_string($file)) {
             throw new InvalidCacheArgumentException(
                 "file cannot be null"
             );
         }
 
-        return str_ends_with($file,".json") ?
-         $file : 
-         "{$file}.json";
+        return str_ends_with($file, ".json")
+         ? $file
+         : "{$file}.json";
     }
 
-    public function save(): bool{
+    public function save(): bool
+    {
         return (new WriteFile(
             $this->buildFile(),
             $this->format()
@@ -49,27 +54,32 @@ final class JsonCache extends CacheDriver{
     /**
      * @return array<array-key, mixed>|string
      */
-    public function get(): mixed{
+    public function get(): mixed
+    {
         return (new ReadFile(
             $this->buildFile(),
             CType::JSON
         ))->get();
     }
 
-    public function exists(): bool{
+    public function exists(): bool
+    {
         return is_file($this->buildFile());
     }
 
-    public function getFile(): string{
+    public function getFile(): string
+    {
         return $this->buildFile();
     }
 
-    public function delete(): bool{
+    public function delete(): bool
+    {
         return $this->cacheCleaner
                 ->delete($this->buildFile());
     }
 
-    public function clear(): int{
+    public function clear(): int
+    {
         return $this->cacheCleaner
                 ->clear($this->item->path());
     }

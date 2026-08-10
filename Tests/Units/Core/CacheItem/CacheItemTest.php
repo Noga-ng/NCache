@@ -10,7 +10,6 @@ use NCache\Tests\TestsUnit\TestsUnit;
 
 final class CacheItemTest extends TestsUnit
 {
-
     protected function setUp(): void
     {
         $this->directory('ncache-item-tests-');
@@ -34,12 +33,12 @@ final class CacheItemTest extends TestsUnit
     {
         $item = $this->createItem('users');
         $dir = $item->getDir() ?? "default";
-        self::assertSame(  
-        (new Hash([
-        'type' => $item->typeName(),
-        'dir' => $dir,
-        'key' => $item->key(),
-    ]))->get(),
+        self::assertSame(
+            (new Hash([
+                'type' => $item->typeName(),
+                'dir' => $dir,
+                'key' => $item->key(),
+            ]))->get(),
             $item->hashedKey()
         );
     }
@@ -68,7 +67,7 @@ final class CacheItemTest extends TestsUnit
         );
 
         self::assertSame(
-                ['id' => 1, 'name' => 'Noga'],
+            ['id' => 1, 'name' => 'Noga'],
             $item->getData()
         );
     }
@@ -79,19 +78,20 @@ final class CacheItemTest extends TestsUnit
 
         $item->setData(
             [
-                ['id' => 1, 'name' => 'Noga']
+                ['id' => 1, 'name' => 'Noga'],
             ]
         );
 
         $item->appendData(
             [
-                ['id' => 2, 'name' => 'Germainio']
+                ['id' => 2, 'name' => 'Germainio'],
             ]
         );
 
-        self::assertSame([
+        self::assertSame(
+            [
                 ['id' => 1, 'name' => 'Noga'],
-                ['id' => 2, 'name' => 'Germainio']
+                ['id' => 2, 'name' => 'Germainio'],
             ],
             $item->getData()
         );
@@ -135,7 +135,7 @@ final class CacheItemTest extends TestsUnit
 
         $before = time();
 
-        $item->setTtl(3600,$this->clock());
+        $item->setTtl(3600, $this->clock());
 
         $after = time();
 
@@ -168,14 +168,14 @@ final class CacheItemTest extends TestsUnit
     public function testFileReturnsHashedFilePath(): void
     {
         $item = $this->createItem('users', CType::JSON);
-         $dir = $item->getDir() ?? "default";
+        $dir = $item->getDir() ?? "default";
         self::assertSame(
             $this->directory
             . DIRECTORY_SEPARATOR
-            .(new Hash([
-            'type' => $item->typeName(),
-            'dir' => $dir,
-            'key' => $item->key(),
+            . (new Hash([
+                'type' => $item->typeName(),
+                'dir' => $dir,
+                'key' => $item->key(),
             ]))->get(),
             $item->file()
         );
@@ -206,7 +206,7 @@ final class CacheItemTest extends TestsUnit
         $item->setData(
             ['id' => 1, 'name' => 'Noga'],
         );
-        $item->setTtl(3600,$this->clock());
+        $item->setTtl(3600, $this->clock());
 
         $result = $item->toArray();
         $dir = $item->getDir() ?? "default";
@@ -214,9 +214,9 @@ final class CacheItemTest extends TestsUnit
         self::assertSame('users', $result['name']);
         self::assertSame(
             (new Hash([
-            'type' => $item->typeName(),
-            'dir' => $dir,
-            'key' => $item->key(),
+                'type' => $item->typeName(),
+                'dir' => $dir,
+                'key' => $item->key(),
             ]))->get(),
             $result['key']
         );
@@ -226,9 +226,9 @@ final class CacheItemTest extends TestsUnit
         );
         self::assertSame(3600, $result['ttl']);
         self::assertIsInt($result['expiresAt']);
-        self::assertSame(    
+        self::assertSame(
             ['id' => 1, 'name' => 'Noga'],
             $result['data']
         );
-    } 
+    }
 }

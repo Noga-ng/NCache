@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace NCache\Core\TtlManager;
 
@@ -77,10 +79,11 @@ final class Expiration
         );
     }
 
-    public function state():TtlState{
+    public function state(): TtlState
+    {
         return $this->analyzer->state(
             $this->expiresAt
-            );
+        );
     }
 
     /**

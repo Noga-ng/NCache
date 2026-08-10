@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace NCache\Tests\Units\Driver;
@@ -11,11 +12,10 @@ use NCache\Tests\TestsUnit\TestsUnit;
 
 final class JsonCacheTest extends TestsUnit
 {
-
     protected function setUp(): void
     {
         parent::setUp();
-       $this->directory('ncache-json-driver');
+        $this->directory('ncache-json-driver');
     }
 
     protected function tearDown(): void
@@ -106,35 +106,35 @@ final class JsonCacheTest extends TestsUnit
     }
 
     public function testSaveUsesPrettyPrintedJson(): void
-{
-    $item = $this->createJsonItem('pretty-json');
+    {
+        $item = $this->createJsonItem('pretty-json');
 
-    $item->setData([
-        'name' => 'Noga',
-    ]);
+        $item->setData([
+            'name' => 'Noga',
+        ]);
 
-    $driver = new JsonCache($item);
-    $driver->save();
+        $driver = new JsonCache($item);
+        $driver->save();
 
-    $content = file_get_contents($driver->getFile());
+        $content = file_get_contents($driver->getFile());
 
-    self::assertNotFalse($content);
-    self::assertStringContainsString("\n", $content);
+        self::assertNotFalse($content);
+        self::assertStringContainsString("\n", $content);
 
-    $compactJson = json_encode(
-        $item->toArray(),
-        JSON_THROW_ON_ERROR
-    );
+        $compactJson = json_encode(
+            $item->toArray(),
+            JSON_THROW_ON_ERROR
+        );
 
-    self::assertNotSame($compactJson, $content);
-}
+        self::assertNotSame($compactJson, $content);
+    }
 
     public function testGetReturnsCompleteCacheArray(): void
     {
         $item = $this->createJsonItem('cache-data');
 
         $item->setSignature('users-v1');
-        $item->setTtl(3600,$this->clock());
+        $item->setTtl(3600, $this->clock());
         $item->setData([
             'id' => 25,
             'name' => 'Noga',
@@ -316,6 +316,6 @@ final class JsonCacheTest extends TestsUnit
         self::assertFileExists($driver->getFile());
     }
 
-   
+
 
 }

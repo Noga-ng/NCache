@@ -16,9 +16,10 @@ final class WriteFile
         private readonly string $data
     ) {}
 
-    private function tmp():string{
+    private function tmp(): string
+    {
         $file = dirname($this->file);
-        return $file.DIRECTORY_SEPARATOR.bin2hex(random_bytes(16)).'.tmp';
+        return $file . DIRECTORY_SEPARATOR . bin2hex(random_bytes(16)) . '.tmp';
     }
     public function save(): bool
     {
@@ -110,9 +111,9 @@ final class WriteFile
             }
         }
 
-        
-            $this->replaceTarget();
-        
+
+        $this->replaceTarget();
+
 
         return true;
     }

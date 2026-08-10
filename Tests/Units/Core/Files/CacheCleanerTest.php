@@ -8,7 +8,6 @@ use NCache\Tests\TestsUnit\TestsUnit;
 
 final class CacheCleanerTest extends TestsUnit
 {
-
     protected function setUp(): void
     {
         parent::setUp();
@@ -118,41 +117,41 @@ final class CacheCleanerTest extends TestsUnit
         );
     }
 
-   public function testClearIgnoresSymlinks(): void
-{
-    if (!function_exists('symlink')) {
-        self::markTestSkipped(
-            'The link symbolic is not available.'
+    public function testClearIgnoresSymlinks(): void
+    {
+        if (!function_exists('symlink')) {
+            self::markTestSkipped(
+                'The link symbolic is not available.'
+            );
+        }
+
+        $target = $this->createFile('real.php');
+        $link = $this->directory . DIRECTORY_SEPARATOR . 'link.php';
+
+        if (!@symlink($target, $link)) {
+            self::markTestSkipped(
+                'creation link symbolic is not authorized.'
+            );
+        }
+
+        self::assertTrue(is_link($link));
+        self::assertFileExists($target);
+
+        $cleaner = $this->cacheCleaner('php');
+
+        self::assertSame(
+            1,
+            $cleaner->clear($this->directory)
         );
-    }
 
-    $target = $this->createFile('real.php');
-    $link = $this->directory . DIRECTORY_SEPARATOR . 'link.php';
+        self::assertFileDoesNotExist($target);
 
-    if (!@symlink($target, $link)) {
-        self::markTestSkipped(
-            'creation link symbolic is not authorized.'
+        self::assertTrue(
+            is_link($link),
+            'CacheCleaner ne doit pas supprimer le lien symbolique.'
         );
+
     }
-
-    self::assertTrue(is_link($link));
-    self::assertFileExists($target);
-
-    $cleaner = $this->cacheCleaner('php');
-
-    self::assertSame(
-        1,
-        $cleaner->clear($this->directory)
-    );
-
-    self::assertFileDoesNotExist($target);
-
-    self::assertTrue(
-        is_link($link),
-        'CacheCleaner ne doit pas supprimer le lien symbolique.'
-    );
-
-}
 
     public function testDeleteCanBeCalledTwice(): void
     {
@@ -163,5 +162,5 @@ final class CacheCleanerTest extends TestsUnit
         self::assertTrue($cleaner->delete($file));
         self::assertTrue($cleaner->delete($file));
     }
- 
+
 }

@@ -16,7 +16,6 @@ use NCache\Tests\TestsUnit\TestsUnit;
 
 final class DriverRegistryTest extends TestsUnit
 {
-
     protected function setUp(): void
     {
         parent::setUp();
@@ -92,8 +91,8 @@ final class DriverRegistryTest extends TestsUnit
         );
     }
 
-    private function DrItem(CType $type):CacheItem
+    private function DrItem(CType $type): CacheItem
     {
-        return $this->createItem('registry-cache',$type);
+        return $this->createItem('registry-cache', $type);
     }
 }

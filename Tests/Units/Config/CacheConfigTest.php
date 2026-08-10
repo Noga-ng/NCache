@@ -41,7 +41,7 @@ final class CacheConfigTest extends TestsUnit
 
     public function testGetBasePathAlwaysReturnsString(): void
     {
-       $this->tearDown();
+        $this->tearDown();
 
         $config = CacheConfig::config(
             sys_get_temp_dir()

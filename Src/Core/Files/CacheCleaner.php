@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace NCache\Core\Files;
 
@@ -39,8 +41,8 @@ final class CacheCleaner
             }
 
             if (
-                $file->isFile() &&
-                $this->isExtensionAllowed(
+                $file->isFile()
+                && $this->isExtensionAllowed(
                     $file->getExtension()
                 )
             ) {

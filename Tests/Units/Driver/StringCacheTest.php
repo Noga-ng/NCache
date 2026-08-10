@@ -4,17 +4,15 @@ declare(strict_types=1);
 
 namespace NCache\Tests\Units\Driver;
 
-
 use NCache\Driver\StringCache;
 use NCache\Tests\TestsUnit\TestsUnit;
 
 final class StringCacheTest extends TestsUnit
 {
-
     protected function setUp(): void
     {
         parent::setUp();
-       $this->directory('ncache-string-driver-');
+        $this->directory('ncache-string-driver-');
     }
 
     protected function tearDown(): void
@@ -79,7 +77,7 @@ final class StringCacheTest extends TestsUnit
 
         self::assertStringContainsString(
             'Noga,Germainio',
-            str_replace(PHP_EOL,',',$content)
+            str_replace(PHP_EOL, ',', $content)
         );
     }
 
@@ -102,7 +100,7 @@ final class StringCacheTest extends TestsUnit
 
         self::assertStringContainsString(
             "Noga,42,19.5,true,false,null",
-            str_replace(PHP_EOL,',',$driver->get())
+            str_replace(PHP_EOL, ',', $driver->get())
         );
     }
 
@@ -160,7 +158,7 @@ final class StringCacheTest extends TestsUnit
 
         self::assertStringContainsString(
             'Données malagasy,Toamasina',
-            str_replace(PHP_EOL,',',$driver->get())
+            str_replace(PHP_EOL, ',', $driver->get())
         );
     }
 
@@ -178,7 +176,7 @@ final class StringCacheTest extends TestsUnit
             $item->toArray(),
             $driver->show()
         );
-    } 
+    }
 
     public function testSaveReplacesExistingContent(): void
     {

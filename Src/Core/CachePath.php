@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace NCache\Core;
@@ -11,21 +12,21 @@ final class CachePath
     private ?string $dir = null;
     public function __construct(
         private readonly string $basePath,
-        private readonly int $permission = 0755
+        private readonly int $permission = 0o755
     ) {
         $this->path = $this->basePath;
-      }
+    }
 
     public function dir(?string $dir): CachePath
     {
         $clone = clone $this;
         $clone->dir = $dir;
-        $clone->path = $clone->dir === null || $clone->dir === '' ? rtrim($clone->basePath,'/\\') : 
-            rtrim($clone->basePath, "/\\")
+        $clone->path = $clone->dir === null || $clone->dir === '' ? rtrim($clone->basePath, '/\\')
+            : rtrim($clone->basePath, "/\\")
             . DIRECTORY_SEPARATOR
-            . trim($clone->dir,'/\\'); 
+            . trim($clone->dir, '/\\');
 
-       return $clone;
+        return $clone;
     }
 
     /**
@@ -41,7 +42,8 @@ final class CachePath
         return $this->path;
     }
 
-    public function dirname():?string{
+    public function dirname(): ?string
+    {
         return $this->dir;
     }
 
@@ -55,29 +57,30 @@ final class CachePath
         return $this->path;
     }
 
-    public function getBasePath():string{
+    public function getBasePath(): string
+    {
         return $this->create(rtrim(
             $this->basePath,
             '/\\'
         ));
     }
-    private function create(string $path):string{
-        
-         if (
+    private function create(string $path): string
+    {
+
+        if (
             !is_dir($path)
             && !mkdir(
-                $path, 
-            $this->permission, 
-            true
+                $path,
+                $this->permission,
+                true
             )
-            && 
-            !is_dir($path)
+            && !is_dir($path)
         ) {
             throw new FailedCreationDirException(
                 "Failed to create cache directory: {$path}"
             );
         }
-        
+
         return $path;
     }
 }

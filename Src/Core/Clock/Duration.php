@@ -1,15 +1,16 @@
-<?php 
+<?php
+
 declare(strict_types=1);
 
 namespace NCache\Core\Clock;
 
 final class Duration
 {
-    public static function second(int $value):int
+    public static function second(int $value): int
     {
         return $value;
     }
-    
+
     public static function minutes(int $value): int
     {
         return $value * 60;

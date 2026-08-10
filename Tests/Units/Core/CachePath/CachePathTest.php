@@ -93,7 +93,7 @@ final class CachePathTest extends TestsUnit
 
         self::assertNotSame($cachePath->value(), $subPath->value());
         self::assertSame($this->directory, $cachePath->getBasePath());
-        self::assertNotSame($newSubPath->value(),$subPath->value());
+        self::assertNotSame($newSubPath->value(), $subPath->value());
     }
 
     public function testEmptyDirKeepsTheSamePath(): void

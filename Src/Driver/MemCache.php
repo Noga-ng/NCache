@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace NCache\Driver;
 
@@ -81,8 +83,8 @@ final class MemCache extends CacheDriver
             $this->key()
         );
 
-        return $client->getResultCode() !==
-            Memcached::RES_NOTFOUND;
+        return $client->getResultCode()
+            !== Memcached::RES_NOTFOUND;
     }
 
     /**
@@ -97,9 +99,9 @@ final class MemCache extends CacheDriver
         );
 
         if (
-            $raw === false &&
-            $client->getResultCode() ===
-                Memcached::RES_NOTFOUND
+            $raw === false
+            && $client->getResultCode()
+                === Memcached::RES_NOTFOUND
         ) {
             return null;
         }
@@ -256,9 +258,9 @@ final class MemCache extends CacheDriver
         $keys = array_values(
             array_filter(
                 $keys,
-                fn(mixed $key): bool =>
-                    \is_string($key) &&
-                    $key !== $this->key()
+                fn(mixed $key): bool
+                    => \is_string($key)
+                    && $key !== $this->key()
             )
         );
 

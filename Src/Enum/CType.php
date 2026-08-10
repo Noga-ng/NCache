@@ -1,9 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 namespace NCache\Enum;
 
-enum CType{
+enum CType
+{
     case SERIALIZE;
     case JSON;
     case STRING;

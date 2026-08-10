@@ -100,48 +100,48 @@ final class RedisConnTest extends TestCase
     }
 
     public function testIsConnectedReturnsFalseBeforeConnect(): void
-{
-    $connection = new RedisConn(
-        self::HOST,
-        self::PORT
-    );
+    {
+        $connection = new RedisConn(
+            self::HOST,
+            self::PORT
+        );
 
-    self::assertFalse(
-        $connection->isConnected()
-    );
-}
+        self::assertFalse(
+            $connection->isConnected()
+        );
+    }
 
-public function testIsConnectedReturnsTrueAfterConnect(): void
-{
-    $connection = new RedisConn(
-        self::HOST,
-        self::PORT
-    );
+    public function testIsConnectedReturnsTrueAfterConnect(): void
+    {
+        $connection = new RedisConn(
+            self::HOST,
+            self::PORT
+        );
 
-    $connection->connect();
+        $connection->connect();
 
-    self::assertTrue(
-        $connection->isConnected()
-    );
-}
+        self::assertTrue(
+            $connection->isConnected()
+        );
+    }
 
-public function testDisconnectResetsConnectionState(): void
-{
-    $connection = new RedisConn(
-        self::HOST,
-        self::PORT
-    );
+    public function testDisconnectResetsConnectionState(): void
+    {
+        $connection = new RedisConn(
+            self::HOST,
+            self::PORT
+        );
 
-    $connection->connect();
+        $connection->connect();
 
-    self::assertTrue(
-        $connection->isConnected()
-    );
+        self::assertTrue(
+            $connection->isConnected()
+        );
 
-    $connection->disconnect();
+        $connection->disconnect();
 
-    self::assertFalse(
-        $connection->isConnected()
-    );
-}
+        self::assertFalse(
+            $connection->isConnected()
+        );
+    }
 }

@@ -9,7 +9,6 @@ use NCache\Enum\CType;
 use NCache\Exceptions\FailedReadCacheException;
 use Throwable;
 
-
 final class ReadFile
 {
     public function __construct(
@@ -38,7 +37,7 @@ final class ReadFile
             CType::SERIALIZE => $this->loadSerializedArray(),
             CType::JSON => $this->decodeJson(),
             CType::STRING => $this->read(),
-            default =>$this->read()
+            default => $this->read()
         };
     }
 
@@ -115,40 +114,40 @@ final class ReadFile
         }
     }
 
-/**
- * @throws FailedReadCacheException
- * @return array<array-key,mixed>
- */
-private function loadSerializedArray(): array
-{
-    $content = $this->read();
+    /**
+     * @throws FailedReadCacheException
+     * @return array<array-key,mixed>
+     */
+    private function loadSerializedArray(): array
+    {
+        $content = $this->read();
 
-    try {
-        $data = @unserialize(
-    $content,
-    ['allowed_classes' => false]
-);
+        try {
+            $data = @unserialize(
+                $content,
+                ['allowed_classes' => false]
+            );
 
-if ($data === false && $content !== serialize(false)) {
-    throw new FailedReadCacheException(
-        sprintf('Invalid serialized cache data in file: %s', $this->file)
-    );
-}
+            if ($data === false && $content !== serialize(false)) {
+                throw new FailedReadCacheException(
+                    sprintf('Invalid serialized cache data in file: %s', $this->file)
+                );
+            }
 
-    } catch (Throwable $exception) {
-        throw new FailedReadCacheException(
-            "Le fichier de cache '{$this->file}' est corrompu.",
-            previous: $exception
-        );
+        } catch (Throwable $exception) {
+            throw new FailedReadCacheException(
+                "Le fichier de cache '{$this->file}' est corrompu.",
+                previous: $exception
+            );
+        }
+
+        if (!\is_array($data)) {
+            throw new FailedReadCacheException(
+                "Le fichier '{$this->file}' doit contenir un tableau sérialisé."
+            );
+        }
+
+        return $data;
     }
-
-    if (!\is_array($data)) {
-        throw new FailedReadCacheException(
-            "Le fichier '{$this->file}' doit contenir un tableau sérialisé."
-        );
-    }
-
-    return $data;
-}
 
 }

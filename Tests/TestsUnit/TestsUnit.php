@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace NCache\Tests\TestsUnit;
 
@@ -27,7 +29,7 @@ abstract class TestsUnit extends TestCase
         self::assertTrue(
             mkdir(
                 $this->directory,
-                0777,
+                0o777,
                 true
             )
         );
@@ -98,7 +100,7 @@ abstract class TestsUnit extends TestCase
         $dir = dirname($file);
 
         if (!is_dir($dir)) {
-            mkdir($dir, 0777, true);
+            mkdir($dir, 0o777, true);
         }
 
         @$this->writeFile($file, $content)->save();
