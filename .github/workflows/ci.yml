@@ -70,6 +70,12 @@ jobs:
           extensions: json,pdo_sqlite,sqlite3,redis,memcached
           coverage: none
 
+      - name: Update composer
+        run: composer update
+
+      - name: Validate composer
+        run: composer validate --strict
+      
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress
 
