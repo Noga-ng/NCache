@@ -321,6 +321,10 @@ final class NCache implements CacheInterface
         }
     }
 
+    /**
+     * 
+     * @return CacheItem
+     */
     public function item(): CacheItem
     {
         return $this->cacheItem;
