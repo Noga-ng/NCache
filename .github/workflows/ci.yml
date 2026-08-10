@@ -72,6 +72,9 @@ jobs:
           var_dump($m->get("ci-test"));
           '
 
+      - name: Check coding standards
+        run: vendor/bin/php-cs-fixer check --diff
+
       - name: PHPStan
         run: vendor/bin/phpstan analyse Src --level=9
 
