@@ -195,8 +195,8 @@ final class SqliteCache extends CacheDriver
 
     public function clear(): int
     {
-
-        if ($this->item->getDir() === null) {
+        $dir = $this->item->getDir();
+        if ($dir === null || $dir === '') {
             return $this->clearAll();
         }
 

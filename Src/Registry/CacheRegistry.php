@@ -16,6 +16,7 @@ use NCache\Exceptions\InvalidCacheArgumentException;
  *     type: string,
  *     name: string,
  *     key: string,
+ *     namespace:string|null,
  *     file: string|null,
  *     signature: string|null,
  *     ttl: int|null,
@@ -51,6 +52,7 @@ final class CacheRegistry
             'type' => $this->item->typeName(),
             'name' => $this->item->key(),
             'key' => $this->item->hashedKey(),
+            'namespace' => $this->item->getDir(),
             'file' => $this->file,
             'signature' => $this->item->getSignature(),
             'ttl' => $this->item->ttlValue(),
@@ -155,7 +157,7 @@ final class CacheRegistry
 
         foreach ($data['entries'] as $key => $entry) {
             if (!\is_string($key) || !\is_array($entry)) {
-                throw new \UnexpectedValueException(
+                throw new InvalidCacheArgumentException(
                     'Invalid cache registry entry.'
                 );
             }
@@ -163,7 +165,7 @@ final class CacheRegistry
             $this->validateEntry($entry);
 
             if ($entry['key'] !== $key) {
-                throw new \UnexpectedValueException(
+                throw new InvalidCacheArgumentException(
                     'Registry entry key does not match its index.'
                 );
             }
@@ -182,7 +184,7 @@ final class CacheRegistry
             !isset($entry['type'])
             || !\is_string($entry['type'])
         ) {
-            throw new \UnexpectedValueException(
+            throw new InvalidCacheArgumentException(
                 'Registry entry type must be a string.'
             );
         }
@@ -191,7 +193,7 @@ final class CacheRegistry
             !isset($entry['name'])
             || !\is_string($entry['name'])
         ) {
-            throw new \UnexpectedValueException(
+            throw new InvalidCacheArgumentException(
                 'Registry entry name must be a string.'
             );
         }
@@ -200,8 +202,19 @@ final class CacheRegistry
             !isset($entry['key'])
             || !\is_string($entry['key'])
         ) {
-            throw new \UnexpectedValueException(
+            throw new InvalidCacheArgumentException(
                 'Registry entry key must be a string.'
+            );
+        }
+
+        if (!\array_key_exists('namespace', $entry)
+            || (
+                $entry['namespace'] !== null
+                && !\is_string($entry['namespace'])
+            )
+        ) {
+            throw new InvalidCacheArgumentException(
+                'Registry entry namespace must be a string or null.'
             );
         }
 
@@ -213,7 +226,7 @@ final class CacheRegistry
                     && !\is_string($entry[$field])
                 )
             ) {
-                throw new \UnexpectedValueException(
+                throw new InvalidCacheArgumentException(
                     "{$field} must be a string or null."
                 );
             }
@@ -227,7 +240,7 @@ final class CacheRegistry
                     && !\is_int($entry[$field])
                 )
             ) {
-                throw new \UnexpectedValueException(
+                throw new InvalidCacheArgumentException(
                     "{$field} must be an integer or null."
                 );
             }
@@ -333,6 +346,36 @@ final class CacheRegistry
         $count = 0;
 
         $currentType = $this->item->typeName();
+        $currentNamespace = $this->item->getDir();
+
+        foreach ($data['entries'] as $key => $entry) {
+            if ($entry['type'] !== $currentType) {
+                continue;
+            }
+
+            if ($entry['namespace'] !== $currentNamespace) {
+                continue;
+            }
+
+            unset($data['entries'][$key]);
+            $count++;
+        }
+
+        if ($count === 0) {
+            return 0;
+        }
+
+        $this->writeData($data);
+
+        return $count;
+    }
+
+    public function removeByType(): int
+    {
+        $data = $this->getRegistry();
+        $count = 0;
+
+        $currentType = $this->item->typeName();
 
         foreach ($data['entries'] as $key => $entry) {
             if ($entry['type'] !== $currentType) {
@@ -351,7 +394,6 @@ final class CacheRegistry
 
         return $count;
     }
-
 
     public function clear(): int
     {

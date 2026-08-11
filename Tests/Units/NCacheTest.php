@@ -953,4 +953,115 @@ final class NCacheTest extends TestsUnit
             $second->has()
         );
     }
+
+
+    public function testSQLiteClearKeepsAnotherNamespace(): void
+    {
+        $usersFirst = NCache::key(
+            'user-1',
+            CType::SQLite
+        )
+            ->dir('users')
+            ->set(['id' => 1]);
+
+        $usersSecond = NCache::key(
+            'user-2',
+            CType::SQLite
+        )
+            ->dir('users')
+            ->set(['id' => 2]);
+
+        $admins = NCache::key(
+            'admin-1',
+            CType::SQLite
+        )
+            ->dir('admins')
+            ->set(['id' => 3]);
+
+        self::assertTrue(
+            $usersFirst->put()
+        );
+
+        self::assertTrue(
+            $usersSecond->put()
+        );
+
+        self::assertTrue(
+            $admins->put()
+        );
+
+        self::assertSame(
+            2,
+            NCache::clear(
+                CType::SQLite,
+                'users'
+            )
+        );
+
+        self::assertFalse(
+            $usersFirst->has()
+        );
+
+        self::assertFalse(
+            $usersSecond->has()
+        );
+
+        self::assertTrue(
+            $admins->has()
+        );
+
+        self::assertSame(
+            ['id' => 3],
+            $admins->get()
+        );
+    }
+
+    public function testSQLiteClearWithoutDirectoryRemovesAllSQLiteNamespaces(): void
+    {
+        $users = NCache::key(
+            'sqlite-users',
+            CType::SQLite
+        )
+            ->dir('users')
+            ->set(['id' => 1]);
+
+        $admins = NCache::key(
+            'sqlite-admins',
+            CType::SQLite
+        )
+            ->dir('admins')
+            ->set(['id' => 2]);
+
+        $json = NCache::key(
+            'json-users',
+            CType::JSON
+        )
+            ->dir('users')
+            ->set(['id' => 3]);
+
+        self::assertTrue($users->put());
+        self::assertTrue($admins->put());
+        self::assertTrue($json->put());
+
+        self::assertSame(
+            2,
+            NCache::clear(
+                CType::SQLite
+            )
+        );
+
+        self::assertFalse(
+            $users->has()
+        );
+
+        self::assertFalse(
+            $admins->has()
+        );
+
+        self::assertTrue(
+            $json->has()
+        );
+    }
+
+
 }

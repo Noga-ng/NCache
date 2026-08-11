@@ -404,6 +404,197 @@ final class CacheRegistryTest extends TestsUnit
         self::assertTrue($registry->has());
     }
 
+    public function testRemoveCurrentScopeRemovesOnlyMatchingTypeAndNamespace(): void
+    {
+        $usersFirst = $this->createSQLiteItem('user-1');
+        $usersSecond = $this->createSQLiteItem('user-2');
+        $admins = $this->createSQLiteItem('admin-1');
+
+        $usersFirst->setDir('users');
+        $usersSecond->setDir('users');
+        $admins->setDir('admins');
+
+        $usersFirstRegistry = new CacheRegistry($usersFirst);
+        $usersSecondRegistry = new CacheRegistry($usersSecond);
+        $adminsRegistry = new CacheRegistry($admins);
+
+        self::assertTrue(
+            $usersFirstRegistry->save()
+        );
+
+        self::assertTrue(
+            $usersSecondRegistry->save()
+        );
+
+        self::assertTrue(
+            $adminsRegistry->save()
+        );
+
+        self::assertSame(
+            2,
+            $usersFirstRegistry->removeCurrentScope()
+        );
+
+        self::assertFalse(
+            $usersFirstRegistry->has()
+        );
+
+        self::assertFalse(
+            $usersSecondRegistry->has()
+        );
+
+        self::assertTrue(
+            $adminsRegistry->has()
+        );
+    }
+
+    public function testRemoveCurrentScopeDoesNotRemoveAnotherTypeWithSameNamespace(): void
+    {
+        $sqlite = $this->createSQLiteItem(
+            'same-key'
+        );
+
+        $redis = $this->createRedisItem(
+            'same-key'
+        );
+
+        $sqlite->setDir('users');
+        $redis->setDir('users');
+
+        $sqliteRegistry = new CacheRegistry(
+            $sqlite
+        );
+
+        $redisRegistry = new CacheRegistry(
+            $redis
+        );
+
+        self::assertTrue(
+            $sqliteRegistry->save()
+        );
+
+        self::assertTrue(
+            $redisRegistry->save()
+        );
+
+        self::assertSame(
+            1,
+            $sqliteRegistry->removeCurrentScope()
+        );
+
+        self::assertFalse(
+            $sqliteRegistry->has()
+        );
+
+        self::assertTrue(
+            $redisRegistry->has()
+        );
+    }
+
+    public function testRemoveByTypeRemovesAllNamespacesOfCurrentType(): void
+    {
+        $sqliteUsers = $this->createSQLiteItem(
+            'sqlite-users'
+        );
+
+        $sqliteAdmins = $this->createSQLiteItem(
+            'sqlite-admins'
+        );
+
+        $redis = $this->createRedisItem(
+            'redis-users'
+        );
+
+        $json = $this->createJsonItem(
+            'json-users'
+        );
+
+        $sqliteUsers->setDir('users');
+        $sqliteAdmins->setDir('admins');
+        $redis->setDir('users');
+        $json->setDir('users');
+
+        $sqliteUsersRegistry = new CacheRegistry(
+            $sqliteUsers
+        );
+
+        $sqliteAdminsRegistry = new CacheRegistry(
+            $sqliteAdmins
+        );
+
+        $redisRegistry = new CacheRegistry(
+            $redis
+        );
+
+        $jsonRegistry = new CacheRegistry(
+            $json
+        );
+
+        self::assertTrue(
+            $sqliteUsersRegistry->save()
+        );
+
+        self::assertTrue(
+            $sqliteAdminsRegistry->save()
+        );
+
+        self::assertTrue(
+            $redisRegistry->save()
+        );
+
+        self::assertTrue(
+            $jsonRegistry->save()
+        );
+
+        self::assertSame(
+            2,
+            $sqliteUsersRegistry->removeByType()
+        );
+
+        self::assertFalse(
+            $sqliteUsersRegistry->has()
+        );
+
+        self::assertFalse(
+            $sqliteAdminsRegistry->has()
+        );
+
+        self::assertTrue(
+            $redisRegistry->has()
+        );
+
+        self::assertTrue(
+            $jsonRegistry->has()
+        );
+    }
+
+    public function testRemoveByTypeDeletesRegistryWhenNoEntryRemains(): void
+    {
+        $item = $this->createSQLiteItem(
+            'sqlite-only'
+        );
+
+        $item->setDir('users');
+
+        $registry = new CacheRegistry(
+            $item
+        );
+
+        self::assertTrue(
+            $registry->save()
+        );
+
+        self::assertSame(
+            1,
+            $registry->removeByType()
+        );
+
+        self::assertSame(
+            [],
+            $registry->getAll()
+        );
+    }
+
     private function registryPath(): string
     {
         return rtrim(

@@ -84,7 +84,7 @@ final class MemCache extends CacheDriver
         );
 
         return $client->getResultCode()
-            !== Memcached::RES_NOTFOUND;
+            === Memcached::RES_SUCCESS;
     }
 
     /**
@@ -200,8 +200,13 @@ final class MemCache extends CacheDriver
             }
 
             if ($keys !== []) {
-                $client->deleteMulti($keys);
-                $count += \count($keys);
+                $deleted = $client->deleteMulti($keys);
+
+                foreach ($deleted as $status) {
+                    if ($status === true) {
+                        $count++;
+                    }
+                }
             }
 
             $client->delete($indexKey);

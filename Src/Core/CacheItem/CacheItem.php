@@ -155,6 +155,7 @@ final class CacheItem
     {
         return match ($this->type) {
             CType::REDIS => null,
+            CType::MEMCACHED => null,
             CType::SQLite => $this->path(),
             default => rtrim($this->path(), '/\\')
                 . DIRECTORY_SEPARATOR

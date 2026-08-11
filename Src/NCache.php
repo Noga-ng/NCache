@@ -127,7 +127,6 @@ final class NCache implements CacheInterface
         try {
             $driver = $this->driver();
             $registry = $this->registry();
-
             $registry->setFile($driver->getFile());
 
             $this
@@ -140,14 +139,12 @@ final class NCache implements CacheInterface
 
             if (!$registry->save()) {
                 $driver->delete();
-
                 return false;
             }
 
             return true;
         } catch (Throwable $e) {
             CacheHandleException::handle($e);
-
             return false;
         }
     }
@@ -249,8 +246,16 @@ final class NCache implements CacheInterface
 
         $deleted = $driver->clear();
 
-        if (\in_array($type, [CType::SQLite,CType::REDIS,CType::MEMCACHED], true)) {
-            $registry->removeCurrentScope();
+        if (\in_array(
+            $type,
+            [CType::SQLite, CType::REDIS, CType::MEMCACHED],
+            true
+        )) {
+            if ($dir === '') {
+                $registry->removeByType();
+            } else {
+                $registry->removeCurrentScope();
+            }
         } else {
             $registry->removeMissing();
         }
@@ -314,19 +319,10 @@ final class NCache implements CacheInterface
      */
     private static function obligatorKey(?string $key = null): void
     {
-        if ($key === null) {
+        if ($key === null || trim($key) === '') {
             throw new InvalidCacheArgumentException(
                 'Key cannot be empty'
             );
         }
-    }
-
-    /**
-     *
-     * @return CacheItem
-     */
-    public function item(): CacheItem
-    {
-        return $this->cacheItem;
     }
 }
