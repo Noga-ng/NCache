@@ -18,9 +18,6 @@ jobs:
           php-version: '8.1'
           coverage: none
 
-      - name: Update composer
-        run: composer update
-        
       - name: Validate Composer
         run: composer validate --strict
 
@@ -72,9 +69,6 @@ jobs:
           php-version: ${{ matrix.php-version }}
           extensions: json,pdo_sqlite,sqlite3,redis,memcached
           coverage: none
-
-      - name: Update composer
-        run: composer update
 
       - name: Validate composer
         run: composer validate --strict
