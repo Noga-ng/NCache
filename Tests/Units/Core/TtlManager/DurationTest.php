@@ -50,12 +50,12 @@ final class DurationTest extends TestsUnit
             days: 1,
             hours: 2,
             minutes: 30,
-            second: 15
+            second: 15,
         );
 
         self::assertSame(
             86_400 + 7_200 + 1_800 + 15,
-            $duration
+            $duration,
         );
     }
 
@@ -68,7 +68,7 @@ final class DurationTest extends TestsUnit
     {
         self::assertSame(
             45,
-            Duration::make(second: 45)
+            Duration::make(second: 45),
         );
     }
 

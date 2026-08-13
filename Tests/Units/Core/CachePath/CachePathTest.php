@@ -45,7 +45,7 @@ final class CachePathTest extends TestsUnit
 
         self::assertSame(
             $this->directory,
-            $cachePath->value()
+            $cachePath->value(),
         );
     }
 
@@ -55,7 +55,7 @@ final class CachePathTest extends TestsUnit
 
         self::assertSame(
             $this->directory,
-            (string) $cachePath
+            (string) $cachePath,
         );
     }
 
@@ -80,7 +80,7 @@ final class CachePathTest extends TestsUnit
             $this->directory
             . DIRECTORY_SEPARATOR
             . 'users',
-            $subPath->value()
+            $subPath->value(),
         );
     }
 
@@ -89,7 +89,7 @@ final class CachePathTest extends TestsUnit
         $cachePath = new CachePath($this->directory);
 
         $subPath = $cachePath->dir('users');
-        $newSubPath = $cachePath->dir("client");
+        $newSubPath = $cachePath->dir('client');
 
         self::assertNotSame($cachePath->value(), $subPath->value());
         self::assertSame($this->directory, $cachePath->getBasePath());
@@ -104,7 +104,7 @@ final class CachePathTest extends TestsUnit
 
         self::assertSame(
             $this->directory,
-            $result->value()
+            $result->value(),
         );
     }
 
@@ -118,7 +118,7 @@ final class CachePathTest extends TestsUnit
             $this->directory
             . DIRECTORY_SEPARATOR
             . 'users',
-            $result->value()
+            $result->value(),
         );
     }
 

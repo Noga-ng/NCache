@@ -6,20 +6,20 @@ use NCache\NCache;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-$file = __DIR__ . "/../ncache.config.json";
+$file = __DIR__ . '/../ncache.config.json';
 
 NCache::config($file)
-        ->use("admin");
+        ->use('admin');
 
-$n = Ncache::key("noga");
+$n = Ncache::key('noga');
 
 $n->set(
     [
-        "name" => "noga",
-        "role" => "admin",
-        "title" => "creator of NCache",
-        "local" => "Madagascar,Toamasina",
-    ]
+        'name' => 'noga',
+        'role' => 'admin',
+        'title' => 'creator of NCache',
+        'local' => 'Madagascar,Toamasina',
+    ],
 );
 
 $n->put();

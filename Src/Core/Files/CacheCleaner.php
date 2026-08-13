@@ -12,8 +12,9 @@ final class CacheCleaner
      * @param string[] $extensionAllowed
      */
     public function __construct(
-        private readonly array $extensionAllowed
-    ) {}
+        private readonly array $extensionAllowed,
+    ) {
+    }
 
     public function delete(string $filename): bool
     {
@@ -43,11 +44,11 @@ final class CacheCleaner
             if (
                 $file->isFile()
                 && $this->isExtensionAllowed(
-                    $file->getExtension()
+                    $file->getExtension(),
                 )
             ) {
                 $this->isUnlink(
-                    $file->getPathname()
+                    $file->getPathname(),
                 );
 
                 $count++;
@@ -61,7 +62,7 @@ final class CacheCleaner
     {
         if (!\unlink($filename)) {
             throw new InvalidCacheArgumentException(
-                "cannot delete this file {$filename}"
+                "cannot delete this file {$filename}",
             );
         }
         return true;
@@ -72,7 +73,7 @@ final class CacheCleaner
         return \in_array(
             $extension,
             $this->extensionAllowed,
-            true
+            true,
         );
     }
 

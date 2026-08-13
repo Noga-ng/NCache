@@ -10,8 +10,9 @@ use NCache\Enum\TtlState;
 final class ExpirationAnalyzer
 {
     public function __construct(
-        private readonly Clock $clock
-    ) {}
+        private readonly Clock $clock,
+    ) {
+    }
 
     public function state(?int $expiresAt): TtlState
     {
@@ -32,7 +33,7 @@ final class ExpirationAnalyzer
 
         return max(
             0,
-            $expiresAt - $this->clock->now()
+            $expiresAt - $this->clock->now(),
         );
     }
 }

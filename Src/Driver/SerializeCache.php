@@ -8,7 +8,6 @@ use NCache\Core\CacheItem\CacheItem;
 use NCache\Core\Files\CacheCleaner;
 use NCache\Core\Files\ReadFile;
 use NCache\Core\Files\WriteFile;
-use NCache\Driver\CacheDriver;
 use NCache\Enum\CType;
 
 final class SerializeCache extends CacheDriver
@@ -24,7 +23,7 @@ final class SerializeCache extends CacheDriver
         $this->cacheCleaner = new CacheCleaner(
             [
                 $this->extension,
-            ]
+            ],
         );
     }
 
@@ -40,10 +39,10 @@ final class SerializeCache extends CacheDriver
 
     public function save(): bool
     {
-        return new WriteFile(
+        return (new WriteFile(
             $this->buildFile(),
-            $this->format()
-        )->save();
+            $this->format(),
+        ))->save();
     }
 
     /**
@@ -51,10 +50,10 @@ final class SerializeCache extends CacheDriver
      */
     public function get(): mixed
     {
-        return new ReadFile(
+        return (new ReadFile(
             $this->buildFile(),
-            CType::SERIALIZE
-        )->get();
+            CType::SERIALIZE,
+        ))->get();
     }
 
     public function getFile(): string

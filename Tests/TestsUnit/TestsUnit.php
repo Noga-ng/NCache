@@ -35,7 +35,7 @@ abstract class TestsUnit extends TestCase
 
         if (isset($this->directory)) {
             $this->removeDirectory(
-                $this->directory
+                $this->directory,
             );
         }
 
@@ -48,15 +48,15 @@ abstract class TestsUnit extends TestCase
             . DIRECTORY_SEPARATOR
             . $prefix
             . bin2hex(
-                random_bytes(8)
+                random_bytes(8),
             );
 
         self::assertTrue(
             mkdir(
                 $this->directory,
                 0o777,
-                true
-            )
+                true,
+            ),
         );
 
         $this->createDefaultConfig();
@@ -71,9 +71,9 @@ abstract class TestsUnit extends TestCase
         return array_values(
             array_filter(
                 $files,
-                static fn(SplFileInfo $file): bool
-                    => $file->getFilename() !== 'ncache.config.json'
-            )
+                static fn (SplFileInfo $file): bool
+                    => $file->getFilename() !== 'ncache.config.json',
+            ),
         );
     }
 
@@ -85,72 +85,72 @@ abstract class TestsUnit extends TestCase
     protected function config(): CacheConfig
     {
         return CacheConfig::config(
-            $this->configFile
+            $this->configFile,
         )->use('default');
     }
 
     protected function createItem(
         string $key,
-        CType $type = CType::JSON
+        CType $type = CType::JSON,
     ): CacheItem {
         return new CacheItem(
             $key,
             $type,
-            $this->config()
+            $this->config(),
         );
     }
 
     protected function createJsonItem(
-        string $key
+        string $key,
     ): CacheItem {
         return $this->createItem(
             $key,
-            CType::JSON
+            CType::JSON,
         );
     }
 
     protected function createSerializeItem(
-        string $key
+        string $key,
     ): CacheItem {
         return $this->createItem(
             $key,
-            CType::SERIALIZE
+            CType::SERIALIZE,
         );
     }
 
     protected function createSQLiteItem(
-        string $key
+        string $key,
     ): CacheItem {
         return $this->createItem(
             $key,
-            CType::SQLite
+            CType::SQLite,
         );
     }
 
     protected function createRedisItem(
-        string $key
+        string $key,
     ): CacheItem {
         return $this->createItem(
             $key,
-            CType::REDIS
+            CType::REDIS,
         );
     }
 
     protected function createStringItem(
-        string $key
+        string $key,
     ): CacheItem {
         return $this->createItem(
             $key,
-            CType::STRING
+            CType::STRING,
         );
     }
 
     protected function createMemCachedItem(
-        string $key
+        string $key,
     ): CacheItem {
         return $this->createItem(
             $key,
-            CType::MEMCACHED
+            CType::MEMCACHED,
         );
     }
 
@@ -195,12 +195,12 @@ abstract class TestsUnit extends TestCase
         $json = json_encode(
             $config,
             JSON_PRETTY_PRINT
-            | JSON_THROW_ON_ERROR
+            | JSON_THROW_ON_ERROR,
         );
 
         $this->writeFile(
             $this->configFile,
-            $json
+            $json,
         )->save();
     }
 
@@ -208,41 +208,41 @@ abstract class TestsUnit extends TestCase
      * @param string[]|string $directory
      */
     protected function cacheDirectory(
-        array|string $directory
+        array|string $directory,
     ): CacheDirectory {
         $dir = is_array($directory)
             ? $directory
             : [$directory];
 
         return new CacheDirectory(
-            $dir
+            $dir,
         );
     }
 
     protected function createFile(
         string $name,
-        string $content = 'cache'
+        string $content = 'cache',
     ): string {
         $file = $this->directory
             . DIRECTORY_SEPARATOR
             . $name;
 
         $dir = dirname(
-            $file
+            $file,
         );
 
         if (!is_dir($dir)) {
             mkdir(
                 $dir,
                 0o777,
-                true
+                true,
             );
         }
 
         @$this
             ->writeFile(
                 $file,
-                $content
+                $content,
             )
             ->save();
 
@@ -251,21 +251,21 @@ abstract class TestsUnit extends TestCase
 
     protected function readFile(
         string $filename,
-        CType $type
+        CType $type,
     ): ReadFile {
         return new ReadFile(
             $filename,
-            $type
+            $type,
         );
     }
 
     protected function writeFile(
         string $filename,
-        string $content = 'write'
+        string $content = 'write',
     ): WriteFile {
         return new WriteFile(
             $filename,
-            $content
+            $content,
         );
     }
 
@@ -273,26 +273,26 @@ abstract class TestsUnit extends TestCase
      * @param string[]|string $ext
      */
     protected function cacheCleaner(
-        array|string $ext
+        array|string $ext,
     ): CacheCleaner {
         $extension = is_array($ext)
             ? $ext
             : [$ext];
 
         return new CacheCleaner(
-            $extension
+            $extension,
         );
     }
 
     protected function removeDirectory(
-        string $directory
+        string $directory,
     ): void {
         if (!is_dir($directory)) {
             return;
         }
 
         $items = scandir(
-            $directory
+            $directory,
         );
 
         if ($items === false) {
@@ -316,7 +316,7 @@ abstract class TestsUnit extends TestCase
                 && !is_link($path)
             ) {
                 $this->removeDirectory(
-                    $path
+                    $path,
                 );
 
                 continue;

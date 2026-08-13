@@ -6,9 +6,9 @@ namespace NCache\Core\CacheItem;
 
 use NCache\Config\CacheConfig;
 use NCache\Contract\Clock;
-use NCache\Core\TtlManager\Expiration;
 use NCache\Core\CachePath;
 use NCache\Core\Hash;
+use NCache\Core\TtlManager\Expiration;
 use NCache\Enum\CType;
 
 /**
@@ -28,17 +28,17 @@ final class CacheItem
     public function __construct(
         private readonly string $key,
         private readonly CType $type,
-        private readonly CacheConfig $config
+        private readonly CacheConfig $config,
     ) {
         $this->cachePath = new CachePath(
-            $this->config->getBasePath()
+            $this->config->getBasePath(),
         );
 
         $namespace = $this->config->getNamespace();
 
         if ($namespace !== null && trim($namespace) !== '') {
             $this->cachePath = $this->cachePath->dir(
-                $namespace
+                $namespace,
             );
         }
     }
@@ -62,7 +62,7 @@ final class CacheItem
      */
     public function setSignature(mixed $signature): void
     {
-        $this->signature = new Hash($signature)->get();
+        $this->signature = (new Hash($signature))->get();
     }
 
     /**
@@ -107,7 +107,7 @@ final class CacheItem
         $this->expiration = Expiration::restore(
             $ttl,
             $expiration,
-            $clock
+            $clock,
         );
     }
 
@@ -124,11 +124,11 @@ final class CacheItem
     public function hashedKey(): string
     {
         $dir = $this->getDir() ?? 'default';
-        return new Hash([
+        return (new Hash([
             'type' => $this->typeName(),
             'dir' => $dir,
             'key' => $this->key(),
-        ])->get();
+        ]))->get();
     }
 
     public function type(): CType
@@ -236,7 +236,7 @@ final class CacheItem
             CType::SERIALIZE,
             CType::STRING
                 => $this->config->getExtension(
-                    $this->type
+                    $this->type,
                 ),
             default => null,
         };

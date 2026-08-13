@@ -15,14 +15,14 @@ final class CacheItemTest extends TestsUnit
         parent::setUp();
 
         $this->directory(
-            'ncache-item-tests-'
+            'ncache-item-tests-',
         );
     }
 
     protected function tearDown(): void
     {
         $this->removeDirectory(
-            $this->directory
+            $this->directory,
         );
 
         parent::tearDown();
@@ -31,71 +31,71 @@ final class CacheItemTest extends TestsUnit
     public function testItReturnsTheOriginalKey(): void
     {
         $item = $this->createItem(
-            'users'
+            'users',
         );
 
         self::assertSame(
             'users',
-            $item->key()
+            $item->key(),
         );
     }
 
     public function testItReturnsTheHashedKey(): void
     {
         $item = $this->createItem(
-            'users'
+            'users',
         );
 
         $dir = $item->getDir()
             ?? 'default';
 
         $expected
-            = new Hash([
+            = (new Hash([
                 'type' => $item->typeName(),
                 'dir' => $dir,
                 'key' => $item->key(),
-            ])
+            ]))
         ->get();
 
         self::assertSame(
             $expected,
-            $item->hashedKey()
+            $item->hashedKey(),
         );
     }
 
     public function testItReturnsTheConfiguredType(): void
     {
         $item = $this->createItem(
-            'users'
+            'users',
         );
 
         self::assertSame(
             CType::JSON,
-            $item->type()
+            $item->type(),
         );
 
         self::assertSame(
             'JSON',
-            $item->typeName()
+            $item->typeName(),
         );
     }
 
     public function testDataIsEmptyInitially(): void
     {
         $item = $this->createItem(
-            'users'
+            'users',
         );
 
         self::assertSame(
             [],
-            $item->getData()
+            $item->getData(),
         );
     }
 
     public function testSetDataAddsData(): void
     {
         $item = $this->createItem(
-            'users'
+            'users',
         );
 
         $item->setData([
@@ -108,14 +108,14 @@ final class CacheItemTest extends TestsUnit
                 'id' => 1,
                 'name' => 'Noga',
             ],
-            $item->getData()
+            $item->getData(),
         );
     }
 
     public function testAppendDataAccumulatesValues(): void
     {
         $item = $this->createItem(
-            'users'
+            'users',
         );
 
         $item->setData([
@@ -143,25 +143,25 @@ final class CacheItemTest extends TestsUnit
                     'name' => 'Germainio',
                 ],
             ],
-            $item->getData()
+            $item->getData(),
         );
     }
 
     public function testSignatureIsNullInitially(): void
     {
         $item = $this->createItem(
-            'users'
+            'users',
         );
 
         self::assertNull(
-            $item->getSignature()
+            $item->getSignature(),
         );
     }
 
     public function testSetSignatureGeneratesExpectedHash(): void
     {
         $item = $this->createItem(
-            'users'
+            'users',
         );
 
         $signatureData = [
@@ -170,80 +170,80 @@ final class CacheItemTest extends TestsUnit
         ];
 
         $item->setSignature(
-            $signatureData
+            $signatureData,
         );
 
         self::assertSame(
-            new Hash(
-                $signatureData
-            )
+            (new Hash(
+                $signatureData,
+            ))
             ->get(),
-            $item->getSignature()
+            $item->getSignature(),
         );
     }
 
     public function testTtlIsNullInitially(): void
     {
         $item = $this->createItem(
-            'users'
+            'users',
         );
 
         self::assertNull(
-            $item->ttlValue()
+            $item->ttlValue(),
         );
 
         self::assertNull(
-            $item->expiredAt()
+            $item->expiredAt(),
         );
 
         self::assertFalse(
-            $item->ttlWasDefined()
+            $item->ttlWasDefined(),
         );
     }
 
     public function testSetTtlDefinesExpirationInformation(): void
     {
         $item = $this->createItem(
-            'users'
+            'users',
         );
 
         $before = time();
 
         $item->setTtl(
             3600,
-            $this->clock()
+            $this->clock(),
         );
 
         $after = time();
 
         self::assertTrue(
-            $item->ttlWasDefined()
+            $item->ttlWasDefined(),
         );
 
         self::assertSame(
             3600,
-            $item->ttlValue()
+            $item->ttlValue(),
         );
 
         self::assertNotNull(
-            $item->expiredAt()
+            $item->expiredAt(),
         );
 
         self::assertGreaterThanOrEqual(
             $before + 3600,
-            $item->expiredAt()
+            $item->expiredAt(),
         );
 
         self::assertLessThanOrEqual(
             $after + 3600,
-            $item->expiredAt()
+            $item->expiredAt(),
         );
     }
 
     public function testSetTtlWithoutValueUsesConfiguredDefaultTtl(): void
     {
         $item = $this->createItem(
-            'users'
+            'users',
         );
 
         /*
@@ -260,56 +260,56 @@ final class CacheItemTest extends TestsUnit
 
         $item->setTtl(
             null,
-            $this->clock()
+            $this->clock(),
         );
 
         self::assertTrue(
-            $item->ttlWasDefined()
+            $item->ttlWasDefined(),
         );
 
         self::assertSame(
             $expected,
-            $item->ttlValue()
+            $item->ttlValue(),
         );
 
         if ($expected === null) {
             self::assertNull(
-                $item->expiredAt()
+                $item->expiredAt(),
             );
 
             return;
         }
 
         self::assertIsInt(
-            $item->expiredAt()
+            $item->expiredAt(),
         );
     }
 
     public function testSetDirChangesTheCachePath(): void
     {
         $item = $this->createItem(
-            'users'
+            'users',
         );
 
         $basePath = $item->basePath();
 
         $item->setDir(
-            'api'
+            'api',
         );
 
         self::assertSame(
             rtrim(
                 $basePath,
-                '/\\'
+                '/\\',
             )
                 . DIRECTORY_SEPARATOR
                 . 'api',
-            $item->path()
+            $item->path(),
         );
 
         self::assertSame(
             'api',
-            $item->getDir()
+            $item->getDir(),
         );
     }
 
@@ -317,17 +317,17 @@ final class CacheItemTest extends TestsUnit
     {
         $item = $this->createItem(
             'users',
-            CType::JSON
+            CType::JSON,
         );
 
         self::assertSame(
             rtrim(
                 $item->path(),
-                '/\\'
+                '/\\',
             )
                 . DIRECTORY_SEPARATOR
                 . $item->hashedKey(),
-            $item->file()
+            $item->file(),
         );
     }
 
@@ -335,11 +335,11 @@ final class CacheItemTest extends TestsUnit
     {
         $item = $this->createItem(
             'users',
-            CType::REDIS
+            CType::REDIS,
         );
 
         self::assertNull(
-            $item->file()
+            $item->file(),
         );
     }
 
@@ -347,11 +347,11 @@ final class CacheItemTest extends TestsUnit
     {
         $item = $this->createItem(
             'users',
-            CType::MEMCACHED
+            CType::MEMCACHED,
         );
 
         self::assertNull(
-            $item->file()
+            $item->file(),
         );
     }
 
@@ -359,12 +359,12 @@ final class CacheItemTest extends TestsUnit
     {
         $item = $this->createItem(
             'users',
-            CType::SQLite
+            CType::SQLite,
         );
 
         self::assertSame(
             $item->path(),
-            $item->file()
+            $item->file(),
         );
     }
 
@@ -372,12 +372,12 @@ final class CacheItemTest extends TestsUnit
     {
         $item = $this->createItem(
             'users',
-            CType::REDIS
+            CType::REDIS,
         );
 
         self::assertSame(
             $this->config()->getRedis(),
-            $item->redisConfig()
+            $item->redisConfig(),
         );
     }
 
@@ -385,11 +385,11 @@ final class CacheItemTest extends TestsUnit
     {
         $item = $this->createItem(
             'users',
-            CType::JSON
+            CType::JSON,
         );
 
         self::assertNull(
-            $item->redisConfig()
+            $item->redisConfig(),
         );
     }
 
@@ -397,12 +397,12 @@ final class CacheItemTest extends TestsUnit
     {
         $item = $this->createItem(
             'users',
-            CType::MEMCACHED
+            CType::MEMCACHED,
         );
 
         self::assertSame(
             $this->config()->getMemcached(),
-            $item->memcachedConfig()
+            $item->memcachedConfig(),
         );
     }
 
@@ -410,11 +410,11 @@ final class CacheItemTest extends TestsUnit
     {
         $item = $this->createItem(
             'users',
-            CType::JSON
+            CType::JSON,
         );
 
         self::assertNull(
-            $item->memcachedConfig()
+            $item->memcachedConfig(),
         );
     }
 
@@ -422,12 +422,12 @@ final class CacheItemTest extends TestsUnit
     {
         $item = $this->createItem(
             'users',
-            CType::JSON
+            CType::JSON,
         );
 
         self::assertSame(
             'json',
-            $item->extension()
+            $item->extension(),
         );
     }
 
@@ -435,16 +435,16 @@ final class CacheItemTest extends TestsUnit
     {
         $item = $this->createItem(
             'users',
-            CType::SERIALIZE
+            CType::SERIALIZE,
         );
 
         self::assertSame(
             $this
                 ->config()
                 ->getExtension(
-                    CType::SERIALIZE
+                    CType::SERIALIZE,
                 ),
-            $item->extension()
+            $item->extension(),
         );
     }
 
@@ -452,16 +452,16 @@ final class CacheItemTest extends TestsUnit
     {
         $item = $this->createItem(
             'users',
-            CType::STRING
+            CType::STRING,
         );
 
         self::assertSame(
             $this
                 ->config()
                 ->getExtension(
-                    CType::STRING
+                    CType::STRING,
                 ),
-            $item->extension()
+            $item->extension(),
         );
     }
 
@@ -469,11 +469,11 @@ final class CacheItemTest extends TestsUnit
     {
         $item = $this->createItem(
             'users',
-            CType::JSON
+            CType::JSON,
         );
 
         $item->setSignature(
-            'users-version-1'
+            'users-version-1',
         );
 
         $item->setData([
@@ -483,41 +483,41 @@ final class CacheItemTest extends TestsUnit
 
         $item->setTtl(
             3600,
-            $this->clock()
+            $this->clock(),
         );
 
         $result = $item->toArray();
 
         self::assertSame(
             'JSON',
-            $result['type']
+            $result['type'],
         );
 
         self::assertSame(
             'users',
-            $result['name']
+            $result['name'],
         );
 
         self::assertSame(
             $item->hashedKey(),
-            $result['key']
+            $result['key'],
         );
 
         self::assertSame(
-            new Hash(
-                'users-version-1'
-            )
+            (new Hash(
+                'users-version-1',
+            ))
             ->get(),
-            $result['signature']
+            $result['signature'],
         );
 
         self::assertSame(
             3600,
-            $result['ttl']
+            $result['ttl'],
         );
 
         self::assertIsInt(
-            $result['expiresAt']
+            $result['expiresAt'],
         );
 
         self::assertSame(
@@ -525,7 +525,7 @@ final class CacheItemTest extends TestsUnit
                 'id' => 1,
                 'name' => 'Noga',
             ],
-            $result['data']
+            $result['data'],
         );
     }
 }

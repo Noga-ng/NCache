@@ -13,8 +13,9 @@ final class WriteFile
     private string $tmp = '';
     public function __construct(
         private readonly string $file,
-        private readonly string $data
-    ) {}
+        private readonly string $data,
+    ) {
+    }
 
     private function tmp(): string
     {
@@ -30,7 +31,7 @@ final class WriteFile
         } catch (Throwable $exception) {
             throw new CacheHandleException(
                 message: "Unexpected error while writing '{$this->file}'.",
-                previous: $exception
+                previous: $exception,
             );
         }
     }
@@ -44,13 +45,13 @@ final class WriteFile
 
         if (!is_dir($directory)) {
             throw new FailedWriteCacheException(
-                "The directory '{$directory}' does not exist."
+                "The directory '{$directory}' does not exist.",
             );
         }
 
         if (!is_writable($directory)) {
             throw new FailedWriteCacheException(
-                "The directory '{$directory}' is not writable."
+                "The directory '{$directory}' is not writable.",
             );
         }
         $mode = 'xb';
@@ -58,7 +59,7 @@ final class WriteFile
 
         if ($handle === false) {
             throw new FailedWriteCacheException(
-                "Cannot open file '{$target}' for writing."
+                "Cannot open file '{$target}' for writing.",
             );
         }
 
@@ -70,7 +71,7 @@ final class WriteFile
 
             if (!$locked) {
                 throw new FailedWriteCacheException(
-                    "Failed to lock file '{$target}'."
+                    "Failed to lock file '{$target}'.",
                 );
             }
 
@@ -80,13 +81,13 @@ final class WriteFile
              */
             if (!ftruncate($handle, 0)) {
                 throw new FailedWriteCacheException(
-                    "Failed to truncate file '{$target}'."
+                    "Failed to truncate file '{$target}'.",
                 );
             }
 
             if (fseek($handle, 0) !== 0) {
                 throw new FailedWriteCacheException(
-                    "Failed to move the cursor in file '{$target}'."
+                    "Failed to move the cursor in file '{$target}'.",
                 );
             }
 
@@ -94,7 +95,7 @@ final class WriteFile
 
             if (!fflush($handle)) {
                 throw new FailedWriteCacheException(
-                    "Failed to flush file '{$target}'."
+                    "Failed to flush file '{$target}'.",
                 );
             }
 
@@ -129,12 +130,12 @@ final class WriteFile
         while ($offset < $length) {
             $written = fwrite(
                 $handle,
-                substr($this->data, $offset)
+                substr($this->data, $offset),
             );
 
             if ($written === false || $written === 0) {
                 throw new FailedWriteCacheException(
-                    "Failed to write all data to file '{$file}'."
+                    "Failed to write all data to file '{$file}'.",
                 );
             }
 
@@ -153,7 +154,7 @@ final class WriteFile
             throw new FailedWriteCacheException(
                 "Failed to replace the cache file.\n"
                 . "Temporary file: {$this->tmp}\n"
-                . "Target file: {$this->file}"
+                . "Target file: {$this->file}",
             );
         }
     }

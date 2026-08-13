@@ -11,8 +11,9 @@ abstract class CacheDriver
 {
     protected CacheCleaner $cacheCleaner;
     public function __construct(
-        protected CacheItem $item
-    ) {}
+        protected CacheItem $item,
+    ) {
+    }
     /**
      * @return array<string,mixed>
      */

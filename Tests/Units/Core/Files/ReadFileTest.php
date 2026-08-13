@@ -39,7 +39,7 @@ final class ReadFileTest extends TestsUnit
 
         self::assertSame(
             $content,
-            new ReadFile($file, CType::STRING)->get()
+            (new ReadFile($file, CType::STRING))->get(),
         );
     }
 
@@ -52,12 +52,12 @@ final class ReadFileTest extends TestsUnit
 
         $file = $this->createFile(
             'cache.json',
-            json_encode($data, JSON_THROW_ON_ERROR)
+            json_encode($data, JSON_THROW_ON_ERROR),
         );
 
         self::assertSame(
             $data,
-            new ReadFile($file, CType::JSON)->get()
+            (new ReadFile($file, CType::JSON))->get(),
         );
     }
 
@@ -70,12 +70,12 @@ final class ReadFileTest extends TestsUnit
 
         $file = $this->createFile(
             'cache.dat',
-            serialize($data)
+            serialize($data),
         );
 
         self::assertSame(
             $data,
-            new ReadFile($file, CType::SERIALIZE)->get()
+            (new ReadFile($file, CType::SERIALIZE))->get(),
         );
     }
 
@@ -85,19 +85,19 @@ final class ReadFileTest extends TestsUnit
 
         self::assertSame(
             '',
-            new ReadFile($file, CType::STRING)->get()
+            (new ReadFile($file, CType::STRING))->get(),
         );
     }
 
     public function testMissingFileThrowsException(): void
     {
         $this->expectException(
-            FailedReadCacheException::class
+            FailedReadCacheException::class,
         );
 
         new ReadFile(
             $this->directory . '/missing.txt',
-            CType::STRING
+            CType::STRING,
         );
     }
 
@@ -105,56 +105,56 @@ final class ReadFileTest extends TestsUnit
     {
         $file = $this->createFile(
             'invalid.json',
-            '{"name":}'
+            '{"name":}',
         );
 
         $this->expectException(
-            FailedReadCacheException::class
+            FailedReadCacheException::class,
         );
 
-        new ReadFile($file, CType::JSON)->get();
+        (new ReadFile($file, CType::JSON))->get();
     }
 
     public function testJsonMustContainArray(): void
     {
         $file = $this->createFile(
             'number.json',
-            '123'
+            '123',
         );
 
         $this->expectException(
-            FailedReadCacheException::class
+            FailedReadCacheException::class,
         );
 
-        new ReadFile($file, CType::JSON)->get();
+        (new ReadFile($file, CType::JSON))->get();
     }
 
     public function testSerializedDataMustContainArray(): void
     {
         $file = $this->createFile(
             'serialized.cache',
-            serialize('hello')
+            serialize('hello'),
         );
 
         $this->expectException(
-            FailedReadCacheException::class
+            FailedReadCacheException::class,
         );
 
-        new ReadFile($file, CType::SERIALIZE)->get();
+        (new ReadFile($file, CType::SERIALIZE))->get();
     }
 
     public function testCorruptedSerializedDataThrowsException(): void
     {
         $file = $this->createFile(
             'corrupted.cache',
-            'not-a-serialized-value'
+            'not-a-serialized-value',
         );
 
         $this->expectException(
-            FailedReadCacheException::class
+            FailedReadCacheException::class,
         );
 
-        new ReadFile($file, CType::SERIALIZE)->get();
+        (new ReadFile($file, CType::SERIALIZE))->get();
     }
 
     public function testLargeFileCanBeRead(): void
@@ -163,12 +163,12 @@ final class ReadFileTest extends TestsUnit
 
         $file = $this->createFile(
             'large.txt',
-            $content
+            $content,
         );
 
         self::assertSame(
             $content,
-            new ReadFile($file, CType::STRING)->get()
+            (new ReadFile($file, CType::STRING))->get(),
         );
     }
 
@@ -176,12 +176,12 @@ final class ReadFileTest extends TestsUnit
     {
         $file = $this->createFile(
             'cache.txt',
-            'NCache'
+            'NCache',
         );
 
         $reader = new ReadFile(
             $file,
-            CType::STRING
+            CType::STRING,
         );
 
         self::assertSame('NCache', $reader->get());

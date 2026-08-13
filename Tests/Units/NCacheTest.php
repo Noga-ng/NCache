@@ -7,8 +7,8 @@ namespace NCache\Tests\Units;
 use NCache\Config\CacheConfig;
 use NCache\Core\Clock\Duration;
 use NCache\Enum\CType;
-use NCache\Tests\TestsUnit\TestsUnit;
 use NCache\NCache;
+use NCache\Tests\TestsUnit\TestsUnit;
 
 final class NCacheTest extends TestsUnit
 {
@@ -17,18 +17,18 @@ final class NCacheTest extends TestsUnit
         parent::setUp();
 
         $this->directory(
-            'ncache-public-api-'
+            'ncache-public-api-',
         );
 
         NCache::config(
-            $this->configFile
+            $this->configFile,
         )->use('default');
     }
 
     protected function tearDown(): void
     {
         $this->removeDirectory(
-            $this->directory
+            $this->directory,
         );
 
         CacheConfig::resetInstance();
@@ -39,17 +39,17 @@ final class NCacheTest extends TestsUnit
     public function testConfigReturnsCacheConfig(): void
     {
         $config = NCache::config(
-            $this->configFile
+            $this->configFile,
         );
 
         self::assertInstanceOf(
             CacheConfig::class,
-            $config
+            $config,
         );
 
         self::assertSame(
             $this->config()->getBasePath(),
-            $config->getBasePath()
+            $config->getBasePath(),
         );
     }
 
@@ -57,12 +57,12 @@ final class NCacheTest extends TestsUnit
     {
         $cache = NCache::key(
             'users',
-            CType::JSON
+            CType::JSON,
         );
 
         self::assertInstanceOf(
             NCache::class,
-            $cache
+            $cache,
         );
     }
 
@@ -70,45 +70,45 @@ final class NCacheTest extends TestsUnit
     {
         $cache = NCache::key(
             'fluent-cache',
-            CType::JSON
+            CType::JSON,
         );
 
         self::assertSame(
             $cache,
-            $cache->dir('json')
+            $cache->dir('json'),
         );
 
         self::assertSame(
             $cache,
             $cache->set([
                 'name' => 'Noga',
-            ])
+            ]),
         );
 
         self::assertSame(
             $cache,
             $cache->signature(
-                'version-1'
-            )
+                'version-1',
+            ),
         );
 
         self::assertSame(
             $cache,
             $cache->ttl(
-                Duration::days(1)
-            )
+                Duration::days(1),
+            ),
         );
     }
 
     public function testKeyUsesDefaultDriverWhenTypeIsOmitted(): void
     {
         $cache = NCache::key(
-            'default-driver'
+            'default-driver',
         );
 
         self::assertSame(
             'JSON',
-            $cache->show()['type']
+            $cache->show()['type'],
         );
     }
 
@@ -116,25 +116,25 @@ final class NCacheTest extends TestsUnit
     {
         $cache = NCache::key(
             'explicit-driver',
-            CType::SERIALIZE
+            CType::SERIALIZE,
         );
 
         self::assertSame(
             'SERIALIZE',
-            $cache->show()['type']
+            $cache->show()['type'],
         );
     }
 
     public function testCacheIsForeverWhenTtlIsNotCalled(): void
     {
         $cache = NCache::key(
-            'forever'
+            'forever',
         )->set([
             'id' => 1,
         ]);
 
         self::assertTrue(
-            $cache->put()
+            $cache->put(),
         );
 
         $registry = $cache->getRegistry();
@@ -147,7 +147,7 @@ final class NCacheTest extends TestsUnit
     public function testTtlWithoutArgumentUsesDefaultTtl(): void
     {
         $cache = NCache::key(
-            'default-ttl'
+            'default-ttl',
         )
             ->ttl()
             ->set([
@@ -155,7 +155,7 @@ final class NCacheTest extends TestsUnit
             ]);
 
         self::assertTrue(
-            $cache->put()
+            $cache->put(),
         );
 
         $registry = $cache->getRegistry();
@@ -164,18 +164,18 @@ final class NCacheTest extends TestsUnit
 
         self::assertSame(
             3600,
-            $registry['ttl']
+            $registry['ttl'],
         );
 
         self::assertIsInt(
-            $registry['expiresAt']
+            $registry['expiresAt'],
         );
     }
 
     public function testExplicitTtlOverridesDefaultTtl(): void
     {
         $cache = NCache::key(
-            'explicit-ttl'
+            'explicit-ttl',
         )
             ->ttl(120)
             ->set([
@@ -183,7 +183,7 @@ final class NCacheTest extends TestsUnit
             ]);
 
         self::assertTrue(
-            $cache->put()
+            $cache->put(),
         );
 
         $registry = $cache->getRegistry();
@@ -192,7 +192,7 @@ final class NCacheTest extends TestsUnit
 
         self::assertSame(
             120,
-            $registry['ttl']
+            $registry['ttl'],
         );
     }
 
@@ -205,52 +205,52 @@ final class NCacheTest extends TestsUnit
 
         $cache = NCache::key(
             'show-users',
-            CType::JSON
+            CType::JSON,
         )
             ->dir('json')
             ->set($data)
             ->signature($data)
             ->ttl(
-                Duration::days(1)
+                Duration::days(1),
             );
 
         $result = $cache->show();
 
         self::assertSame(
             'JSON',
-            $result['type']
+            $result['type'],
         );
 
         self::assertSame(
             'show-users',
-            $result['name']
+            $result['name'],
         );
 
         self::assertIsString(
-            $result['key']
+            $result['key'],
         );
 
         self::assertNotSame(
             '',
-            $result['key']
+            $result['key'],
         );
 
         self::assertIsString(
-            $result['signature']
+            $result['signature'],
         );
 
         self::assertSame(
             86_400,
-            $result['ttl']
+            $result['ttl'],
         );
 
         self::assertIsInt(
-            $result['expiresAt']
+            $result['expiresAt'],
         );
 
         self::assertSame(
             $data,
-            $result['data']
+            $result['data'],
         );
     }
 
@@ -264,54 +264,54 @@ final class NCacheTest extends TestsUnit
 
         $cache = NCache::key(
             'json-users',
-            CType::JSON
+            CType::JSON,
         )
             ->dir('json')
             ->set($data)
             ->signature($data)
             ->ttl(
-                Duration::hours(1)
+                Duration::hours(1),
             );
 
         self::assertFalse(
-            $cache->has()
+            $cache->has(),
         );
 
         self::assertTrue(
-            $cache->put()
+            $cache->put(),
         );
 
         self::assertTrue(
-            $cache->has()
+            $cache->has(),
         );
 
         $registry = $cache->getRegistry();
 
         self::assertNotNull(
-            $registry
+            $registry,
         );
 
         self::assertSame(
             'JSON',
-            $registry['type']
+            $registry['type'],
         );
 
         self::assertSame(
             'json-users',
-            $registry['name']
+            $registry['name'],
         );
 
         self::assertSame(
             $data,
-            $cache->get()
+            $cache->get(),
         );
 
         self::assertTrue(
-            $cache->delete()
+            $cache->delete(),
         );
 
         self::assertFalse(
-            $cache->has()
+            $cache->has(),
         );
     }
 
@@ -329,37 +329,37 @@ final class NCacheTest extends TestsUnit
 
         $cache = NCache::key(
             'serialize-project',
-            CType::SERIALIZE
+            CType::SERIALIZE,
         )
             ->dir('serialize')
             ->set($data)
             ->ttl(
-                Duration::minutes(30)
+                Duration::minutes(30),
             );
 
         self::assertFalse(
-            $cache->has()
+            $cache->has(),
         );
 
         self::assertTrue(
-            $cache->put()
+            $cache->put(),
         );
 
         self::assertTrue(
-            $cache->has()
+            $cache->has(),
         );
 
         self::assertSame(
             $data,
-            $cache->get()
+            $cache->get(),
         );
 
         self::assertTrue(
-            $cache->delete()
+            $cache->delete(),
         );
 
         self::assertFalse(
-            $cache->has()
+            $cache->has(),
         );
     }
 
@@ -367,7 +367,7 @@ final class NCacheTest extends TestsUnit
     {
         $cache = NCache::key(
             'string-values',
-            CType::STRING
+            CType::STRING,
         )
             ->dir('string')
             ->set([
@@ -380,31 +380,31 @@ final class NCacheTest extends TestsUnit
                 ],
             ])
             ->ttl(
-                Duration::minutes(15)
+                Duration::minutes(15),
             );
 
         self::assertFalse(
-            $cache->has()
+            $cache->has(),
         );
 
         self::assertTrue(
-            $cache->put()
+            $cache->put(),
         );
 
         self::assertTrue(
-            $cache->has()
+            $cache->has(),
         );
 
         self::assertIsString(
-            $cache->get()
+            $cache->get(),
         );
 
         self::assertTrue(
-            $cache->delete()
+            $cache->delete(),
         );
 
         self::assertFalse(
-            $cache->has()
+            $cache->has(),
         );
     }
 
@@ -417,38 +417,38 @@ final class NCacheTest extends TestsUnit
 
         $cache = NCache::key(
             'sqlite-lifecycle',
-            CType::SQLite
+            CType::SQLite,
         )
             ->dir('sqlite/users')
             ->set($data);
 
         self::assertFalse(
-            $cache->has()
+            $cache->has(),
         );
 
         self::assertTrue(
-            $cache->put()
+            $cache->put(),
         );
 
         self::assertTrue(
-            $cache->has()
+            $cache->has(),
         );
 
         self::assertSame(
             $data,
-            $cache->get()
+            $cache->get(),
         );
 
         self::assertTrue(
-            $cache->delete()
+            $cache->delete(),
         );
 
         self::assertFalse(
-            $cache->has()
+            $cache->has(),
         );
 
         self::assertNull(
-            $cache->get()
+            $cache->get(),
         );
     }
 
@@ -456,7 +456,7 @@ final class NCacheTest extends TestsUnit
     {
         $users = NCache::key(
             'same-key',
-            CType::SQLite
+            CType::SQLite,
         )
             ->dir('users')
             ->set([
@@ -465,7 +465,7 @@ final class NCacheTest extends TestsUnit
 
         $admins = NCache::key(
             'same-key',
-            CType::SQLite
+            CType::SQLite,
         )
             ->dir('admins')
             ->set([
@@ -473,21 +473,21 @@ final class NCacheTest extends TestsUnit
             ]);
 
         self::assertTrue(
-            $users->put()
+            $users->put(),
         );
 
         self::assertTrue(
-            $admins->put()
+            $admins->put(),
         );
 
         self::assertSame(
             ['source' => 'users'],
-            $users->get()
+            $users->get(),
         );
 
         self::assertSame(
             ['source' => 'admins'],
-            $admins->get()
+            $admins->get(),
         );
     }
 
@@ -495,7 +495,7 @@ final class NCacheTest extends TestsUnit
     {
         $cache = NCache::key(
             'sqlite-preserve-ttl',
-            CType::SQLite
+            CType::SQLite,
         )
             ->dir('ttl')
             ->ttl(60)
@@ -504,13 +504,13 @@ final class NCacheTest extends TestsUnit
             ]);
 
         self::assertTrue(
-            $cache->put()
+            $cache->put(),
         );
 
         $first = $cache->getRegistry();
 
         self::assertNotNull(
-            $first
+            $first,
         );
 
         $expiresAt = $first['expiresAt'];
@@ -520,23 +520,23 @@ final class NCacheTest extends TestsUnit
         ]);
 
         self::assertTrue(
-            $cache->put()
+            $cache->put(),
         );
 
         $second = $cache->getRegistry();
 
         self::assertNotNull(
-            $second
+            $second,
         );
 
         self::assertSame(
             $expiresAt,
-            $second['expiresAt']
+            $second['expiresAt'],
         );
 
         self::assertSame(
             ['version' => 2],
-            $cache->get()
+            $cache->get(),
         );
     }
 
@@ -544,7 +544,7 @@ final class NCacheTest extends TestsUnit
     {
         $cache = NCache::key(
             'sqlite-change-ttl',
-            CType::SQLite
+            CType::SQLite,
         )
             ->dir('ttl')
             ->ttl(60)
@@ -553,13 +553,13 @@ final class NCacheTest extends TestsUnit
             ]);
 
         self::assertTrue(
-            $cache->put()
+            $cache->put(),
         );
 
         $first = $cache->getRegistry();
 
         self::assertNotNull(
-            $first
+            $first,
         );
 
         $cache
@@ -569,23 +569,23 @@ final class NCacheTest extends TestsUnit
             ]);
 
         self::assertTrue(
-            $cache->put()
+            $cache->put(),
         );
 
         $second = $cache->getRegistry();
 
         self::assertNotNull(
-            $second
+            $second,
         );
 
         self::assertNotSame(
             $first['expiresAt'],
-            $second['expiresAt']
+            $second['expiresAt'],
         );
 
         self::assertSame(
             120,
-            $second['ttl']
+            $second['ttl'],
         );
     }
 
@@ -593,7 +593,7 @@ final class NCacheTest extends TestsUnit
     {
         $first = NCache::key(
             'sqlite-a',
-            CType::SQLite
+            CType::SQLite,
         )
             ->dir('users')
             ->set([
@@ -602,7 +602,7 @@ final class NCacheTest extends TestsUnit
 
         $second = NCache::key(
             'sqlite-b',
-            CType::SQLite
+            CType::SQLite,
         )
             ->dir('users')
             ->set([
@@ -611,7 +611,7 @@ final class NCacheTest extends TestsUnit
 
         $third = NCache::key(
             'sqlite-admin',
-            CType::SQLite
+            CType::SQLite,
         )
             ->dir('admins')
             ->set([
@@ -619,31 +619,31 @@ final class NCacheTest extends TestsUnit
             ]);
 
         self::assertTrue(
-            $first->put()
+            $first->put(),
         );
 
         self::assertTrue(
-            $second->put()
+            $second->put(),
         );
 
         self::assertTrue(
-            $third->put()
+            $third->put(),
         );
 
         self::assertSame(
             2,
             NCache::clear(
                 CType::SQLite,
-                'users'
-            )
+                'users',
+            ),
         );
 
         self::assertFalse(
-            $first->has()
+            $first->has(),
         );
 
         self::assertFalse(
-            $second->has()
+            $second->has(),
         );
 
         // self::assertTrue(
@@ -655,39 +655,39 @@ final class NCacheTest extends TestsUnit
     {
         $first = NCache::key(
             'sqlite-first',
-            CType::SQLite
+            CType::SQLite,
         )
             ->dir('users')
             ->set(['id' => 1]);
 
         $second = NCache::key(
             'sqlite-second',
-            CType::SQLite
+            CType::SQLite,
         )
             ->dir('products')
             ->set(['id' => 2]);
 
         self::assertTrue(
-            $first->put()
+            $first->put(),
         );
 
         self::assertTrue(
-            $second->put()
+            $second->put(),
         );
 
         self::assertSame(
             2,
             NCache::clear(
-                CType::SQLite
-            )
+                CType::SQLite,
+            ),
         );
 
         self::assertFalse(
-            $first->has()
+            $first->has(),
         );
 
         self::assertFalse(
-            $second->has()
+            $second->has(),
         );
     }
 
@@ -695,12 +695,12 @@ final class NCacheTest extends TestsUnit
     {
         $cache = NCache::key(
             'not-written',
-            CType::JSON
+            CType::JSON,
         )
             ->dir('json');
 
         self::assertFalse(
-            $cache->has()
+            $cache->has(),
         );
     }
 
@@ -708,7 +708,7 @@ final class NCacheTest extends TestsUnit
     {
         $cache = NCache::key(
             'delete-twice',
-            CType::JSON
+            CType::JSON,
         )
             ->dir('json')
             ->set([
@@ -716,19 +716,19 @@ final class NCacheTest extends TestsUnit
             ]);
 
         self::assertTrue(
-            $cache->put()
+            $cache->put(),
         );
 
         self::assertTrue(
-            $cache->delete()
+            $cache->delete(),
         );
 
         self::assertTrue(
-            $cache->delete()
+            $cache->delete(),
         );
 
         self::assertFalse(
-            $cache->has()
+            $cache->has(),
         );
     }
 
@@ -741,7 +741,7 @@ final class NCacheTest extends TestsUnit
 
         $cache = NCache::key(
             'signature-valid',
-            CType::JSON
+            CType::JSON,
         )
             ->dir('json')
             ->signature($source)
@@ -750,13 +750,13 @@ final class NCacheTest extends TestsUnit
             ]);
 
         self::assertTrue(
-            $cache->put()
+            $cache->put(),
         );
 
         self::assertTrue(
             $cache->hasValidSignature(
-                $source
-            )
+                $source,
+            ),
         );
     }
 
@@ -764,7 +764,7 @@ final class NCacheTest extends TestsUnit
     {
         $cache = NCache::key(
             'signature-invalid',
-            CType::JSON
+            CType::JSON,
         )
             ->dir('json')
             ->signature([
@@ -775,13 +775,13 @@ final class NCacheTest extends TestsUnit
             ]);
 
         self::assertTrue(
-            $cache->put()
+            $cache->put(),
         );
 
         self::assertFalse(
             $cache->hasValidSignature([
                 'version' => 2,
-            ])
+            ]),
         );
     }
 
@@ -801,18 +801,18 @@ final class NCacheTest extends TestsUnit
 
         $cache = NCache::key(
             'json-mixed',
-            CType::JSON
+            CType::JSON,
         )
             ->dir('json')
             ->set($data);
 
         self::assertTrue(
-            $cache->put()
+            $cache->put(),
         );
 
         self::assertSame(
             $data,
-            $cache->get()
+            $cache->get(),
         );
     }
 
@@ -826,18 +826,18 @@ final class NCacheTest extends TestsUnit
 
         $cache = NCache::key(
             'numeric-keys',
-            CType::SERIALIZE
+            CType::SERIALIZE,
         )
             ->dir('serialize')
             ->set($data);
 
         self::assertTrue(
-            $cache->put()
+            $cache->put(),
         );
 
         self::assertSame(
             $data,
-            $cache->get()
+            $cache->get(),
         );
     }
 
@@ -845,40 +845,40 @@ final class NCacheTest extends TestsUnit
     {
         $first = NCache::key(
             'json-first',
-            CType::JSON
+            CType::JSON,
         )
             ->dir('json')
             ->set(['id' => 1]);
 
         $second = NCache::key(
             'json-second',
-            CType::JSON
+            CType::JSON,
         )
             ->dir('json')
             ->set(['id' => 2]);
 
         self::assertTrue(
-            $first->put()
+            $first->put(),
         );
 
         self::assertTrue(
-            $second->put()
+            $second->put(),
         );
 
         self::assertSame(
             2,
             NCache::clear(
                 CType::JSON,
-                'json'
-            )
+                'json',
+            ),
         );
 
         self::assertFalse(
-            $first->has()
+            $first->has(),
         );
 
         self::assertFalse(
-            $second->has()
+            $second->has(),
         );
     }
 
@@ -886,40 +886,40 @@ final class NCacheTest extends TestsUnit
     {
         $first = NCache::key(
             'serialize-first',
-            CType::SERIALIZE
+            CType::SERIALIZE,
         )
             ->dir('serialize')
             ->set(['id' => 1]);
 
         $second = NCache::key(
             'serialize-second',
-            CType::SERIALIZE
+            CType::SERIALIZE,
         )
             ->dir('serialize')
             ->set(['id' => 2]);
 
         self::assertTrue(
-            $first->put()
+            $first->put(),
         );
 
         self::assertTrue(
-            $second->put()
+            $second->put(),
         );
 
         self::assertSame(
             2,
             NCache::clear(
                 CType::SERIALIZE,
-                'serialize'
-            )
+                'serialize',
+            ),
         );
 
         self::assertFalse(
-            $first->has()
+            $first->has(),
         );
 
         self::assertFalse(
-            $second->has()
+            $second->has(),
         );
     }
 
@@ -927,40 +927,40 @@ final class NCacheTest extends TestsUnit
     {
         $first = NCache::key(
             'string-first',
-            CType::STRING
+            CType::STRING,
         )
             ->dir('string')
             ->set('one');
 
         $second = NCache::key(
             'string-second',
-            CType::STRING
+            CType::STRING,
         )
             ->dir('string')
             ->set('two');
 
         self::assertTrue(
-            $first->put()
+            $first->put(),
         );
 
         self::assertTrue(
-            $second->put()
+            $second->put(),
         );
 
         self::assertSame(
             2,
             NCache::clear(
                 CType::STRING,
-                'string'
-            )
+                'string',
+            ),
         );
 
         self::assertFalse(
-            $first->has()
+            $first->has(),
         );
 
         self::assertFalse(
-            $second->has()
+            $second->has(),
         );
     }
 
@@ -968,7 +968,7 @@ final class NCacheTest extends TestsUnit
     {
         $json = NCache::key(
             'same-name',
-            CType::JSON
+            CType::JSON,
         )
             ->dir('shared')
             ->set([
@@ -977,7 +977,7 @@ final class NCacheTest extends TestsUnit
 
         $serialize = NCache::key(
             'same-name',
-            CType::SERIALIZE
+            CType::SERIALIZE,
         )
             ->dir('shared')
             ->set([
@@ -985,27 +985,27 @@ final class NCacheTest extends TestsUnit
             ]);
 
         self::assertTrue(
-            $json->put()
+            $json->put(),
         );
 
         self::assertTrue(
-            $serialize->put()
+            $serialize->put(),
         );
 
         self::assertSame(
             1,
             NCache::clear(
                 CType::JSON,
-                'shared'
-            )
+                'shared',
+            ),
         );
 
         self::assertFalse(
-            $json->has()
+            $json->has(),
         );
 
         self::assertTrue(
-            $serialize->has()
+            $serialize->has(),
         );
     }
 
@@ -1013,40 +1013,40 @@ final class NCacheTest extends TestsUnit
     {
         $first = NCache::key(
             'first',
-            CType::JSON
+            CType::JSON,
         )
             ->dir('json/a')
             ->set(['id' => 1]);
 
         $second = NCache::key(
             'second',
-            CType::JSON
+            CType::JSON,
         )
             ->dir('json/b')
             ->set(['id' => 2]);
 
         self::assertTrue(
-            $first->put()
+            $first->put(),
         );
 
         self::assertTrue(
-            $second->put()
+            $second->put(),
         );
 
         self::assertSame(
             1,
             NCache::clear(
                 CType::JSON,
-                'json/a'
-            )
+                'json/a',
+            ),
         );
 
         self::assertFalse(
-            $first->has()
+            $first->has(),
         );
 
         self::assertTrue(
-            $second->has()
+            $second->has(),
         );
     }
 
@@ -1054,60 +1054,60 @@ final class NCacheTest extends TestsUnit
     {
         $usersFirst = NCache::key(
             'user-1',
-            CType::SQLite
+            CType::SQLite,
         )
             ->dir('users')
             ->set(['id' => 1]);
 
         $usersSecond = NCache::key(
             'user-2',
-            CType::SQLite
+            CType::SQLite,
         )
             ->dir('users')
             ->set(['id' => 2]);
 
         $admins = NCache::key(
             'admin-1',
-            CType::SQLite
+            CType::SQLite,
         )
             ->dir('admins')
             ->set(['id' => 3]);
 
         self::assertTrue(
-            $usersFirst->put()
+            $usersFirst->put(),
         );
 
         self::assertTrue(
-            $usersSecond->put()
+            $usersSecond->put(),
         );
 
         self::assertTrue(
-            $admins->put()
+            $admins->put(),
         );
 
         self::assertSame(
             2,
             NCache::clear(
                 CType::SQLite,
-                'users'
-            )
+                'users',
+            ),
         );
 
         self::assertFalse(
-            $usersFirst->has()
+            $usersFirst->has(),
         );
 
         self::assertFalse(
-            $usersSecond->has()
+            $usersSecond->has(),
         );
 
         self::assertTrue(
-            $admins->has()
+            $admins->has(),
         );
 
         self::assertSame(
             ['id' => 3],
-            $admins->get()
+            $admins->get(),
         );
     }
 
@@ -1115,21 +1115,21 @@ final class NCacheTest extends TestsUnit
     {
         $users = NCache::key(
             'sqlite-users',
-            CType::SQLite
+            CType::SQLite,
         )
             ->dir('users')
             ->set(['id' => 1]);
 
         $admins = NCache::key(
             'sqlite-admins',
-            CType::SQLite
+            CType::SQLite,
         )
             ->dir('admins')
             ->set(['id' => 2]);
 
         $json = NCache::key(
             'json-users',
-            CType::JSON
+            CType::JSON,
         )
             ->dir('users')
             ->set(['id' => 3]);
@@ -1141,20 +1141,20 @@ final class NCacheTest extends TestsUnit
         self::assertSame(
             2,
             NCache::clear(
-                CType::SQLite
-            )
+                CType::SQLite,
+            ),
         );
 
         self::assertFalse(
-            $users->has()
+            $users->has(),
         );
 
         self::assertFalse(
-            $admins->has()
+            $admins->has(),
         );
 
         self::assertTrue(
-            $json->has()
+            $json->has(),
         );
     }
 }

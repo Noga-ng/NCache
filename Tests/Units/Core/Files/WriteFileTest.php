@@ -38,7 +38,7 @@ final class WriteFileTest extends TestsUnit
 
         $writer = new WriteFile(
             $file,
-            '{"name":"Noga"}'
+            '{"name":"Noga"}',
         );
 
         $result = $writer->save();
@@ -55,11 +55,11 @@ final class WriteFileTest extends TestsUnit
 
         $data = 'NCache content';
 
-        new WriteFile($file, $data)->save();
+        (new WriteFile($file, $data))->save();
 
         self::assertSame(
             $data,
-            file_get_contents($file)
+            file_get_contents($file),
         );
     }
 
@@ -69,7 +69,7 @@ final class WriteFileTest extends TestsUnit
             . DIRECTORY_SEPARATOR
             . 'empty.txt';
 
-        $result = new WriteFile($file, '')->save();
+        $result = (new WriteFile($file, ''))->save();
 
         self::assertTrue($result);
         self::assertFileExists($file);
@@ -85,16 +85,16 @@ final class WriteFileTest extends TestsUnit
 
         $data = str_repeat('NCache-', 20_000);
 
-        new WriteFile($file, $data)->save();
+        (new WriteFile($file, $data))->save();
 
         self::assertSame(
             strlen($data),
-            filesize($file)
+            filesize($file),
         );
 
         self::assertSame(
             $data,
-            file_get_contents($file)
+            file_get_contents($file),
         );
     }
 
@@ -106,11 +106,11 @@ final class WriteFileTest extends TestsUnit
 
         file_put_contents($file, 'old value');
 
-        new WriteFile($file, 'new value')->save();
+        (new WriteFile($file, 'new value'))->save();
 
         self::assertSame(
             'new value',
-            file_get_contents($file)
+            file_get_contents($file),
         );
     }
 
@@ -120,12 +120,12 @@ final class WriteFileTest extends TestsUnit
             . DIRECTORY_SEPARATOR
             . 'cache.txt';
 
-        new WriteFile($file, 'content')->save();
+        (new WriteFile($file, 'content'))->save();
 
         $temporaryFiles = glob(
             $this->directory
             . DIRECTORY_SEPARATOR
-            . '*.tmp'
+            . '*.tmp',
         );
 
         self::assertSame([], $temporaryFiles);
@@ -141,19 +141,19 @@ final class WriteFileTest extends TestsUnit
 
         $writer = new WriteFile(
             $file,
-            'new content'
+            'new content',
         );
 
         self::assertSame(
             'old content',
-            file_get_contents($file)
+            file_get_contents($file),
         );
 
         $writer->save();
 
         self::assertSame(
             'new content',
-            file_get_contents($file)
+            file_get_contents($file),
         );
     }
 
@@ -165,11 +165,11 @@ final class WriteFileTest extends TestsUnit
 
         $data = "\x00\x01\x02\xFF\x10";
 
-        new WriteFile($file, $data)->save();
+        (new WriteFile($file, $data))->save();
 
         self::assertSame(
             $data,
-            file_get_contents($file)
+            file_get_contents($file),
         );
     }
 
@@ -181,11 +181,11 @@ final class WriteFileTest extends TestsUnit
 
         $data = 'Données de cache malagasy — Toamasina';
 
-        new WriteFile($file, $data)->save();
+        (new WriteFile($file, $data))->save();
 
         self::assertSame(
             $data,
-            file_get_contents($file)
+            file_get_contents($file),
         );
     }
 
@@ -198,14 +198,14 @@ final class WriteFileTest extends TestsUnit
             . 'cache.txt';
 
         $this->expectException(
-            FailedWriteCacheException::class
+            FailedWriteCacheException::class,
         );
 
         $this->expectExceptionMessage(
-            "does not exist"
+            'does not exist',
         );
 
-        new WriteFile($file, 'content')->save();
+        (new WriteFile($file, 'content'))->save();
     }
 
     public function testSaveDoesNotCreateMissingDirectoryAutomatically(): void
@@ -219,14 +219,14 @@ final class WriteFileTest extends TestsUnit
             . 'cache.txt';
 
         try {
-            new WriteFile($file, 'content')->save();
+            (new WriteFile($file, 'content'))->save();
 
             self::fail(
-                'FailedWriteCacheException was not thrown.'
+                'FailedWriteCacheException was not thrown.',
             );
         } catch (FailedWriteCacheException) {
             self::assertDirectoryDoesNotExist(
-                $missingDirectory
+                $missingDirectory,
             );
 
             self::assertFileDoesNotExist($file);
@@ -244,16 +244,16 @@ final class WriteFileTest extends TestsUnit
             . 'cache.txt';
 
         try {
-            new WriteFile($file, 'content')->save();
+            (new WriteFile($file, 'content'))->save();
 
             self::fail(
-                'FailedWriteCacheException was not thrown.'
+                'FailedWriteCacheException was not thrown.',
             );
         } catch (FailedWriteCacheException) {
             $temporaryFiles = glob(
                 $this->directory
                 . DIRECTORY_SEPARATOR
-                . '*.tmp'
+                . '*.tmp',
             );
 
             self::assertSame([], $temporaryFiles);
@@ -266,13 +266,13 @@ final class WriteFileTest extends TestsUnit
             . DIRECTORY_SEPARATOR
             . 'cache.txt';
 
-        new WriteFile($file, 'version 1')->save();
-        new WriteFile($file, 'version 2')->save();
-        new WriteFile($file, 'version 3')->save();
+        (new WriteFile($file, 'version 1'))->save();
+        (new WriteFile($file, 'version 2'))->save();
+        (new WriteFile($file, 'version 3'))->save();
 
         self::assertSame(
             'version 3',
-            file_get_contents($file)
+            file_get_contents($file),
         );
     }
 
@@ -282,7 +282,7 @@ final class WriteFileTest extends TestsUnit
             . DIRECTORY_SEPARATOR
             . 'cache.txt';
 
-        new WriteFile($file, 'content')->save();
+        (new WriteFile($file, 'content'))->save();
 
         self::assertIsReadable($file);
     }

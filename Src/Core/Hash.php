@@ -13,11 +13,11 @@ final class Hash
      */
     public function __construct(
         private readonly mixed $data,
-        private readonly string $algo = 'xxh128'
+        private readonly string $algo = 'xxh128',
     ) {
         if ($this->data === null) {
             throw new InvalidCacheArgumentException(
-                "cannot hash a value null"
+                'cannot hash a value null',
             );
         }
     }
@@ -28,11 +28,11 @@ final class Hash
         return match (true) {
             \is_array($this->data) => hash(
                 $this->algo,
-                serialize($this->data)
+                serialize($this->data),
             ),
             default => hash(
                 $this->algo,
-                (string) $this->data
+                (string) $this->data,
             )
         };
     }

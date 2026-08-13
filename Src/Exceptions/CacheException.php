@@ -6,4 +6,6 @@ namespace NCache\Exceptions;
 
 use Exception;
 
-abstract class CacheException extends Exception {}
+abstract class CacheException extends Exception
+{
+}

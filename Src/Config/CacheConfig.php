@@ -64,7 +64,7 @@ final class CacheConfig implements ConfigInterface
     private ?string $currentProfile = null;
 
     private function __construct(
-        private readonly string $filename
+        private readonly string $filename,
     ) {
         $this->dirname = dirname($this->filename);
         $this->load();
@@ -81,12 +81,12 @@ final class CacheConfig implements ConfigInterface
             || trim($filename) === ''
         ) {
             throw new UnexpectedConfigException(
-                'Configuration file is required.'
+                'Configuration file is required.',
             );
         }
 
         self::$instance = new self(
-            $filename
+            $filename,
         );
 
         return self::$instance;
@@ -101,13 +101,13 @@ final class CacheConfig implements ConfigInterface
     {
         if (!isset($this->data[$profile])) {
             throw new UnexpectedConfigException(
-                "Undefined cache profile: {$profile}"
+                "Undefined cache profile: {$profile}",
             );
         }
 
         $this->current = $this->resolve(
             $profile,
-            $this->data[$profile]
+            $this->data[$profile],
         );
 
         $this->currentProfile = $profile;
@@ -119,7 +119,7 @@ final class CacheConfig implements ConfigInterface
     {
         if ($this->current === null) {
             throw new UnexpectedConfigException(
-                'No cache profile selected.'
+                'No cache profile selected.',
             );
         }
 
@@ -128,14 +128,14 @@ final class CacheConfig implements ConfigInterface
 
         if ($currentProfile === null) {
             throw new UnexpectedConfigException(
-                'No cache profile selected.'
+                'No cache profile selected.',
             );
         }
 
         $this->current['drivers']
             = $this->resolveDriversFrom(
                 $currentProfile,
-                $profile
+                $profile,
             );
 
         return $this;
@@ -147,7 +147,7 @@ final class CacheConfig implements ConfigInterface
      */
     private function resolve(
         string $profile,
-        array $entry
+        array $entry,
     ): array {
         $drivers
             = $entry['drivers'] ?? [];
@@ -162,7 +162,7 @@ final class CacheConfig implements ConfigInterface
             $drivers
                 = $this->resolveDriversFrom(
                     $profile,
-                    $driversFrom
+                    $driversFrom,
                 );
         }
 
@@ -194,23 +194,23 @@ final class CacheConfig implements ConfigInterface
     private function resolveDriversFrom(
         string $profile,
         string $source,
-        array $visited = []
+        array $visited = [],
     ): array {
         if ($profile === $source) {
             throw new UnexpectedConfigException(
-                "Profile {$profile} cannot inherit drivers from itself."
+                "Profile {$profile} cannot inherit drivers from itself.",
             );
         }
 
         if (isset($visited[$source])) {
             throw new UnexpectedConfigException(
-                "Circular driversFrom reference detected for profile: {$source}"
+                "Circular driversFrom reference detected for profile: {$source}",
             );
         }
 
         if (!isset($this->data[$source])) {
             throw new UnexpectedConfigException(
-                "Undefined driver source profile: {$source}"
+                "Undefined driver source profile: {$source}",
             );
         }
 
@@ -230,7 +230,7 @@ final class CacheConfig implements ConfigInterface
             return $this->resolveDriversFrom(
                 $source,
                 $next,
-                $visited
+                $visited,
             );
         }
 
@@ -250,7 +250,7 @@ final class CacheConfig implements ConfigInterface
 
         return preg_match(
             '/^[A-Za-z]:[\\\\\\/]/',
-            $path
+            $path,
         ) === 1;
     }
 
@@ -263,12 +263,12 @@ final class CacheConfig implements ConfigInterface
         $cachePath = preg_replace(
             '#^\.[\\\\/]#',
             '',
-            $path
+            $path,
         ) ?? $path;
 
         return rtrim(
             $this->dirname,
-            '/\\'
+            '/\\',
         )
             . DIRECTORY_SEPARATOR
             . $cachePath;
@@ -288,7 +288,7 @@ final class CacheConfig implements ConfigInterface
         if (\is_int($ttl)) {
             if ($ttl < 0) {
                 throw new UnexpectedConfigException(
-                    'Default TTL cannot be negative.'
+                    'Default TTL cannot be negative.',
                 );
             }
 
@@ -299,11 +299,11 @@ final class CacheConfig implements ConfigInterface
             preg_match(
                 '/^([a-zA-Z]+)\((.*)\)$/',
                 trim($ttl),
-                $m
+                $m,
             ) !== 1
         ) {
             throw new UnexpectedConfigException(
-                "Invalid TTL expression: {$ttl}"
+                "Invalid TTL expression: {$ttl}",
             );
         }
 
@@ -320,29 +320,29 @@ final class CacheConfig implements ConfigInterface
                 'second',
                 'make',
             ],
-            true
+            true,
         )) {
             $class = Duration::class;
 
             throw new UnexpectedConfigException(
-                "Undefined function {$function} in class {$class}."
+                "Undefined function {$function} in class {$class}.",
             );
         }
 
         if ($function === 'make') {
             return $this->resolveDurationMake(
-                $m[2]
+                $m[2],
             );
         }
 
         if (
             preg_match(
                 '/^\d+$/',
-                trim($m[2])
+                trim($m[2]),
             ) !== 1
         ) {
             throw new UnexpectedConfigException(
-                "Invalid value {$m[2]} for {$function}()."
+                "Invalid value {$m[2]} for {$function}().",
             );
         }
 
@@ -362,12 +362,12 @@ final class CacheConfig implements ConfigInterface
     {
         $parts = array_map(
             'trim',
-            explode(',', $values)
+            explode(',', $values),
         );
 
         if (\count($parts) > 4) {
             throw new UnexpectedConfigException(
-                'Duration::make() accepts at most 4 arguments.'
+                'Duration::make() accepts at most 4 arguments.',
             );
         }
 
@@ -377,7 +377,7 @@ final class CacheConfig implements ConfigInterface
                 || preg_match('/^\d+$/', $value) !== 1
             ) {
                 throw new UnexpectedConfigException(
-                    'Duration::make() arguments must be non-negative integers.'
+                    'Duration::make() arguments must be non-negative integers.',
                 );
             }
         }
@@ -400,7 +400,7 @@ final class CacheConfig implements ConfigInterface
             $days,
             $hours,
             $minutes,
-            $seconds
+            $seconds,
         );
     }
 
@@ -408,32 +408,32 @@ final class CacheConfig implements ConfigInterface
     {
         if (!is_file($this->filename)) {
             throw new UnexpectedConfigException(
-                "Configuration file not found: {$this->filename}"
+                "Configuration file not found: {$this->filename}",
             );
         }
 
         if (!is_readable($this->filename)) {
             throw new UnexpectedConfigException(
-                "Configuration file is not readable: {$this->filename}"
+                "Configuration file is not readable: {$this->filename}",
             );
         }
 
         $content
-            = new ReadFile(
+            = (new ReadFile(
                 $this->filename,
-                CType::JSON
-            )
+                CType::JSON,
+            ))
         ->get();
 
         if (!\is_array($content)) {
             throw new UnexpectedConfigException(
-                'Invalid cache configuration.'
+                'Invalid cache configuration.',
             );
         }
 
         $this->data
             = $this->normalize(
-                $content
+                $content,
             );
     }
 
@@ -445,7 +445,7 @@ final class CacheConfig implements ConfigInterface
     {
         if ($content === []) {
             throw new UnexpectedConfigException(
-                'Cache configuration cannot be empty.'
+                'Cache configuration cannot be empty.',
             );
         }
 
@@ -454,20 +454,20 @@ final class CacheConfig implements ConfigInterface
         foreach ($content as $profile => $entry) {
             if (!\is_string($profile)) {
                 throw new UnexpectedConfigException(
-                    'Configuration profile na me must be a string.'
+                    'Configuration profile na me must be a string.',
                 );
             }
 
             if (!\is_array($entry)) {
                 throw new UnexpectedConfigException(
-                    "Invalid configuration profile: {$profile}"
+                    "Invalid configuration profile: {$profile}",
                 );
             }
 
             $config[$profile]
                 = $this->normalizeEntry(
                     $profile,
-                    $entry
+                    $entry,
                 );
         }
 
@@ -487,7 +487,7 @@ final class CacheConfig implements ConfigInterface
             || trim($cachePath) === ''
         ) {
             throw new UnexpectedConfigException(
-                "Profile {$profile} requires a valid cachePath."
+                "Profile {$profile} requires a valid cachePath.",
             );
         }
 
@@ -502,7 +502,7 @@ final class CacheConfig implements ConfigInterface
             && !\is_string($defaultDriver)
         ) {
             throw new UnexpectedConfigException(
-                "Invalid defaultDriver in profile {$profile}."
+                "Invalid defaultDriver in profile {$profile}.",
             );
         }
 
@@ -511,11 +511,11 @@ final class CacheConfig implements ConfigInterface
             && !\in_array(
                 $defaultDriver,
                 ['SERIALIZE', 'JSON', 'STRING', 'REDIS', 'MEMCACHED', 'SQLite'],
-                true
+                true,
             )
         ) {
             throw new UnexpectedConfigException(
-                "Undefined defaultDriver {$defaultDriver} in profile {$profile}."
+                "Undefined defaultDriver {$defaultDriver} in profile {$profile}.",
             );
         }
 
@@ -528,7 +528,7 @@ final class CacheConfig implements ConfigInterface
             && !\is_string($namespace)
         ) {
             throw new UnexpectedConfigException(
-                "Invalid namespace in profile {$profile}."
+                "Invalid namespace in profile {$profile}.",
             );
         }
 
@@ -540,7 +540,7 @@ final class CacheConfig implements ConfigInterface
             && !\is_string($defaultTtl)
         ) {
             throw new UnexpectedConfigException(
-                "Invalid defaultTtl in profile {$profile}."
+                "Invalid defaultTtl in profile {$profile}.",
             );
         }
 
@@ -549,7 +549,7 @@ final class CacheConfig implements ConfigInterface
             && $defaultTtl < 0
         ) {
             throw new UnexpectedConfigException(
-                "defaultTtl cannot be negative in profile {$profile}."
+                "defaultTtl cannot be negative in profile {$profile}.",
             );
         }
 
@@ -562,18 +562,18 @@ final class CacheConfig implements ConfigInterface
             && !\is_string($driversFrom)
         ) {
             throw new UnexpectedConfigException(
-                "Invalid driversFrom in profile {$profile}."
+                "Invalid driversFrom in profile {$profile}.",
             );
         }
 
         $extensions = $this->normalizeExtensions(
             $profile,
-            $entry['extensions'] ?? []
+            $entry['extensions'] ?? [],
         );
 
         $drivers = $this->normalizeDrivers(
             $profile,
-            $entry['drivers'] ?? []
+            $entry['drivers'] ?? [],
         );
 
         $normalized = [
@@ -610,7 +610,7 @@ final class CacheConfig implements ConfigInterface
     {
         if (!\is_array($extensions)) {
             throw new UnexpectedConfigException(
-                "Invalid extensions in profile {$profile}."
+                "Invalid extensions in profile {$profile}.",
             );
         }
 
@@ -621,7 +621,7 @@ final class CacheConfig implements ConfigInterface
         ) {
             if (!\is_string($type)) {
                 throw new UnexpectedConfigException(
-                    "Invalid extension type in profile {$profile}."
+                    "Invalid extension type in profile {$profile}.",
                 );
             }
 
@@ -630,7 +630,7 @@ final class CacheConfig implements ConfigInterface
                 || trim($extension) === ''
             ) {
                 throw new UnexpectedConfigException(
-                    "Invalid extension for {$type} in profile {$profile}."
+                    "Invalid extension for {$type} in profile {$profile}.",
                 );
             }
 
@@ -649,7 +649,7 @@ final class CacheConfig implements ConfigInterface
     {
         if (!\is_array($drivers)) {
             throw new UnexpectedConfigException(
-                "Invalid drivers in profile {$profile}."
+                "Invalid drivers in profile {$profile}.",
             );
         }
 
@@ -657,34 +657,34 @@ final class CacheConfig implements ConfigInterface
 
         if (\array_key_exists(
             'redis',
-            $drivers
+            $drivers,
         )) {
             $redis
                 = $drivers['redis'];
 
             if (!\is_array($redis)) {
                 throw new UnexpectedConfigException(
-                    "Invalid Redis configuration in profile {$profile}."
+                    "Invalid Redis configuration in profile {$profile}.",
                 );
             }
 
             $result['redis']
                 = $this->normalizeRedis(
                     $profile,
-                    $redis
+                    $redis,
                 );
         }
 
         if (\array_key_exists(
             'memcached',
-            $drivers
+            $drivers,
         )) {
             $memcached
                 = $drivers['memcached'];
 
             if (!\is_array($memcached)) {
                 throw new UnexpectedConfigException(
-                    "Invalid Memcached configuration in profile {$profile}."
+                    "Invalid Memcached configuration in profile {$profile}.",
                 );
             }
 
@@ -724,7 +724,7 @@ final class CacheConfig implements ConfigInterface
             || trim($host) === ''
         ) {
             throw new UnexpectedConfigException(
-                "Invalid Redis host in profile {$profile}."
+                "Invalid Redis host in profile {$profile}.",
             );
         }
 
@@ -734,7 +734,7 @@ final class CacheConfig implements ConfigInterface
             || $port > 65535
         ) {
             throw new UnexpectedConfigException(
-                "Invalid Redis port in profile {$profile}."
+                "Invalid Redis port in profile {$profile}.",
             );
         }
 
@@ -743,13 +743,13 @@ final class CacheConfig implements ConfigInterface
             && !\is_float($timeout)
         ) {
             throw new UnexpectedConfigException(
-                "Invalid Redis timeout in profile {$profile}."
+                "Invalid Redis timeout in profile {$profile}.",
             );
         }
 
         if ($timeout < 0) {
             throw new UnexpectedConfigException(
-                "Redis timeout cannot be negative in profile {$profile}."
+                "Redis timeout cannot be negative in profile {$profile}.",
             );
         }
 
@@ -758,7 +758,7 @@ final class CacheConfig implements ConfigInterface
             && !\is_string($password)
         ) {
             throw new UnexpectedConfigException(
-                "Invalid Redis password in profile {$profile}."
+                "Invalid Redis password in profile {$profile}.",
             );
         }
 
@@ -767,7 +767,7 @@ final class CacheConfig implements ConfigInterface
             || $database < 0
         ) {
             throw new UnexpectedConfigException(
-                "Invalid Redis database in profile {$profile}."
+                "Invalid Redis database in profile {$profile}.",
             );
         }
 
@@ -803,7 +803,7 @@ final class CacheConfig implements ConfigInterface
             || trim($host) === ''
         ) {
             throw new UnexpectedConfigException(
-                "Invalid Memcached host in profile {$profile}."
+                "Invalid Memcached host in profile {$profile}.",
             );
         }
 
@@ -813,19 +813,19 @@ final class CacheConfig implements ConfigInterface
             || $port > 65535
         ) {
             throw new UnexpectedConfigException(
-                "Invalid Memcached port in profile {$profile}."
+                "Invalid Memcached port in profile {$profile}.",
             );
         }
 
         if (!\is_int($weight)) {
             throw new UnexpectedConfigException(
-                "Invalid Memcached weight in profile {$profile}."
+                "Invalid Memcached weight in profile {$profile}.",
             );
         }
 
         if ($weight < 0) {
             throw new UnexpectedConfigException(
-                "Memcached weight cannot be negative in profile {$profile}."
+                "Memcached weight cannot be negative in profile {$profile}.",
             );
         }
 
@@ -843,7 +843,7 @@ final class CacheConfig implements ConfigInterface
     {
         if ($this->current === null) {
             throw new UnexpectedConfigException(
-                'No cache profile selected.'
+                'No cache profile selected.',
             );
         }
 
@@ -854,7 +854,7 @@ final class CacheConfig implements ConfigInterface
     {
         if ($this->currentProfile === null) {
             throw new UnexpectedConfigException(
-                'No cache profile selected.'
+                'No cache profile selected.',
             );
         }
 
@@ -902,7 +902,7 @@ final class CacheConfig implements ConfigInterface
     }
 
     public function getExtension(
-        CType $type
+        CType $type,
     ): ?string {
         return $this
             ->active()['extensions'][$type->name]

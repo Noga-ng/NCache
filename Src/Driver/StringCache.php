@@ -19,9 +19,9 @@ final class StringCache extends CacheDriver
         parent::__construct($item);
         $this->extension = $this->item->extension() !== null
         ? "{$this->item->extension()}"
-        : "txt";
+        : 'txt';
         $this->cacheCleaner = new CacheCleaner(
-            [$this->extension]
+            [$this->extension],
         );
     }
 
@@ -40,7 +40,7 @@ final class StringCache extends CacheDriver
                 if (\is_array($value) || \is_object($value)) {
                     return json_encode(
                         $value,
-                        JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE
+                        JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE,
                     );
                 }
 
@@ -54,12 +54,12 @@ final class StringCache extends CacheDriver
                     default => throw new \InvalidArgumentException(
                         \sprintf(
                             'the type %s cannot be convert to string.',
-                            get_debug_type($value)
-                        )
+                            get_debug_type($value),
+                        ),
                     ),
                 };
             },
-            $this->item->getData()
+            $this->item->getData(),
         );
         $content = implode(\PHP_EOL, \array_values($data));
 
@@ -68,10 +68,10 @@ final class StringCache extends CacheDriver
 
     public function save(): bool
     {
-        return new WriteFile(
+        return (new WriteFile(
             $this->buildFile(),
-            $this->format()
-        )->save();
+            $this->format(),
+        ))->save();
     }
 
     /**
@@ -79,14 +79,14 @@ final class StringCache extends CacheDriver
      */
     public function get(): string
     {
-        $content = new ReadFile(
+        $content = (new ReadFile(
             $this->buildFile(),
-            $this->item->type()
-        )->get();
+            $this->item->type(),
+        ))->get();
 
         if (!\is_string($content)) {
             throw new InvalidCacheArgumentException(
-                'cannot return array on this StringCache'
+                'cannot return array on this StringCache',
             );
         }
 

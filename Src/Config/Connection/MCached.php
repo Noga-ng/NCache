@@ -15,7 +15,8 @@ final class MCached
         private readonly string $host = '127.0.0.1',
         private readonly int $port = 11211,
         private readonly int $weight = 0,
-    ) {}
+    ) {
+    }
 
     public function connect(): Memcached
     {
@@ -28,10 +29,10 @@ final class MCached
         if (!$memcached->addServer(
             $this->host,
             $this->port,
-            $this->weight
+            $this->weight,
         )) {
             throw new RuntimeException(
-                'Unable to configure Memcached server.'
+                'Unable to configure Memcached server.',
             );
         }
 

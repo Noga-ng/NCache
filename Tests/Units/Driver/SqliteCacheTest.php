@@ -15,14 +15,14 @@ final class SqliteCacheTest extends TestsUnit
         parent::setUp();
 
         $this->directory(
-            'ncache-sqlite-driver-'
+            'ncache-sqlite-driver-',
         );
     }
 
     public function testSaveCreatesDatabaseFile(): void
     {
         $item = $this->createSQLiteItem(
-            'sqlite-create'
+            'sqlite-create',
         );
 
         $item->setDir('users');
@@ -34,7 +34,7 @@ final class SqliteCacheTest extends TestsUnit
         $driver = new SqliteCache($item);
 
         self::assertTrue(
-            $driver->save()
+            $driver->save(),
         );
 
         self::assertFileExists(
@@ -44,14 +44,14 @@ final class SqliteCacheTest extends TestsUnit
                 . DIRECTORY_SEPARATOR
                 . 'CacheDb'
                 . DIRECTORY_SEPARATOR
-                . 'nc.db'
+                . 'nc.db',
         );
     }
 
     public function testSQLiteRequiresDirectory(): void
     {
         $item = $this->createSQLiteItem(
-            'sqlite-without-directory'
+            'sqlite-without-directory',
         );
 
         $item->setData([
@@ -61,7 +61,7 @@ final class SqliteCacheTest extends TestsUnit
         $driver = new SqliteCache($item);
 
         $this->expectException(
-            InvalidCacheArgumentException::class
+            InvalidCacheArgumentException::class,
         );
 
         $driver->save();
@@ -70,7 +70,7 @@ final class SqliteCacheTest extends TestsUnit
     public function testExistsReturnsFalseBeforeSave(): void
     {
         $item = $this->createSQLiteItem(
-            'sqlite-missing'
+            'sqlite-missing',
         );
 
         $item->setDir('users');
@@ -78,14 +78,14 @@ final class SqliteCacheTest extends TestsUnit
         $driver = new SqliteCache($item);
 
         self::assertFalse(
-            $driver->exists()
+            $driver->exists(),
         );
     }
 
     public function testExistsReturnsTrueAfterSave(): void
     {
         $item = $this->createSQLiteItem(
-            'sqlite-existing'
+            'sqlite-existing',
         );
 
         $item->setDir('users');
@@ -97,11 +97,11 @@ final class SqliteCacheTest extends TestsUnit
         $driver = new SqliteCache($item);
 
         self::assertTrue(
-            $driver->save()
+            $driver->save(),
         );
 
         self::assertTrue(
-            $driver->exists()
+            $driver->exists(),
         );
     }
 
@@ -114,7 +114,7 @@ final class SqliteCacheTest extends TestsUnit
         ];
 
         $item = $this->createSQLiteItem(
-            'sqlite-get'
+            'sqlite-get',
         );
 
         $item->setDir('users');
@@ -123,19 +123,19 @@ final class SqliteCacheTest extends TestsUnit
         $driver = new SqliteCache($item);
 
         self::assertTrue(
-            $driver->save()
+            $driver->save(),
         );
 
         self::assertSame(
             $data,
-            $driver->get()
+            $driver->get(),
         );
     }
 
     public function testGetReturnsNullWhenCacheDoesNotExist(): void
     {
         $item = $this->createSQLiteItem(
-            'sqlite-not-found'
+            'sqlite-not-found',
         );
 
         $item->setDir('users');
@@ -143,14 +143,14 @@ final class SqliteCacheTest extends TestsUnit
         $driver = new SqliteCache($item);
 
         self::assertNull(
-            $driver->get()
+            $driver->get(),
         );
     }
 
     public function testSaveUsesUpsertForExistingKey(): void
     {
         $item = $this->createSQLiteItem(
-            'sqlite-upsert'
+            'sqlite-upsert',
         );
 
         $item->setDir('users');
@@ -162,7 +162,7 @@ final class SqliteCacheTest extends TestsUnit
         $driver = new SqliteCache($item);
 
         self::assertTrue(
-            $driver->save()
+            $driver->save(),
         );
 
         $item->setData([
@@ -170,19 +170,19 @@ final class SqliteCacheTest extends TestsUnit
         ]);
 
         self::assertTrue(
-            $driver->save()
+            $driver->save(),
         );
 
         self::assertSame(
             ['version' => 2],
-            $driver->get()
+            $driver->get(),
         );
     }
 
     public function testUpsertDoesNotCreateDuplicateRows(): void
     {
         $item = $this->createSQLiteItem(
-            'sqlite-single-row'
+            'sqlite-single-row',
         );
 
         $item->setDir('users');
@@ -194,7 +194,7 @@ final class SqliteCacheTest extends TestsUnit
         $driver = new SqliteCache($item);
 
         self::assertTrue(
-            $driver->save()
+            $driver->save(),
         );
 
         $item->setData([
@@ -202,23 +202,23 @@ final class SqliteCacheTest extends TestsUnit
         ]);
 
         self::assertTrue(
-            $driver->save()
+            $driver->save(),
         );
 
         self::assertSame(
             1,
-            $driver->clear()
+            $driver->clear(),
         );
     }
 
     public function testMultipleKeysCanCoexistInSameDirectory(): void
     {
         $firstItem = $this->createSQLiteItem(
-            'sqlite-first'
+            'sqlite-first',
         );
 
         $secondItem = $this->createSQLiteItem(
-            'sqlite-second'
+            'sqlite-second',
         );
 
         $firstItem->setDir('users');
@@ -236,40 +236,40 @@ final class SqliteCacheTest extends TestsUnit
         $second = new SqliteCache($secondItem);
 
         self::assertTrue(
-            $first->save()
+            $first->save(),
         );
 
         self::assertTrue(
-            $second->save()
+            $second->save(),
         );
 
         self::assertSame(
             ['id' => 1],
-            $first->get()
+            $first->get(),
         );
 
         self::assertSame(
             ['id' => 2],
-            $second->get()
+            $second->get(),
         );
 
         self::assertTrue(
-            $first->exists()
+            $first->exists(),
         );
 
         self::assertTrue(
-            $second->exists()
+            $second->exists(),
         );
     }
 
     public function testSameKeyInDifferentDirectoriesIsIsolated(): void
     {
         $firstItem = $this->createSQLiteItem(
-            'same-key'
+            'same-key',
         );
 
         $secondItem = $this->createSQLiteItem(
-            'same-key'
+            'same-key',
         );
 
         $firstItem->setDir('users');
@@ -287,40 +287,40 @@ final class SqliteCacheTest extends TestsUnit
         $second = new SqliteCache($secondItem);
 
         self::assertTrue(
-            $first->save()
+            $first->save(),
         );
 
         self::assertTrue(
-            $second->save()
+            $second->save(),
         );
 
         self::assertSame(
             ['source' => 'users'],
-            $first->get()
+            $first->get(),
         );
 
         self::assertSame(
             ['source' => 'admins'],
-            $second->get()
+            $second->get(),
         );
 
         self::assertTrue(
-            $first->exists()
+            $first->exists(),
         );
 
         self::assertTrue(
-            $second->exists()
+            $second->exists(),
         );
     }
 
     public function testDeleteRemovesOnlyCurrentKey(): void
     {
         $firstItem = $this->createSQLiteItem(
-            'sqlite-delete-first'
+            'sqlite-delete-first',
         );
 
         $secondItem = $this->createSQLiteItem(
-            'sqlite-delete-second'
+            'sqlite-delete-second',
         );
 
         $firstItem->setDir('users');
@@ -338,30 +338,30 @@ final class SqliteCacheTest extends TestsUnit
         $second = new SqliteCache($secondItem);
 
         self::assertTrue(
-            $first->save()
+            $first->save(),
         );
 
         self::assertTrue(
-            $second->save()
+            $second->save(),
         );
 
         self::assertTrue(
-            $first->delete()
+            $first->delete(),
         );
 
         self::assertFalse(
-            $first->exists()
+            $first->exists(),
         );
 
         self::assertTrue(
-            $second->exists()
+            $second->exists(),
         );
     }
 
     public function testDeleteIsIdempotent(): void
     {
         $item = $this->createSQLiteItem(
-            'sqlite-delete-twice'
+            'sqlite-delete-twice',
         );
 
         $item->setDir('users');
@@ -373,19 +373,19 @@ final class SqliteCacheTest extends TestsUnit
         $driver = new SqliteCache($item);
 
         self::assertTrue(
-            $driver->save()
+            $driver->save(),
         );
 
         self::assertTrue(
-            $driver->delete()
+            $driver->delete(),
         );
 
         self::assertTrue(
-            $driver->delete()
+            $driver->delete(),
         );
 
         self::assertFalse(
-            $driver->exists()
+            $driver->exists(),
         );
     }
 
@@ -408,39 +408,39 @@ final class SqliteCacheTest extends TestsUnit
         $third = new SqliteCache($admin);
 
         self::assertTrue(
-            $first->save()
+            $first->save(),
         );
 
         self::assertTrue(
-            $second->save()
+            $second->save(),
         );
 
         self::assertTrue(
-            $third->save()
+            $third->save(),
         );
 
         self::assertSame(
             2,
-            $first->clear()
+            $first->clear(),
         );
 
         self::assertFalse(
-            $first->exists()
+            $first->exists(),
         );
 
         self::assertFalse(
-            $second->exists()
+            $second->exists(),
         );
 
         self::assertTrue(
-            $third->exists()
+            $third->exists(),
         );
     }
 
     public function testClearReturnsZeroWhenDirectoryIsEmpty(): void
     {
         $item = $this->createSQLiteItem(
-            'sqlite-empty'
+            'sqlite-empty',
         );
 
         $item->setDir('empty');
@@ -449,22 +449,22 @@ final class SqliteCacheTest extends TestsUnit
 
         self::assertSame(
             0,
-            $driver->clear()
+            $driver->clear(),
         );
     }
 
     public function testClearAllRemovesEverySQLiteCache(): void
     {
         $firstItem = $this->createSQLiteItem(
-            'first'
+            'first',
         );
 
         $secondItem = $this->createSQLiteItem(
-            'second'
+            'second',
         );
 
         $thirdItem = $this->createSQLiteItem(
-            'third'
+            'third',
         );
 
         $firstItem->setDir('users');
@@ -488,32 +488,32 @@ final class SqliteCacheTest extends TestsUnit
         $third = new SqliteCache($thirdItem);
 
         self::assertTrue(
-            $first->save()
+            $first->save(),
         );
 
         self::assertTrue(
-            $second->save()
+            $second->save(),
         );
 
         self::assertTrue(
-            $third->save()
+            $third->save(),
         );
 
         self::assertSame(
             3,
-            $first->clearAll()
+            $first->clearAll(),
         );
 
         self::assertFalse(
-            $first->exists()
+            $first->exists(),
         );
 
         self::assertFalse(
-            $second->exists()
+            $second->exists(),
         );
 
         self::assertFalse(
-            $third->exists()
+            $third->exists(),
         );
     }
 
@@ -538,7 +538,7 @@ final class SqliteCacheTest extends TestsUnit
         ];
 
         $item = $this->createSQLiteItem(
-            'sqlite-mixed'
+            'sqlite-mixed',
         );
 
         $item->setDir('mixed');
@@ -547,12 +547,12 @@ final class SqliteCacheTest extends TestsUnit
         $driver = new SqliteCache($item);
 
         self::assertTrue(
-            $driver->save()
+            $driver->save(),
         );
 
         self::assertSame(
             $data,
-            $driver->get()
+            $driver->get(),
         );
     }
 
@@ -565,7 +565,7 @@ final class SqliteCacheTest extends TestsUnit
         ];
 
         $item = $this->createSQLiteItem(
-            'sqlite-numeric-keys'
+            'sqlite-numeric-keys',
         );
 
         $item->setDir('languages');
@@ -574,19 +574,19 @@ final class SqliteCacheTest extends TestsUnit
         $driver = new SqliteCache($item);
 
         self::assertTrue(
-            $driver->save()
+            $driver->save(),
         );
 
         self::assertSame(
             $data,
-            $driver->get()
+            $driver->get(),
         );
     }
 
     public function testGetFileReturnsNull(): void
     {
         $item = $this->createSQLiteItem(
-            'sqlite-file'
+            'sqlite-file',
         );
 
         $item->setDir('users');
@@ -594,7 +594,7 @@ final class SqliteCacheTest extends TestsUnit
         $driver = new SqliteCache($item);
 
         self::assertNull(
-            $driver->getFile()
+            $driver->getFile(),
         );
     }
 }

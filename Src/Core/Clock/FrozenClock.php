@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace NCache\Core\Clock;
 
-use NCache\Contract\Clock;
 use InvalidArgumentException;
+use NCache\Contract\Clock;
 
 final class FrozenClock implements Clock
 {
@@ -25,7 +25,7 @@ final class FrozenClock implements Clock
     {
         if ($seconds < 0) {
             throw new InvalidArgumentException(
-                'Seconds must be greater than or equal to zero.'
+                'Seconds must be greater than or equal to zero.',
             );
         }
 
@@ -38,7 +38,7 @@ final class FrozenClock implements Clock
     {
         if ($seconds < 0) {
             throw new InvalidArgumentException(
-                'Seconds must be greater than or equal to zero.'
+                'Seconds must be greater than or equal to zero.',
             );
         }
 

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace NCache\Config\Connection;
 
-use NCache\Exceptions\InvalidCacheArgumentException;
 use Redis;
 use RedisException;
 use RuntimeException;
@@ -19,7 +18,8 @@ final class RedisConn
         private readonly int|float $timeout = 5.0,
         private readonly ?string $password = null,
         private readonly int $database = 0,
-    ) {}
+    ) {
+    }
 
     public function connect(): Redis
     {
@@ -33,7 +33,7 @@ final class RedisConn
             $redis->connect(
                 $this->host,
                 $this->port,
-                $this->timeout
+                $this->timeout,
             );
 
             if ($this->password !== null) {
@@ -43,7 +43,7 @@ final class RedisConn
             if ($this->database !== 0) {
                 if (!$redis->select($this->database)) {
                     throw new RuntimeException(
-                        "Unable to select Redis database {$this->database}."
+                        "Unable to select Redis database {$this->database}.",
                     );
                 }
             }
@@ -56,7 +56,7 @@ final class RedisConn
 
             throw new RuntimeException(
                 'Failed to connect to Redis.',
-                previous: $exception
+                previous: $exception,
             );
         }
     }

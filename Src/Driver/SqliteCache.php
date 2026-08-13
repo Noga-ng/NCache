@@ -8,7 +8,6 @@ use NCache\Config\Connection\SQLitePdo;
 use NCache\Core\CacheItem\CacheItem;
 use NCache\Core\Hash;
 use NCache\Exceptions\InvalidCacheArgumentException;
-use Override;
 
 final class SqliteCache extends CacheDriver
 {
@@ -21,7 +20,7 @@ final class SqliteCache extends CacheDriver
 
         if (!extension_loaded('redis')) {
             throw new InvalidCacheArgumentException(
-                'The SQLite driver requires ext-pdo_sqlite.'
+                'The SQLite driver requires ext-pdo_sqlite.',
             );
         }
     }
@@ -29,7 +28,7 @@ final class SqliteCache extends CacheDriver
     {
         return $this->connection ??=
             new SQLitePdo(
-                $this->buildFile()
+                $this->buildFile(),
             );
     }
 
@@ -38,10 +37,10 @@ final class SqliteCache extends CacheDriver
         $t = $this->item->getDir();
         if ($t === null) {
             throw new InvalidCacheArgumentException(
-                'SQLite cache requires a directory.'
+                'SQLite cache requires a directory.',
             );
         }
-        return 'cache_' . new Hash($t)->get();
+        return 'cache_' . (new Hash($t))->get();
     }
 
     private function ensureTable(): void
@@ -52,14 +51,14 @@ final class SqliteCache extends CacheDriver
             "CREATE TABLE IF NOT EXISTS {$table} (
                 key TEXT PRIMARY KEY,
                 data BLOB NULL
-            )"
+            )",
         );
 
         $this->ensureTableRegistry();
 
         $conn->execute(
             'INSERT OR IGNORE INTO cache_table(name) VALUES(:name)',
-            [':name' => $table]
+            [':name' => $table],
         );
     }
 
@@ -68,14 +67,14 @@ final class SqliteCache extends CacheDriver
         $this->conn()->execute(
             'CREATE TABLE IF NOT EXISTS cache_table(
             name TEXT PRIMARY KEY
-            )'
+            )',
         );
     }
 
     protected function format(): string
     {
         return serialize(
-            $this->item->getData()
+            $this->item->getData(),
         );
     }
 
@@ -83,7 +82,7 @@ final class SqliteCache extends CacheDriver
     {
         return rtrim(
             $this->item->basePath(),
-            '/\\'
+            '/\\',
         )
             . DIRECTORY_SEPARATOR
             . 'CacheDb'
@@ -104,7 +103,7 @@ final class SqliteCache extends CacheDriver
             [
                 ':key' => $this->item->hashedKey(),
                 ':data' => $this->format(),
-            ]
+            ],
         );
 
         return true;
@@ -121,7 +120,7 @@ final class SqliteCache extends CacheDriver
          LIMIT 1',
             [
                 ':name' => $table,
-            ]
+            ],
         ) !== null;
     }
 
@@ -138,7 +137,7 @@ final class SqliteCache extends CacheDriver
              LIMIT 1",
             [
                 ':key' => $this->item->hashedKey(),
-            ]
+            ],
         ) !== null;
     }
 
@@ -160,7 +159,7 @@ final class SqliteCache extends CacheDriver
          LIMIT 1",
             [
                 ':key' => $this->item->hashedKey(),
-            ]
+            ],
         );
 
         if ($result === null) {
@@ -171,18 +170,18 @@ final class SqliteCache extends CacheDriver
 
         if (!\is_string($raw)) {
             throw new InvalidCacheArgumentException(
-                'SQLite cache data must be a serialized string.'
+                'SQLite cache data must be a serialized string.',
             );
         }
 
         $data = unserialize(
             $raw,
-            ['allowed_classes' => false]
+            ['allowed_classes' => false],
         );
 
         if (!\is_array($data)) {
             throw new InvalidCacheArgumentException(
-                'Invalid SQLite cache data.'
+                'Invalid SQLite cache data.',
             );
         }
 
@@ -200,7 +199,7 @@ final class SqliteCache extends CacheDriver
              WHERE key = :key",
             [
                 ':key' => $this->item->hashedKey(),
-            ]
+            ],
         );
 
         return true;
@@ -221,7 +220,7 @@ final class SqliteCache extends CacheDriver
 
         $result = $this->conn()->get(
             "SELECT COUNT(*) AS total
-         FROM {$table}"
+         FROM {$table}",
         );
 
         if ($result === null) {
@@ -235,13 +234,13 @@ final class SqliteCache extends CacheDriver
             && !\is_string($total)
         ) {
             throw new InvalidCacheArgumentException(
-                'SQLite cache count must be numeric.'
+                'SQLite cache count must be numeric.',
             );
         }
 
         if (!is_numeric($total)) {
             throw new InvalidCacheArgumentException(
-                'SQLite cache count must be numeric.'
+                'SQLite cache count must be numeric.',
             );
         }
 
@@ -249,7 +248,7 @@ final class SqliteCache extends CacheDriver
 
         if ($count > 0) {
             $this->conn()->execute(
-                "DELETE FROM {$table}"
+                "DELETE FROM {$table}",
             );
         }
 
@@ -261,7 +260,7 @@ final class SqliteCache extends CacheDriver
         $this->ensureTableRegistry();
 
         $tables = $this->conn()->getAll(
-            'SELECT name FROM cache_table'
+            'SELECT name FROM cache_table',
         );
 
         $count = 0;
@@ -277,7 +276,7 @@ final class SqliteCache extends CacheDriver
             }
 
             $result = $this->conn()->get(
-                "SELECT COUNT(*) AS total FROM {$table}"
+                "SELECT COUNT(*) AS total FROM {$table}",
             );
 
             $total = $result['total'] ?? 0;
@@ -287,7 +286,7 @@ final class SqliteCache extends CacheDriver
             }
 
             $this->conn()->execute(
-                "DELETE FROM {$table}"
+                "DELETE FROM {$table}",
             );
         }
 
@@ -298,7 +297,7 @@ final class SqliteCache extends CacheDriver
     {
         return preg_match(
             '/^cache_[a-f0-9]+$/',
-            $table
+            $table,
         ) === 1;
     }
 

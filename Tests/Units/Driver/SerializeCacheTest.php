@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace NCache\Tests\Units\Driver;
 
 use NCache\Core\CacheItem\CacheItem;
-use NCache\Core\CachePath;
 use NCache\Driver\SerializeCache;
 use NCache\Enum\CType;
 use NCache\Tests\TestsUnit\TestsUnit;
@@ -32,19 +31,19 @@ final class SerializeCacheTest extends TestsUnit
 
         self::assertSame(
             $item->file() . '.nc',
-            $driver->getFile()
+            $driver->getFile(),
         );
 
         self::assertStringEndsWith(
             '.nc',
-            $driver->getFile()
+            $driver->getFile(),
         );
     }
 
     public function testExistsReturnsFalseBeforeSave(): void
     {
         $driver = new SerializeCache(
-            $this->createSerializeItem('missing-cache')
+            $this->createSerializeItem('missing-cache'),
         );
 
         self::assertFalse($driver->exists());
@@ -86,7 +85,7 @@ final class SerializeCacheTest extends TestsUnit
 
         $decoded = unserialize(
             $content,
-            ['allowed_classes' => false]
+            ['allowed_classes' => false],
         );
 
         self::assertIsArray($decoded);
@@ -109,7 +108,7 @@ final class SerializeCacheTest extends TestsUnit
 
         self::assertSame(
             $item->getData(),
-            $driver->get()
+            $driver->get(),
         );
     }
 
@@ -127,7 +126,7 @@ final class SerializeCacheTest extends TestsUnit
 
         self::assertSame(
             $item->toArray(),
-            $driver->show()
+            $driver->show(),
         );
     }
 
@@ -152,7 +151,7 @@ final class SerializeCacheTest extends TestsUnit
     public function testDeleteMissingCacheReturnsTrue(): void
     {
         $driver = new SerializeCache(
-            $this->createSerializeItem('missing-delete')
+            $this->createSerializeItem('missing-delete'),
         );
 
         self::assertFileDoesNotExist($driver->getFile());
@@ -178,7 +177,7 @@ final class SerializeCacheTest extends TestsUnit
 
         self::assertSame(
             2,
-            $firstDriver->clear()
+            $firstDriver->clear(),
         );
 
         self::assertFileDoesNotExist($firstDriver->getFile());
@@ -202,16 +201,16 @@ final class SerializeCacheTest extends TestsUnit
             . 'keep.txt';
 
         self::assertNotFalse(
-            file_put_contents($jsonFile, '{}')
+            file_put_contents($jsonFile, '{}'),
         );
 
         self::assertNotFalse(
-            file_put_contents($textFile, 'keep')
+            file_put_contents($textFile, 'keep'),
         );
 
         self::assertSame(
             1,
-            $driver->clear()
+            $driver->clear(),
         );
 
         self::assertFileDoesNotExist($driver->getFile());
@@ -245,7 +244,7 @@ final class SerializeCacheTest extends TestsUnit
         $v = ['version' => 2];
         self::assertSame(
             $v,
-            $result
+            $result,
         );
     }
 
@@ -323,11 +322,11 @@ final class SerializeCacheTest extends TestsUnit
         $item = new CacheItem(
             'automatic-directory',
             CType::JSON,
-            $this->config()
+            $this->config(),
         );
 
         $item->setDir(
-            'nested/serial'
+            'nested/serial',
         );
 
         $item->setData([
@@ -335,27 +334,27 @@ final class SerializeCacheTest extends TestsUnit
         ]);
 
         self::assertDirectoryExists(
-            $item->path()
+            $item->path(),
         );
 
         $driver = new SerializeCache(
-            $item
+            $item,
         );
 
         self::assertFileDoesNotExist(
-            $driver->getFile()
+            $driver->getFile(),
         );
 
         self::assertTrue(
-            $driver->save()
+            $driver->save(),
         );
 
         self::assertDirectoryExists(
-            $item->path()
+            $item->path(),
         );
 
         self::assertFileExists(
-            $driver->getFile()
+            $driver->getFile(),
         );
     }
 
@@ -370,7 +369,7 @@ final class SerializeCacheTest extends TestsUnit
                 'version' => $version,
             ]);
 
-            new SerializeCache($item)->save();
+            (new SerializeCache($item))->save();
         }
 
         $readerItem = $this->createSerializeItem($key);
@@ -382,7 +381,7 @@ final class SerializeCacheTest extends TestsUnit
         $v = ['version' => 3];
         self::assertSame(
             $v,
-            $result
+            $result,
         );
     }
 

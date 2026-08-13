@@ -33,7 +33,7 @@ final class DriverRegistry
     {
         if (!is_subclass_of($driver, CacheDriver::class)) {
             throw new InvalidCacheArgumentException(
-                "{$driver} must extend CacheDriver"
+                "{$driver} must extend CacheDriver",
             );
         }
 
@@ -46,7 +46,7 @@ final class DriverRegistry
         $drivers = self::$drivers[$name] ?? null;
         if ($drivers === null) {
             throw new InvalidCacheArgumentException(
-                "No driver registered for {$name}"
+                "No driver registered for {$name}",
             );
         }
 

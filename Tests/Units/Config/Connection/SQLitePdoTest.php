@@ -57,7 +57,7 @@ final class SQLitePdoTest extends TestsUnit
             'CREATE TABLE test (
                 id INTEGER PRIMARY KEY,
                 name TEXT NOT NULL
-            )'
+            )',
         );
 
         self::assertNotFalse($statement);
@@ -71,7 +71,7 @@ final class SQLitePdoTest extends TestsUnit
             'CREATE TABLE users (
                 id INTEGER PRIMARY KEY,
                 name TEXT NOT NULL
-            )'
+            )',
         );
 
         $sqlite->execute(
@@ -79,7 +79,7 @@ final class SQLitePdoTest extends TestsUnit
              VALUES (:name)',
             [
                 ':name' => 'Noga',
-            ]
+            ],
         );
 
         $result = $sqlite->get(
@@ -88,7 +88,7 @@ final class SQLitePdoTest extends TestsUnit
              WHERE name = :name',
             [
                 ':name' => 'Noga',
-            ]
+            ],
         );
 
         self::assertNotNull($result);
@@ -103,7 +103,7 @@ final class SQLitePdoTest extends TestsUnit
             'CREATE TABLE users (
                 id INTEGER PRIMARY KEY,
                 name TEXT NOT NULL
-            )'
+            )',
         );
 
         self::assertNull(
@@ -113,8 +113,8 @@ final class SQLitePdoTest extends TestsUnit
                  WHERE id = :id',
                 [
                     ':id' => 999,
-                ]
-            )
+                ],
+            ),
         );
     }
 
@@ -126,25 +126,25 @@ final class SQLitePdoTest extends TestsUnit
             'CREATE TABLE users (
                 id INTEGER PRIMARY KEY,
                 name TEXT NOT NULL
-            )'
+            )',
         );
 
         $sqlite->execute(
             'INSERT INTO users (name)
              VALUES (:name)',
-            [':name' => 'Noga']
+            [':name' => 'Noga'],
         );
 
         $sqlite->execute(
             'INSERT INTO users (name)
              VALUES (:name)',
-            [':name' => 'Germainio']
+            [':name' => 'Germainio'],
         );
 
         $rows = $sqlite->getAll(
             'SELECT name
              FROM users
-             ORDER BY id'
+             ORDER BY id',
         );
 
         self::assertCount(2, $rows);
@@ -160,7 +160,7 @@ final class SQLitePdoTest extends TestsUnit
             'CREATE TABLE users (
                 id INTEGER PRIMARY KEY,
                 name TEXT NOT NULL
-            )'
+            )',
         );
 
         $sqlite->transaction(
@@ -170,13 +170,13 @@ final class SQLitePdoTest extends TestsUnit
                      VALUES (:name)',
                     [
                         ':name' => 'Noga',
-                    ]
+                    ],
                 );
-            }
+            },
         );
 
         $result = $sqlite->get(
-            'SELECT name FROM users LIMIT 1'
+            'SELECT name FROM users LIMIT 1',
         );
 
         self::assertNotNull($result);
@@ -191,7 +191,7 @@ final class SQLitePdoTest extends TestsUnit
             'CREATE TABLE users (
                 id INTEGER PRIMARY KEY,
                 name TEXT NOT NULL
-            )'
+            )',
         );
 
         try {
@@ -202,20 +202,20 @@ final class SQLitePdoTest extends TestsUnit
                          VALUES (:name)',
                         [
                             ':name' => 'Noga',
-                        ]
+                        ],
                     );
 
                     throw new RuntimeException(
-                        'force rollback'
+                        'force rollback',
                     );
-                }
+                },
             );
         } catch (RuntimeException) {
             // attendu
         }
 
         $rows = $sqlite->getAll(
-            'SELECT * FROM users'
+            'SELECT * FROM users',
         );
 
         self::assertSame([], $rows);
@@ -226,11 +226,11 @@ final class SQLitePdoTest extends TestsUnit
         $sqlite = new SQLitePdo($this->database);
 
         $this->expectException(
-            RuntimeException::class
+            RuntimeException::class,
         );
 
         $sqlite->execute(
-            'THIS IS NOT VALID SQL'
+            'THIS IS NOT VALID SQL',
         );
     }
 }

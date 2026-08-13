@@ -8,7 +8,6 @@ use NCache\Core\CacheItem\CacheItem;
 use NCache\Core\Files\CacheCleaner;
 use NCache\Core\Files\ReadFile;
 use NCache\Core\Files\WriteFile;
-use NCache\Driver\CacheDriver;
 use NCache\Enum\CType;
 use NCache\Exceptions\InvalidCacheArgumentException;
 
@@ -20,7 +19,7 @@ final class JsonCache extends CacheDriver
         parent::__construct($item);
         $this->extension = $this->item->extension() ?? 'json';
         $this->cacheCleaner = new CacheCleaner(
-            [$this->extension]
+            [$this->extension],
         );
     }
 
@@ -28,7 +27,7 @@ final class JsonCache extends CacheDriver
     {
         return json_encode(
             $this->item->getData(),
-            JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR
+            JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR,
         );
     }
 
@@ -37,7 +36,7 @@ final class JsonCache extends CacheDriver
         $file = $this->item->file();
         if (!\is_string($file)) {
             throw new InvalidCacheArgumentException(
-                'file cannot be null'
+                'file cannot be null',
             );
         }
 
@@ -48,10 +47,10 @@ final class JsonCache extends CacheDriver
 
     public function save(): bool
     {
-        return new WriteFile(
+        return (new WriteFile(
             $this->buildFile(),
-            $this->format()
-        )->save();
+            $this->format(),
+        ))->save();
     }
 
     /**
@@ -59,10 +58,10 @@ final class JsonCache extends CacheDriver
      */
     public function get(): mixed
     {
-        return new ReadFile(
+        return (new ReadFile(
             $this->buildFile(),
-            CType::JSON
-        )->get();
+            CType::JSON,
+        ))->get();
     }
 
     public function exists(): bool

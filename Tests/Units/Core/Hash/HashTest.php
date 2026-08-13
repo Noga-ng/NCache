@@ -15,22 +15,22 @@ final class HashTest extends TestsUnit
 
         self::assertSame(
             hash('xxh128', 'noga'),
-            $hash->get()
+            $hash->get(),
         );
     }
 
     public function testSameValueGeneratesSameHash(): void
     {
-        $firstHash = new Hash('noga')->get();
-        $secondHash = new Hash('noga')->get();
+        $firstHash = (new Hash('noga'))->get();
+        $secondHash = (new Hash('noga'))->get();
 
         self::assertSame($firstHash, $secondHash);
     }
 
     public function testDifferentValuesGenerateDifferentHashes(): void
     {
-        $firstHash = new Hash('noga')->get();
-        $secondHash = new Hash('germainio')->get();
+        $firstHash = (new Hash('noga'))->get();
+        $secondHash = (new Hash('germainio'))->get();
 
         self::assertNotSame($firstHash, $secondHash);
     }
@@ -46,7 +46,7 @@ final class HashTest extends TestsUnit
 
         self::assertSame(
             hash('xxh128', serialize($data)),
-            $hash->get()
+            $hash->get(),
         );
     }
 
@@ -57,8 +57,8 @@ final class HashTest extends TestsUnit
             'name' => 'Noga',
         ];
 
-        $firstHash = new Hash($data)->get();
-        $secondHash = new Hash($data)->get();
+        $firstHash = (new Hash($data))->get();
+        $secondHash = (new Hash($data))->get();
 
         self::assertSame($firstHash, $secondHash);
     }
@@ -69,7 +69,7 @@ final class HashTest extends TestsUnit
 
         self::assertSame(
             hash('sha256', 'noga'),
-            $hash->get()
+            $hash->get(),
         );
     }
 

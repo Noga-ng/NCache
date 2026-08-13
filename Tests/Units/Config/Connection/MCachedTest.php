@@ -17,12 +17,12 @@ final class MCachedTest extends TestCase
     {
         $connection = new MCached(
             self::HOST,
-            self::PORT
+            self::PORT,
         );
 
         self::assertInstanceOf(
             Memcached::class,
-            $connection->connect()
+            $connection->connect(),
         );
     }
 
@@ -30,7 +30,7 @@ final class MCachedTest extends TestCase
     {
         $connection = new MCached(
             self::HOST,
-            self::PORT
+            self::PORT,
         );
 
         $first = $connection->connect();
@@ -38,7 +38,7 @@ final class MCachedTest extends TestCase
 
         self::assertSame(
             $first,
-            $second
+            $second,
         );
     }
 
@@ -46,11 +46,11 @@ final class MCachedTest extends TestCase
     {
         $connection = new MCached(
             self::HOST,
-            self::PORT
+            self::PORT,
         );
 
         self::assertFalse(
-            $connection->isConnected()
+            $connection->isConnected(),
         );
     }
 
@@ -58,13 +58,13 @@ final class MCachedTest extends TestCase
     {
         $connection = new MCached(
             self::HOST,
-            self::PORT
+            self::PORT,
         );
 
         $connection->connect();
 
         self::assertTrue(
-            $connection->isConnected()
+            $connection->isConnected(),
         );
     }
 
@@ -72,19 +72,19 @@ final class MCachedTest extends TestCase
     {
         $connection = new MCached(
             self::HOST,
-            self::PORT
+            self::PORT,
         );
 
         $connection->connect();
 
         self::assertTrue(
-            $connection->isConnected()
+            $connection->isConnected(),
         );
 
         $connection->disconnect();
 
         self::assertFalse(
-            $connection->isConnected()
+            $connection->isConnected(),
         );
     }
 
@@ -92,7 +92,7 @@ final class MCachedTest extends TestCase
     {
         $connection = new MCached(
             self::HOST,
-            self::PORT
+            self::PORT,
         );
 
         $client = $connection->connect();
@@ -103,21 +103,21 @@ final class MCachedTest extends TestCase
 
         self::assertSame(
             self::HOST,
-            $servers[0]['host']
+            $servers[0]['host'],
         );
 
         self::assertSame(
             self::PORT,
-            $servers[0]['port']
+            $servers[0]['port'],
         );
     }
 
     public function testConnectionCanWriteAndRead(): void
     {
-        $client = new MCached(
+        $client = (new MCached(
             self::HOST,
-            self::PORT
-        )->connect();
+            self::PORT,
+        ))->connect();
 
         $key = 'ncache_connection_test';
 
@@ -125,13 +125,13 @@ final class MCachedTest extends TestCase
             $client->set(
                 $key,
                 ['working' => true],
-                30
-            )
+                30,
+            ),
         );
 
         self::assertSame(
             ['working' => true],
-            $client->get($key)
+            $client->get($key),
         );
 
         $client->delete($key);
@@ -141,23 +141,23 @@ final class MCachedTest extends TestCase
     {
         $connection = new MCached(
             self::HOST,
-            self::PORT
+            self::PORT,
         );
 
         $client = $connection->connect();
 
         $client->get(
-            'ncache_missing_connection_test'
+            'ncache_missing_connection_test',
         );
 
         self::assertSame(
             Memcached::RES_NOTFOUND,
-            $connection->resultCode()
+            $connection->resultCode(),
         );
 
         self::assertNotSame(
             '',
-            $connection->resultMessage()
+            $connection->resultMessage(),
         );
     }
 }

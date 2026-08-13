@@ -9,14 +9,13 @@ use NCache\Contract\CacheInterface;
 use NCache\Contract\Clock;
 use NCache\Core\CacheItem\CacheItem;
 use NCache\Core\Clock\SystemClock;
-use NCache\Core\TtlManager\TtlManager;
 use NCache\Core\Hash;
+use NCache\Core\TtlManager\TtlManager;
 use NCache\Driver\CacheDriver;
 use NCache\Enum\CType;
 use NCache\Enum\TtlState;
 use NCache\Exceptions\CacheHandleException;
 use NCache\Exceptions\InvalidCacheArgumentException;
-use NCache\Exceptions\UnexpectedConfigException;
 use NCache\Registry\CacheRegistry;
 use NCache\Registry\DriverRegistry;
 use Throwable;
@@ -38,13 +37,13 @@ final class NCache implements CacheInterface
         $ctype = $type
             ?? $config->getDefaultDriver()
             ?? throw new InvalidCacheArgumentException(
-                'Default driver is not defined.'
+                'Default driver is not defined.',
             );
 
         $this->cacheItem = new CacheItem(
             $key,
             $ctype,
-            $config
+            $config,
         );
 
         $this->clock = new SystemClock();
@@ -153,8 +152,8 @@ final class NCache implements CacheInterface
             return true;
         } catch (Throwable $e) {
             throw new CacheHandleException(
-                "Error as expected : ",
-                previous: $e
+                'Error as expected : ',
+                previous: $e,
             );
         }
     }
@@ -215,14 +214,14 @@ final class NCache implements CacheInterface
     public function ttlRemaining(): ?int
     {
         return $this->ttlManager(
-            $this->registry()
+            $this->registry(),
         )->remaining();
     }
 
     public function ttlState(): ?TtlState
     {
         return $this->ttlManager(
-            $this->registry()
+            $this->registry(),
         )->state();
     }
 
@@ -259,7 +258,7 @@ final class NCache implements CacheInterface
         if (\in_array(
             $instance->cacheItem->type(),
             [CType::SQLite, CType::REDIS, CType::MEMCACHED],
-            true
+            true,
         )) {
             if ($dir === '') {
                 $registry->removeByType();
@@ -293,7 +292,7 @@ final class NCache implements CacheInterface
     private function driver(): CacheDriver
     {
         return DriverRegistry::make(
-            $this->cacheItem
+            $this->cacheItem,
         );
     }
 
@@ -302,14 +301,14 @@ final class NCache implements CacheInterface
         return new TtlManager(
             $this->cacheItem,
             $cacheRegistry,
-            $this->clock
+            $this->clock,
         );
     }
 
     private function registry(): CacheRegistry
     {
         return new CacheRegistry(
-            $this->cacheItem
+            $this->cacheItem,
         );
     }
 
@@ -332,7 +331,7 @@ final class NCache implements CacheInterface
     {
         if ($key === null || trim($key) === '') {
             throw new InvalidCacheArgumentException(
-                'Key cannot be empty'
+                'Key cannot be empty',
             );
         }
     }

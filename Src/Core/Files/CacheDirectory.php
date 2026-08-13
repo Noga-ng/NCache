@@ -16,8 +16,9 @@ final class CacheDirectory
      * @param list<string> $directory
      */
     public function __construct(
-        private readonly array $directory
-    ) {}
+        private readonly array $directory,
+    ) {
+    }
 
     /**
      * @param list<string> $directory
@@ -38,13 +39,13 @@ final class CacheDirectory
             $directoryIterator
                 = new RecursiveDirectoryIterator(
                     $dir,
-                    FilesystemIterator::SKIP_DOTS
+                    FilesystemIterator::SKIP_DOTS,
                 );
 
             $recursive[]
                 = new RecursiveIteratorIterator(
                     $directoryIterator,
-                    RecursiveIteratorIterator::CHILD_FIRST
+                    RecursiveIteratorIterator::CHILD_FIRST,
                 );
         }
 
@@ -55,7 +56,7 @@ final class CacheDirectory
     {
         if (!is_dir($directory)) {
             throw new InvalidCacheArgumentException(
-                "cannot find a directory on {$directory}"
+                "cannot find a directory on {$directory}",
             );
         }
     }

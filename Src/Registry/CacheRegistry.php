@@ -41,7 +41,8 @@ final class CacheRegistry
 
     public function __construct(
         private readonly CacheItem $item,
-    ) {}
+    ) {
+    }
 
     /**
      * @return CrEntry
@@ -92,7 +93,7 @@ final class CacheRegistry
 
         $registry['entries'] = array_replace(
             $registry['entries'],
-            $this->group()
+            $this->group(),
         );
 
         return $registry;
@@ -113,7 +114,7 @@ final class CacheRegistry
     public function save(): bool
     {
         return $this->writeData(
-            $this->metaData()
+            $this->metaData(),
         );
     }
 
@@ -122,14 +123,14 @@ final class CacheRegistry
      */
     private function readData(): array
     {
-        $data = new ReadFile(
+        $data = (new ReadFile(
             $this->path(),
-            CType::SERIALIZE
-        )->get();
+            CType::SERIALIZE,
+        ))->get();
 
         if (!\is_array($data)) {
             throw new InvalidCacheArgumentException(
-                'Cache registry must contain an array.'
+                'Cache registry must contain an array.',
             );
         }
 
@@ -138,27 +139,27 @@ final class CacheRegistry
             || !\is_int($data['version'])
         ) {
             throw new InvalidCacheArgumentException(
-                'Registry version must be an integer.'
+                'Registry version must be an integer.',
             );
         }
 
         if ($data['version'] !== self::VERSION) {
             throw new InvalidCacheArgumentException(
-                "Unsupported registry version {$data['version']}."
+                "Unsupported registry version {$data['version']}.",
             );
         }
 
         if (!\array_key_exists('entries', $data)
                 || !\is_array($data['entries'])) {
             throw new InvalidCacheArgumentException(
-                'Registry entries must be an array.'
+                'Registry entries must be an array.',
             );
         }
 
         foreach ($data['entries'] as $key => $entry) {
             if (!\is_string($key) || !\is_array($entry)) {
                 throw new InvalidCacheArgumentException(
-                    'Invalid cache registry entry.'
+                    'Invalid cache registry entry.',
                 );
             }
 
@@ -166,7 +167,7 @@ final class CacheRegistry
 
             if ($entry['key'] !== $key) {
                 throw new InvalidCacheArgumentException(
-                    'Registry entry key does not match its index.'
+                    'Registry entry key does not match its index.',
                 );
             }
         }
@@ -185,7 +186,7 @@ final class CacheRegistry
             || !\is_string($entry['type'])
         ) {
             throw new InvalidCacheArgumentException(
-                'Registry entry type must be a string.'
+                'Registry entry type must be a string.',
             );
         }
 
@@ -194,7 +195,7 @@ final class CacheRegistry
             || !\is_string($entry['name'])
         ) {
             throw new InvalidCacheArgumentException(
-                'Registry entry name must be a string.'
+                'Registry entry name must be a string.',
             );
         }
 
@@ -203,7 +204,7 @@ final class CacheRegistry
             || !\is_string($entry['key'])
         ) {
             throw new InvalidCacheArgumentException(
-                'Registry entry key must be a string.'
+                'Registry entry key must be a string.',
             );
         }
 
@@ -214,7 +215,7 @@ final class CacheRegistry
             )
         ) {
             throw new InvalidCacheArgumentException(
-                'Registry entry namespace must be a string or null.'
+                'Registry entry namespace must be a string or null.',
             );
         }
 
@@ -227,7 +228,7 @@ final class CacheRegistry
                 )
             ) {
                 throw new InvalidCacheArgumentException(
-                    "{$field} must be a string or null."
+                    "{$field} must be a string or null.",
                 );
             }
         }
@@ -241,7 +242,7 @@ final class CacheRegistry
                 )
             ) {
                 throw new InvalidCacheArgumentException(
-                    "{$field} must be an integer or null."
+                    "{$field} must be an integer or null.",
                 );
             }
         }
@@ -280,7 +281,7 @@ final class CacheRegistry
     {
         return \array_key_exists(
             $this->registryKey(),
-            $this->getAll()
+            $this->getAll(),
         );
     }
 
@@ -402,10 +403,10 @@ final class CacheRegistry
         }
 
         $count = \count(
-            $this->getAll()
+            $this->getAll(),
         );
 
-        new CacheCleaner(['nc'])
+        (new CacheCleaner(['nc']))
             ->delete($this->path());
 
         return $count;
@@ -422,13 +423,13 @@ final class CacheRegistry
     private function writeData(array $registry): bool
     {
         if ($registry['entries'] === []) {
-            return new CacheCleaner(['nc'])
+            return (new CacheCleaner(['nc']))
                 ->delete($this->path());
         }
 
-        return new WriteFile(
+        return (new WriteFile(
             $this->path(),
-            serialize($registry)
-        )->save();
+            serialize($registry),
+        ))->save();
     }
 }

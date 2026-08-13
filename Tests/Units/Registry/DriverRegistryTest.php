@@ -31,7 +31,7 @@ final class DriverRegistryTest extends TestsUnit
     public function testMakeReturnsJsonCache(): void
     {
         $driver = DriverRegistry::make(
-            $this->DrItem(CType::JSON)
+            $this->DrItem(CType::JSON),
         );
 
         self::assertInstanceOf(JsonCache::class, $driver);
@@ -41,7 +41,7 @@ final class DriverRegistryTest extends TestsUnit
     public function testMakeReturnsSerializeCache(): void
     {
         $driver = DriverRegistry::make(
-            $this->DrItem(CType::SERIALIZE)
+            $this->DrItem(CType::SERIALIZE),
         );
 
         self::assertInstanceOf(SerializeCache::class, $driver);
@@ -51,7 +51,7 @@ final class DriverRegistryTest extends TestsUnit
     public function testMakeReturnsStringCache(): void
     {
         $driver = DriverRegistry::make(
-            $this->DrItem(CType::STRING)
+            $this->DrItem(CType::STRING),
         );
 
         self::assertInstanceOf(StringCache::class, $driver);
@@ -70,7 +70,7 @@ final class DriverRegistryTest extends TestsUnit
 
         self::assertSame(
             $item->toArray(),
-            $driver->show()
+            $driver->show(),
         );
     }
 
@@ -78,16 +78,16 @@ final class DriverRegistryTest extends TestsUnit
     public function testRegisterRejectsClassThatDoesNotExtendCacheDriver(): void
     {
         $this->expectException(
-            InvalidCacheArgumentException::class
+            InvalidCacheArgumentException::class,
         );
 
         $this->expectExceptionMessage(
-            \stdClass::class . ' must extend CacheDriver'
+            \stdClass::class . ' must extend CacheDriver',
         );
 
         DriverRegistry::register(
             CType::JSON,
-            \stdClass::class
+            \stdClass::class,
         );
     }
 

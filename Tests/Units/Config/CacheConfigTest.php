@@ -9,7 +9,6 @@ use NCache\Core\Clock\Duration;
 use NCache\Enum\CType;
 use NCache\Exceptions\UnexpectedConfigException;
 use NCache\Tests\TestsUnit\TestsUnit;
-use Override;
 
 final class CacheConfigTest extends TestsUnit
 {
@@ -18,30 +17,30 @@ final class CacheConfigTest extends TestsUnit
         parent::setUp();
 
         $this->directory(
-            'ncache-config-'
+            'ncache-config-',
         );
     }
 
     public function testConfigReturnsSingleton(): void
     {
         $first = CacheConfig::config(
-            $this->configFile
+            $this->configFile,
         );
 
         $second = CacheConfig::config(
-            $this->configFile
+            $this->configFile,
         );
 
         self::assertSame(
             $first,
-            $second
+            $second,
         );
     }
 
     public function testConfigKeepsFirstInstanceWhenCalledAgain(): void
     {
         $first = CacheConfig::config(
-            $this->configFile
+            $this->configFile,
         );
 
         $secondFile = $this->createConfigFile(
@@ -50,61 +49,61 @@ final class CacheConfigTest extends TestsUnit
                 'other' => $this->profile([
                     'cachePath' => './other',
                 ]),
-            ]
+            ],
         );
 
         $second = CacheConfig::config(
-            $secondFile
+            $secondFile,
         );
 
         self::assertSame(
             $first,
-            $second
+            $second,
         );
     }
 
     public function testUseSelectsProfile(): void
     {
         $config = CacheConfig::config(
-            $this->configFile
+            $this->configFile,
         )->use('default');
 
         self::assertSame(
             'default',
-            $config->profile()
+            $config->profile(),
         );
     }
 
     public function testUseThrowsWhenProfileDoesNotExist(): void
     {
         $config = CacheConfig::config(
-            $this->configFile
+            $this->configFile,
         );
 
         $this->expectException(
-            UnexpectedConfigException::class
+            UnexpectedConfigException::class,
         );
 
         $this->expectExceptionMessage(
-            'Undefined cache profile: missing'
+            'Undefined cache profile: missing',
         );
 
         $config->use(
-            'missing'
+            'missing',
         );
     }
 
     public function testGetBasePathResolvesRelativePathFromConfigDirectory(): void
     {
         $config = CacheConfig::config(
-            $this->configFile
+            $this->configFile,
         )->use('default');
 
         self::assertSame(
             $this->directory
                 . DIRECTORY_SEPARATOR
                 . 'cache',
-            $config->getBasePath()
+            $config->getBasePath(),
         );
     }
 
@@ -120,30 +119,30 @@ final class CacheConfigTest extends TestsUnit
                 'absolute' => $this->profile([
                     'cachePath' => $absolute,
                 ]),
-            ]
+            ],
         );
 
         CacheConfig::resetInstance();
 
         $config = CacheConfig::config(
-            $file
+            $file,
         )->use('absolute');
 
         self::assertSame(
             $absolute,
-            $config->getBasePath()
+            $config->getBasePath(),
         );
     }
 
     public function testGetDefaultDriverReturnsConfiguredEnum(): void
     {
         $config = CacheConfig::config(
-            $this->configFile
+            $this->configFile,
         )->use('default');
 
         self::assertSame(
             CType::JSON,
-            $config->getDefaultDriver()
+            $config->getDefaultDriver(),
         );
     }
 
@@ -155,17 +154,17 @@ final class CacheConfigTest extends TestsUnit
                 'no-driver' => $this->profile([
                     'defaultDriver' => null,
                 ]),
-            ]
+            ],
         );
 
         CacheConfig::resetInstance();
 
         $config = CacheConfig::config(
-            $file
+            $file,
         )->use('no-driver');
 
         self::assertNull(
-            $config->getDefaultDriver()
+            $config->getDefaultDriver(),
         );
     }
 
@@ -177,62 +176,62 @@ final class CacheConfigTest extends TestsUnit
                 'invalid' => $this->profile([
                     'defaultDriver' => 'REDISS',
                 ]),
-            ]
+            ],
         );
 
         CacheConfig::resetInstance();
 
         $this->expectException(
-            UnexpectedConfigException::class
+            UnexpectedConfigException::class,
         );
 
         CacheConfig::config(
-            $file
+            $file,
         );
     }
 
     public function testGetNamespaceReturnsConfiguredNamespace(): void
     {
         $config = CacheConfig::config(
-            $this->configFile
+            $this->configFile,
         )->use('default');
 
         self::assertNull(
-            $config->getNamespace()
+            $config->getNamespace(),
         );
     }
 
     public function testExtensionIsResolvedFromConfiguration(): void
     {
         $config = CacheConfig::config(
-            $this->configFile
+            $this->configFile,
         )->use('default');
 
         self::assertSame(
             'nc',
             $config->getExtension(
-                CType::SERIALIZE
-            )
+                CType::SERIALIZE,
+            ),
         );
 
         self::assertSame(
             'txt',
             $config->getExtension(
-                CType::STRING
-            )
+                CType::STRING,
+            ),
         );
     }
 
     public function testMissingExtensionReturnsNull(): void
     {
         $config = CacheConfig::config(
-            $this->configFile
+            $this->configFile,
         )->use('default');
 
         self::assertNull(
             $config->getExtension(
-                CType::REDIS
-            )
+                CType::REDIS,
+            ),
         );
     }
 
@@ -244,18 +243,18 @@ final class CacheConfigTest extends TestsUnit
                 'ttl' => $this->profile([
                     'defaultTtl' => 120,
                 ]),
-            ]
+            ],
         );
 
         CacheConfig::resetInstance();
 
         $config = CacheConfig::config(
-            $file
+            $file,
         )->use('ttl');
 
         self::assertSame(
             120,
-            $config->getDefaultTtl()
+            $config->getDefaultTtl(),
         );
     }
 
@@ -267,18 +266,18 @@ final class CacheConfigTest extends TestsUnit
                 'ttl' => $this->profile([
                     'defaultTtl' => 'hours(2)',
                 ]),
-            ]
+            ],
         );
 
         CacheConfig::resetInstance();
 
         $config = CacheConfig::config(
-            $file
+            $file,
         )->use('ttl');
 
         self::assertSame(
             Duration::hours(2),
-            $config->getDefaultTtl()
+            $config->getDefaultTtl(),
         );
     }
 
@@ -290,18 +289,18 @@ final class CacheConfigTest extends TestsUnit
                 'ttl' => $this->profile([
                     'defaultTtl' => 'days(2)',
                 ]),
-            ]
+            ],
         );
 
         CacheConfig::resetInstance();
 
         $config = CacheConfig::config(
-            $file
+            $file,
         )->use('ttl');
 
         self::assertSame(
             Duration::days(2),
-            $config->getDefaultTtl()
+            $config->getDefaultTtl(),
         );
     }
 
@@ -313,13 +312,13 @@ final class CacheConfigTest extends TestsUnit
                 'ttl' => $this->profile([
                     'defaultTtl' => 'make(1,10,15,25)',
                 ]),
-            ]
+            ],
         );
 
         CacheConfig::resetInstance();
 
         $config = CacheConfig::config(
-            $file
+            $file,
         )->use('ttl');
 
         self::assertSame(
@@ -327,9 +326,9 @@ final class CacheConfigTest extends TestsUnit
                 1,
                 10,
                 15,
-                25
+                25,
             ),
-            $config->getDefaultTtl()
+            $config->getDefaultTtl(),
         );
     }
 
@@ -341,17 +340,17 @@ final class CacheConfigTest extends TestsUnit
                 'ttl' => $this->profile([
                     'defaultTtl' => null,
                 ]),
-            ]
+            ],
         );
 
         CacheConfig::resetInstance();
 
         $config = CacheConfig::config(
-            $file
+            $file,
         )->use('ttl');
 
         self::assertNull(
-            $config->getDefaultTtl()
+            $config->getDefaultTtl(),
         );
     }
 
@@ -363,21 +362,21 @@ final class CacheConfigTest extends TestsUnit
                 'ttl' => $this->profile([
                     'defaultTtl' => 'hours(foo)',
                 ]),
-            ]
+            ],
         );
 
         CacheConfig::resetInstance();
 
         $config = CacheConfig::config(
-            $file
+            $file,
         );
 
         $this->expectException(
-            UnexpectedConfigException::class
+            UnexpectedConfigException::class,
         );
 
         $config->use(
-            'ttl'
+            'ttl',
         );
     }
 
@@ -389,21 +388,21 @@ final class CacheConfigTest extends TestsUnit
                 'ttl' => $this->profile([
                     'defaultTtl' => 'years(2)',
                 ]),
-            ]
+            ],
         );
 
         CacheConfig::resetInstance();
 
         $config = CacheConfig::config(
-            $file
+            $file,
         );
 
         $this->expectException(
-            UnexpectedConfigException::class
+            UnexpectedConfigException::class,
         );
 
         $config->use(
-            'ttl'
+            'ttl',
         );
     }
 
@@ -419,28 +418,28 @@ final class CacheConfigTest extends TestsUnit
                     'drivers' => [],
                     'driversFrom' => 'shared',
                 ]),
-            ]
+            ],
         );
 
         CacheConfig::resetInstance();
 
         $config = CacheConfig::config(
-            $file
+            $file,
         )->use('users');
 
         self::assertSame(
             '127.0.0.1',
-            $config->getRedis()['host']
+            $config->getRedis()['host'],
         );
 
         self::assertSame(
             6379,
-            $config->getRedis()['port']
+            $config->getRedis()['port'],
         );
 
         self::assertSame(
             11211,
-            $config->getMemcached()['port']
+            $config->getMemcached()['port'],
         );
     }
 
@@ -453,23 +452,23 @@ final class CacheConfigTest extends TestsUnit
                 'users' => $this->profile([
                     'drivers' => [],
                 ]),
-            ]
+            ],
         );
 
         CacheConfig::resetInstance();
 
         $config = CacheConfig::config(
-            $file
+            $file,
         )
             ->use('users')
             ->driversFrom('shared');
 
         self::assertNotNull(
-            $config->getRedis()
+            $config->getRedis(),
         );
 
         self::assertNotNull(
-            $config->getMemcached()
+            $config->getMemcached(),
         );
     }
 
@@ -481,21 +480,21 @@ final class CacheConfigTest extends TestsUnit
                 'users' => $this->profile([
                     'driversFrom' => 'missing',
                 ]),
-            ]
+            ],
         );
 
         CacheConfig::resetInstance();
 
         $config = CacheConfig::config(
-            $file
+            $file,
         );
 
         $this->expectException(
-            UnexpectedConfigException::class
+            UnexpectedConfigException::class,
         );
 
         $config->use(
-            'users'
+            'users',
         );
     }
 
@@ -507,21 +506,21 @@ final class CacheConfigTest extends TestsUnit
                 'users' => $this->profile([
                     'driversFrom' => 'users',
                 ]),
-            ]
+            ],
         );
 
         CacheConfig::resetInstance();
 
         $config = CacheConfig::config(
-            $file
+            $file,
         );
 
         $this->expectException(
-            UnexpectedConfigException::class
+            UnexpectedConfigException::class,
         );
 
         $config->use(
-            'users'
+            'users',
         );
     }
 
@@ -536,28 +535,28 @@ final class CacheConfigTest extends TestsUnit
                 'two' => $this->profile([
                     'driversFrom' => 'one',
                 ]),
-            ]
+            ],
         );
 
         CacheConfig::resetInstance();
 
         $config = CacheConfig::config(
-            $file
+            $file,
         );
 
         $this->expectException(
-            UnexpectedConfigException::class
+            UnexpectedConfigException::class,
         );
 
         $config->use(
-            'one'
+            'one',
         );
     }
 
     public function testRedisConfigurationIsNormalized(): void
     {
         $config = CacheConfig::config(
-            $this->configFile
+            $this->configFile,
         )->use('default');
 
         self::assertSame(
@@ -568,14 +567,14 @@ final class CacheConfigTest extends TestsUnit
                 'password' => null,
                 'database' => 0,
             ],
-            $config->getRedis()
+            $config->getRedis(),
         );
     }
 
     public function testMemcachedConfigurationIsNormalized(): void
     {
         $config = CacheConfig::config(
-            $this->configFile
+            $this->configFile,
         )->use('default');
 
         self::assertSame(
@@ -584,59 +583,59 @@ final class CacheConfigTest extends TestsUnit
                 'port' => 11211,
                 'weight' => 0,
             ],
-            $config->getMemcached()
+            $config->getMemcached(),
         );
     }
 
     public function testGetDataReturnsResolvedProfile(): void
     {
         $config = CacheConfig::config(
-            $this->configFile
+            $this->configFile,
         )->use('default');
 
         $data = $config->getData();
 
         self::assertSame(
             $config->getBasePath(),
-            $data['cachePath']
+            $data['cachePath'],
         );
 
         self::assertSame(
             'JSON',
-            $data['defaultDriver']
+            $data['defaultDriver'],
         );
 
         self::assertNull(
-            $data['namespace']
+            $data['namespace'],
         );
 
         self::assertIsArray(
-            $data['drivers']
+            $data['drivers'],
         );
     }
 
     public function testGetAllReturnsAllNormalizedProfiles(): void
     {
         $config = CacheConfig::config(
-            $this->configFile
+            $this->configFile,
         );
 
         $all = $config->getAll();
 
         self::assertArrayHasKey(
             'default',
-            $all
+            $all,
         );
     }
 
     public function testProfileThrowsWhenNoProfileWasSelected(): void
     {
         $config = CacheConfig::config(
-            $this->configFile
+            $this->configFile,
         );
 
         $this->expectException(
-            UnexpectedConfigException::class
+            UnexpectedConfigException::class,
         );
 
         $config->profile();
@@ -645,11 +644,11 @@ final class CacheConfigTest extends TestsUnit
     public function testGetBasePathThrowsWhenNoProfileWasSelected(): void
     {
         $config = CacheConfig::config(
-            $this->configFile
+            $this->configFile,
         );
 
         $this->expectException(
-            UnexpectedConfigException::class
+            UnexpectedConfigException::class,
         );
 
         $config->getBasePath();
@@ -664,22 +663,21 @@ final class CacheConfigTest extends TestsUnit
         CacheConfig::resetInstance();
 
         $this->expectException(
-            UnexpectedConfigException::class
+            UnexpectedConfigException::class,
         );
 
         CacheConfig::config(
-            $missing
+            $missing,
         );
     }
 
-    #[Override]
     protected function tearDown(): void
     {
         CacheConfig::resetInstance();
 
         if (isset($this->directory)) {
             $this->removeDirectory(
-                $this->directory
+                $this->directory,
             );
         }
 
@@ -691,7 +689,7 @@ final class CacheConfigTest extends TestsUnit
      * @return array<string,mixed>
      */
     private function profile(
-        array $override = []
+        array $override = [],
     ): array {
         return array_replace_recursive(
             [
@@ -719,7 +717,7 @@ final class CacheConfigTest extends TestsUnit
                     ],
                 ],
             ],
-            $override
+            $override,
         );
     }
 
@@ -728,7 +726,7 @@ final class CacheConfigTest extends TestsUnit
      */
     private function createConfigFile(
         string $name,
-        array $config
+        array $config,
     ): string {
         $file = $this->directory
             . DIRECTORY_SEPARATOR
@@ -740,9 +738,9 @@ final class CacheConfigTest extends TestsUnit
                 json_encode(
                     $config,
                     JSON_PRETTY_PRINT
-                        | JSON_THROW_ON_ERROR
-                )
-            )
+                        | JSON_THROW_ON_ERROR,
+                ),
+            ),
         );
 
         return $file;

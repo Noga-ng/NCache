@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace NCache\Core\TtlManager;
 
+use InvalidArgumentException;
 use NCache\Contract\Clock;
 use NCache\Enum\TtlState;
-use InvalidArgumentException;
 
 final class Expiration
 {
@@ -21,11 +21,11 @@ final class Expiration
     public function __construct(
         private readonly ?int $ttl,
         private readonly ?int $expiresAt,
-        private readonly Clock $clock
+        private readonly Clock $clock,
     ) {
         if (($ttl === null) !== ($expiresAt === null)) {
             throw new InvalidArgumentException(
-                'TTL and expiresAt must both be null or both defined.'
+                'TTL and expiresAt must both be null or both defined.',
             );
         }
 
@@ -46,7 +46,7 @@ final class Expiration
             $ttl !== null
                 ? $clock->now() + $ttl
                 : null,
-            $clock
+            $clock,
         );
     }
 
@@ -61,28 +61,28 @@ final class Expiration
         return new self(
             $ttl,
             $expiresAt,
-            $clock
+            $clock,
         );
     }
 
     public function isExpired(): bool
     {
         return $this->analyzer->state(
-            $this->expiresAt
+            $this->expiresAt,
         ) === TtlState::EXPIRED;
     }
 
     public function remaining(): ?int
     {
         return $this->analyzer->remaining(
-            $this->expiresAt
+            $this->expiresAt,
         );
     }
 
     public function state(): TtlState
     {
         return $this->analyzer->state(
-            $this->expiresAt
+            $this->expiresAt,
         );
     }
 

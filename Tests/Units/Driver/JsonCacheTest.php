@@ -16,14 +16,14 @@ final class JsonCacheTest extends TestsUnit
         parent::setUp();
 
         $this->directory(
-            'ncache-json-driver'
+            'ncache-json-driver',
         );
     }
 
     protected function tearDown(): void
     {
         $this->removeDirectory(
-            $this->directory
+            $this->directory,
         );
 
         parent::tearDown();
@@ -32,44 +32,44 @@ final class JsonCacheTest extends TestsUnit
     public function testGetFileReturnsJsonFilePath(): void
     {
         $item = $this->createJsonItem(
-            'user-cache'
+            'user-cache',
         );
 
         $driver = new JsonCache(
-            $item
+            $item,
         );
 
         self::assertSame(
             $item->file() . '.json',
-            $driver->getFile()
+            $driver->getFile(),
         );
     }
 
     public function testGetFileHasSingleJsonExtension(): void
     {
         $item = $this->createJsonItem(
-            'cache'
+            'cache',
         );
 
         $driver = new JsonCache(
-            $item
+            $item,
         );
 
         $file = $driver->getFile();
 
         self::assertStringEndsWith(
             '.json',
-            $file
+            $file,
         );
 
         self::assertStringNotContainsString(
             '.json.json',
-            $file
+            $file,
         );
 
         self::assertSame(
             $item->file() . '.json',
-            $file
+            $file,
         );
     }
 
@@ -77,19 +77,19 @@ final class JsonCacheTest extends TestsUnit
     {
         $driver = new JsonCache(
             $this->createJsonItem(
-                'missing-cache'
-            )
+                'missing-cache',
+            ),
         );
 
         self::assertFalse(
-            $driver->exists()
+            $driver->exists(),
         );
     }
 
     public function testSaveCreatesJsonFile(): void
     {
         $item = $this->createJsonItem(
-            'users'
+            'users',
         );
 
         $item->setData([
@@ -98,26 +98,26 @@ final class JsonCacheTest extends TestsUnit
         ]);
 
         $driver = new JsonCache(
-            $item
+            $item,
         );
 
         self::assertTrue(
-            $driver->save()
+            $driver->save(),
         );
 
         self::assertFileExists(
-            $driver->getFile()
+            $driver->getFile(),
         );
 
         self::assertTrue(
-            $driver->exists()
+            $driver->exists(),
         );
     }
 
     public function testSaveWritesValidJson(): void
     {
         $item = $this->createJsonItem(
-            'valid-json'
+            'valid-json',
         );
 
         $item->setData([
@@ -130,42 +130,42 @@ final class JsonCacheTest extends TestsUnit
         ]);
 
         $driver = new JsonCache(
-            $item
+            $item,
         );
 
         self::assertTrue(
-            $driver->save()
+            $driver->save(),
         );
 
         $content = file_get_contents(
-            $driver->getFile()
+            $driver->getFile(),
         );
 
         self::assertNotFalse(
-            $content
+            $content,
         );
 
         $decoded = json_decode(
             $content,
             true,
             512,
-            JSON_THROW_ON_ERROR
+            JSON_THROW_ON_ERROR,
         );
 
         self::assertIsArray(
-            $decoded
+            $decoded,
         );
 
         self::assertSame(
             $item->getData(),
-            $decoded
+            $decoded,
         );
     }
 
     public function testSaveUsesPrettyPrintedJson(): void
     {
         $item = $this->createJsonItem(
-            'pretty-json'
+            'pretty-json',
         );
 
         $item->setData([
@@ -173,34 +173,34 @@ final class JsonCacheTest extends TestsUnit
         ]);
 
         $driver = new JsonCache(
-            $item
+            $item,
         );
 
         self::assertTrue(
-            $driver->save()
+            $driver->save(),
         );
 
         $content = file_get_contents(
-            $driver->getFile()
+            $driver->getFile(),
         );
 
         self::assertNotFalse(
-            $content
+            $content,
         );
 
         self::assertStringContainsString(
             "\n",
-            $content
+            $content,
         );
 
         $compactJson = json_encode(
             $item->getData(),
-            JSON_THROW_ON_ERROR
+            JSON_THROW_ON_ERROR,
         );
 
         self::assertNotSame(
             $compactJson,
-            $content
+            $content,
         );
 
         self::assertSame(
@@ -209,24 +209,24 @@ final class JsonCacheTest extends TestsUnit
                 $content,
                 true,
                 512,
-                JSON_THROW_ON_ERROR
-            )
+                JSON_THROW_ON_ERROR,
+            ),
         );
     }
 
     public function testGetReturnsSavedData(): void
     {
         $item = $this->createJsonItem(
-            'cache-data'
+            'cache-data',
         );
 
         $item->setSignature(
-            'users-v1'
+            'users-v1',
         );
 
         $item->setTtl(
             3600,
-            $this->clock()
+            $this->clock(),
         );
 
         $item->setData([
@@ -235,23 +235,23 @@ final class JsonCacheTest extends TestsUnit
         ]);
 
         $driver = new JsonCache(
-            $item
+            $item,
         );
 
         self::assertTrue(
-            $driver->save()
+            $driver->save(),
         );
 
         self::assertSame(
             $item->getData(),
-            $driver->get()
+            $driver->get(),
         );
     }
 
     public function testShowReturnsCurrentItemWithoutReadingFile(): void
     {
         $item = $this->createJsonItem(
-            'show-cache'
+            'show-cache',
         );
 
         $item->setData([
@@ -259,27 +259,27 @@ final class JsonCacheTest extends TestsUnit
         ]);
 
         $driver = new JsonCache(
-            $item
+            $item,
         );
 
         self::assertFileDoesNotExist(
-            $driver->getFile()
+            $driver->getFile(),
         );
 
         self::assertSame(
             $item->toArray(),
-            $driver->show()
+            $driver->show(),
         );
 
         self::assertFileDoesNotExist(
-            $driver->getFile()
+            $driver->getFile(),
         );
     }
 
     public function testDeleteRemovesSavedCache(): void
     {
         $item = $this->createJsonItem(
-            'delete-cache'
+            'delete-cache',
         );
 
         $item->setData([
@@ -287,27 +287,27 @@ final class JsonCacheTest extends TestsUnit
         ]);
 
         $driver = new JsonCache(
-            $item
+            $item,
         );
 
         self::assertTrue(
-            $driver->save()
+            $driver->save(),
         );
 
         self::assertFileExists(
-            $driver->getFile()
+            $driver->getFile(),
         );
 
         self::assertTrue(
-            $driver->delete()
+            $driver->delete(),
         );
 
         self::assertFileDoesNotExist(
-            $driver->getFile()
+            $driver->getFile(),
         );
 
         self::assertFalse(
-            $driver->exists()
+            $driver->exists(),
         );
     }
 
@@ -315,23 +315,23 @@ final class JsonCacheTest extends TestsUnit
     {
         $driver = new JsonCache(
             $this->createJsonItem(
-                'missing-delete'
-            )
+                'missing-delete',
+            ),
         );
 
         self::assertFileDoesNotExist(
-            $driver->getFile()
+            $driver->getFile(),
         );
 
         self::assertTrue(
-            $driver->delete()
+            $driver->delete(),
         );
     }
 
     public function testClearDeletesAllJsonCachesInDirectory(): void
     {
         $first = $this->createJsonItem(
-            'first'
+            'first',
         );
 
         $first->setData([
@@ -339,7 +339,7 @@ final class JsonCacheTest extends TestsUnit
         ]);
 
         $second = $this->createJsonItem(
-            'second'
+            'second',
         );
 
         $second->setData([
@@ -347,47 +347,47 @@ final class JsonCacheTest extends TestsUnit
         ]);
 
         $firstDriver = new JsonCache(
-            $first
+            $first,
         );
 
         $secondDriver = new JsonCache(
-            $second
+            $second,
         );
 
         self::assertTrue(
-            $firstDriver->save()
+            $firstDriver->save(),
         );
 
         self::assertTrue(
-            $secondDriver->save()
+            $secondDriver->save(),
         );
 
         self::assertFileExists(
-            $firstDriver->getFile()
+            $firstDriver->getFile(),
         );
 
         self::assertFileExists(
-            $secondDriver->getFile()
+            $secondDriver->getFile(),
         );
 
         self::assertSame(
             2,
-            $firstDriver->clear()
+            $firstDriver->clear(),
         );
 
         self::assertFileDoesNotExist(
-            $firstDriver->getFile()
+            $firstDriver->getFile(),
         );
 
         self::assertFileDoesNotExist(
-            $secondDriver->getFile()
+            $secondDriver->getFile(),
         );
     }
 
     public function testClearDoesNotDeleteOtherExtensions(): void
     {
         $item = $this->createJsonItem(
-            'json-cache'
+            'json-cache',
         );
 
         $item->setData([
@@ -395,11 +395,11 @@ final class JsonCacheTest extends TestsUnit
         ]);
 
         $driver = new JsonCache(
-            $item
+            $item,
         );
 
         self::assertTrue(
-            $driver->save()
+            $driver->save(),
         );
 
         $textFile = $item->path()
@@ -409,36 +409,36 @@ final class JsonCacheTest extends TestsUnit
         self::assertNotFalse(
             file_put_contents(
                 $textFile,
-                'keep'
-            )
+                'keep',
+            ),
         );
 
         self::assertFileExists(
-            $driver->getFile()
+            $driver->getFile(),
         );
 
         self::assertFileExists(
-            $textFile
+            $textFile,
         );
 
         self::assertSame(
             1,
-            $driver->clear()
+            $driver->clear(),
         );
 
         self::assertFileDoesNotExist(
-            $driver->getFile()
+            $driver->getFile(),
         );
 
         self::assertFileExists(
-            $textFile
+            $textFile,
         );
     }
 
     public function testSaveReplacesExistingCacheContent(): void
     {
         $firstItem = $this->createJsonItem(
-            'replace-cache'
+            'replace-cache',
         );
 
         $firstItem->setData([
@@ -446,15 +446,15 @@ final class JsonCacheTest extends TestsUnit
         ]);
 
         $firstDriver = new JsonCache(
-            $firstItem
+            $firstItem,
         );
 
         self::assertTrue(
-            $firstDriver->save()
+            $firstDriver->save(),
         );
 
         $secondItem = $this->createJsonItem(
-            'replace-cache'
+            'replace-cache',
         );
 
         $secondItem->setData([
@@ -462,25 +462,25 @@ final class JsonCacheTest extends TestsUnit
         ]);
 
         $secondDriver = new JsonCache(
-            $secondItem
+            $secondItem,
         );
 
         self::assertTrue(
-            $secondDriver->save()
+            $secondDriver->save(),
         );
 
         self::assertSame(
             [
                 'version' => 2,
             ],
-            $secondDriver->get()
+            $secondDriver->get(),
         );
     }
 
     public function testJsonPreservesNestedDataTypes(): void
     {
         $item = $this->createJsonItem(
-            'nested-cache'
+            'nested-cache',
         );
 
         $item->setData([
@@ -498,16 +498,16 @@ final class JsonCacheTest extends TestsUnit
         ]);
 
         $driver = new JsonCache(
-            $item
+            $item,
         );
 
         self::assertTrue(
-            $driver->save()
+            $driver->save(),
         );
 
         self::assertSame(
             $item->getData(),
-            $driver->get()
+            $driver->get(),
         );
     }
 
@@ -516,11 +516,11 @@ final class JsonCacheTest extends TestsUnit
         $item = new CacheItem(
             'automatic-directory',
             CType::JSON,
-            $this->config()
+            $this->config(),
         );
 
         $item->setDir(
-            'nested/json'
+            'nested/json',
         );
 
         $item->setData([
@@ -528,27 +528,27 @@ final class JsonCacheTest extends TestsUnit
         ]);
 
         self::assertDirectoryExists(
-            $item->path()
+            $item->path(),
         );
 
         $driver = new JsonCache(
-            $item
+            $item,
         );
 
         self::assertFileDoesNotExist(
-            $driver->getFile()
+            $driver->getFile(),
         );
 
         self::assertTrue(
-            $driver->save()
+            $driver->save(),
         );
 
         self::assertDirectoryExists(
-            $item->path()
+            $item->path(),
         );
 
         self::assertFileExists(
-            $driver->getFile()
+            $driver->getFile(),
         );
     }
 }

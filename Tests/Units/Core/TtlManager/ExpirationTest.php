@@ -22,7 +22,7 @@ final class ExpirationTest extends TestsUnit
 
         self::assertSame(
             2_000_000_000,
-            $expiration->timestamp()
+            $expiration->timestamp(),
         );
     }
 
@@ -46,12 +46,12 @@ final class ExpirationTest extends TestsUnit
 
         self::assertGreaterThanOrEqual(
             $before + 3600,
-            $expiration->timestamp()
+            $expiration->timestamp(),
         );
 
         self::assertLessThanOrEqual(
             $after + 3600,
-            $expiration->timestamp()
+            $expiration->timestamp(),
         );
     }
 
@@ -98,7 +98,7 @@ final class ExpirationTest extends TestsUnit
         return new Expiration(
             $ttl,
             $expiresAt,
-            $this->clock()
+            $this->clock(),
         );
     }
 }

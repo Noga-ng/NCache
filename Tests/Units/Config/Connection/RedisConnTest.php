@@ -17,12 +17,12 @@ final class RedisConnTest extends TestCase
     {
         $connection = new RedisConn(
             self::HOST,
-            self::PORT
+            self::PORT,
         );
 
         self::assertInstanceOf(
             Redis::class,
-            $connection->connect()
+            $connection->connect(),
         );
     }
 
@@ -30,46 +30,46 @@ final class RedisConnTest extends TestCase
     {
         $connection = new RedisConn(
             self::HOST,
-            self::PORT
+            self::PORT,
         );
 
         self::assertSame(
             $connection->connect(),
-            $connection->connect()
+            $connection->connect(),
         );
     }
 
     public function testConnectionCanPingServer(): void
     {
-        $redis = new RedisConn(
+        $redis = (new RedisConn(
             self::HOST,
-            self::PORT
-        )->connect();
+            self::PORT,
+        ))->connect();
 
         self::assertTrue(
-            $redis->ping()
+            $redis->ping(),
         );
     }
 
     public function testConnectionCanWriteAndRead(): void
     {
-        $redis = new RedisConn(
+        $redis = (new RedisConn(
             self::HOST,
-            self::PORT
-        )->connect();
+            self::PORT,
+        ))->connect();
 
         $key = 'ncache:test:redis-connection';
 
         self::assertTrue(
             $redis->set(
                 $key,
-                'working'
-            )
+                'working',
+            ),
         );
 
         self::assertSame(
             'working',
-            $redis->get($key)
+            $redis->get($key),
         );
 
         $redis->del($key);
@@ -77,25 +77,25 @@ final class RedisConnTest extends TestCase
 
     public function testConnectionCanDeleteValue(): void
     {
-        $redis = new RedisConn(
+        $redis = (new RedisConn(
             self::HOST,
-            self::PORT
-        )->connect();
+            self::PORT,
+        ))->connect();
 
         $key = 'ncache:test:redis-delete';
 
         self::assertTrue(
-            $redis->set($key, 'value')
+            $redis->set($key, 'value'),
         );
 
         self::assertSame(
             1,
-            $redis->del($key)
+            $redis->del($key),
         );
 
         self::assertSame(
             0,
-            $redis->exists($key)
+            $redis->exists($key),
         );
     }
 
@@ -103,11 +103,11 @@ final class RedisConnTest extends TestCase
     {
         $connection = new RedisConn(
             self::HOST,
-            self::PORT
+            self::PORT,
         );
 
         self::assertFalse(
-            $connection->isConnected()
+            $connection->isConnected(),
         );
     }
 
@@ -115,13 +115,13 @@ final class RedisConnTest extends TestCase
     {
         $connection = new RedisConn(
             self::HOST,
-            self::PORT
+            self::PORT,
         );
 
         $connection->connect();
 
         self::assertTrue(
-            $connection->isConnected()
+            $connection->isConnected(),
         );
     }
 
@@ -129,19 +129,19 @@ final class RedisConnTest extends TestCase
     {
         $connection = new RedisConn(
             self::HOST,
-            self::PORT
+            self::PORT,
         );
 
         $connection->connect();
 
         self::assertTrue(
-            $connection->isConnected()
+            $connection->isConnected(),
         );
 
         $connection->disconnect();
 
         self::assertFalse(
-            $connection->isConnected()
+            $connection->isConnected(),
         );
     }
 }

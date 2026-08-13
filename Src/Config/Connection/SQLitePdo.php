@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace NCache\Config\Connection;
 
-use NCache\Exceptions\InvalidCacheArgumentException;
 use PDO;
 use PDOException;
 use PDOStatement;
@@ -16,8 +15,9 @@ final class SQLitePdo
     private ?PDO $pdo = null;
 
     public function __construct(
-        private readonly string $database
-    ) {}
+        private readonly string $database,
+    ) {
+    }
 
     public function connect(): PDO
     {
@@ -33,7 +33,7 @@ final class SQLitePdo
                 options: [
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                ]
+                ],
             );
 
             $this->configure($pdo);
@@ -46,7 +46,7 @@ final class SQLitePdo
 
             throw new RuntimeException(
                 'Failed to connect to SQLite.',
-                previous: $exception
+                previous: $exception,
             );
         }
     }
@@ -85,7 +85,7 @@ final class SQLitePdo
         } catch (PDOException $exception) {
             throw new RuntimeException(
                 'SQLite query execution failed.',
-                previous: $exception
+                previous: $exception,
             );
         }
     }
@@ -133,7 +133,7 @@ final class SQLitePdo
 
         if ($pdo->inTransaction()) {
             throw new RuntimeException(
-                'A SQLite transaction is already active.'
+                'A SQLite transaction is already active.',
             );
         }
 
@@ -150,7 +150,7 @@ final class SQLitePdo
 
             throw new RuntimeException(
                 'SQLite transaction failed.',
-                previous: $exception
+                previous: $exception,
             );
         }
     }
@@ -158,7 +158,7 @@ final class SQLitePdo
     private function ensureDirectory(): void
     {
         $directory = dirname(
-            $this->database
+            $this->database,
         );
 
         if (is_dir($directory)) {
@@ -170,7 +170,7 @@ final class SQLitePdo
             && !is_dir($directory)
         ) {
             throw new RuntimeException(
-                "Unable to create SQLite directory: {$directory}"
+                "Unable to create SQLite directory: {$directory}",
             );
         }
     }

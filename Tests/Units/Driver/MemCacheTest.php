@@ -18,8 +18,8 @@ final class MemCacheTest extends TestsUnit
     protected function setUp(): void
     {
         parent::setUp();
-        $this->directory("memcached-driver");
-        $this->client = new MCached()->connect();
+        $this->directory('memcached-driver');
+        $this->client = (new MCached())->connect();
 
         assertTrue($this->client->flush());
     }
@@ -34,7 +34,7 @@ final class MemCacheTest extends TestsUnit
     public function testSaveAndGet(): void
     {
         $item = $this->createMemCachedItem(
-            'memcached-save'
+            'memcached-save',
         );
 
         $item->setDir('users');
@@ -45,19 +45,19 @@ final class MemCacheTest extends TestsUnit
         $driver = new MemCache($item);
 
         self::assertTrue(
-            $driver->save()
+            $driver->save(),
         );
 
         self::assertSame(
             ['name' => 'NCache'],
-            $driver->get()
+            $driver->get(),
         );
     }
 
     public function testExistsReturnsFalseBeforeSave(): void
     {
         $item = $this->createMemCachedItem(
-            'missing'
+            'missing',
         );
 
         $item->setDir('users');
@@ -65,14 +65,14 @@ final class MemCacheTest extends TestsUnit
         $driver = new MemCache($item);
 
         self::assertFalse(
-            $driver->exists()
+            $driver->exists(),
         );
     }
 
     public function testExistsReturnsTrueAfterSave(): void
     {
         $item = $this->createMemCachedItem(
-            'existing'
+            'existing',
         );
 
         $item->setDir('users');
@@ -87,7 +87,7 @@ final class MemCacheTest extends TestsUnit
     public function testSaveReplacesExistingValue(): void
     {
         $item = $this->createMemCachedItem(
-            'replace'
+            'replace',
         );
 
         $item->setDir('users');
@@ -108,18 +108,18 @@ final class MemCacheTest extends TestsUnit
 
         self::assertSame(
             ['version' => 2],
-            $driver->get()
+            $driver->get(),
         );
     }
 
     public function testSameKeyInDifferentDirectoriesIsIsolated(): void
     {
         $firstItem = $this->createMemCachedItem(
-            'same-key'
+            'same-key',
         );
 
         $secondItem = $this->createMemCachedItem(
-            'same-key'
+            'same-key',
         );
 
         $firstItem->setDir('users');
@@ -141,19 +141,19 @@ final class MemCacheTest extends TestsUnit
 
         self::assertSame(
             ['source' => 'users'],
-            $first->get()
+            $first->get(),
         );
 
         self::assertSame(
             ['source' => 'admins'],
-            $second->get()
+            $second->get(),
         );
     }
 
     public function testDeleteRemovesCurrentCache(): void
     {
         $item = $this->createMemCachedItem(
-            'delete'
+            'delete',
         );
 
         $item->setDir('users');
@@ -165,18 +165,18 @@ final class MemCacheTest extends TestsUnit
         self::assertTrue($driver->exists());
 
         self::assertTrue(
-            $driver->delete()
+            $driver->delete(),
         );
 
         self::assertFalse(
-            $driver->exists()
+            $driver->exists(),
         );
     }
 
     public function testDeleteIsIdempotent(): void
     {
         $item = $this->createMemCachedItem(
-            'delete-twice'
+            'delete-twice',
         );
 
         $item->setDir('users');
@@ -211,14 +211,14 @@ final class MemCacheTest extends TestsUnit
 
         self::assertSame(
             2,
-            $first->clear()
+            $first->clear(),
         );
 
         self::assertFalse($first->exists());
         self::assertFalse($second->exists());
 
         self::assertTrue(
-            $third->exists()
+            $third->exists(),
         );
     }
 
@@ -246,7 +246,7 @@ final class MemCacheTest extends TestsUnit
 
         self::assertSame(
             3,
-            $first->clearAll()
+            $first->clearAll(),
         );
 
         self::assertFalse($first->exists());
@@ -270,7 +270,7 @@ final class MemCacheTest extends TestsUnit
         ];
 
         $item = $this->createMemCachedItem(
-            'mixed'
+            'mixed',
         );
 
         $item->setDir('mixed');
@@ -282,14 +282,14 @@ final class MemCacheTest extends TestsUnit
 
         self::assertSame(
             $data,
-            $driver->get()
+            $driver->get(),
         );
     }
 
     public function testNamespaceIndexDoesNotDuplicateKey(): void
     {
         $item = $this->createMemCachedItem(
-            'duplicate-index'
+            'duplicate-index',
         );
 
         $item->setDir('users');
@@ -307,14 +307,14 @@ final class MemCacheTest extends TestsUnit
 
         self::assertSame(
             1,
-            $driver->clear()
+            $driver->clear(),
         );
     }
 
     public function testGetFileReturnsNull(): void
     {
         $item = $this->createMemCachedItem(
-            'file'
+            'file',
         );
 
         $item->setDir('users');
@@ -322,7 +322,7 @@ final class MemCacheTest extends TestsUnit
         $driver = new MemCache($item);
 
         self::assertNull(
-            $driver->getFile()
+            $driver->getFile(),
         );
     }
 }

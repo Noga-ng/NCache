@@ -16,11 +16,11 @@ final class RedisCacheTest extends TestsUnit
     protected function setUp(): void
     {
         parent::setUp();
-        $this->directory("redis-driver");
-        $this->client = new RedisConn()->connect();
+        $this->directory('redis-driver');
+        $this->client = (new RedisConn())->connect();
 
         self::assertTrue(
-            $this->client->isConnected()
+            $this->client->isConnected(),
         );
 
         $this->clearNCacheKeys();
@@ -38,7 +38,7 @@ final class RedisCacheTest extends TestsUnit
     public function testSaveAndGet(): void
     {
         $item = $this->createRedisItem(
-            'redis-save'
+            'redis-save',
         );
 
         $item->setDir('users');
@@ -50,19 +50,19 @@ final class RedisCacheTest extends TestsUnit
         $driver = new RedisCache($item);
 
         self::assertTrue(
-            $driver->save()
+            $driver->save(),
         );
 
         self::assertSame(
             ['name' => 'NCache'],
-            $driver->get()
+            $driver->get(),
         );
     }
 
     public function testExistsReturnsFalseBeforeSave(): void
     {
         $item = $this->createRedisItem(
-            'redis-missing'
+            'redis-missing',
         );
 
         $item->setDir('users');
@@ -70,14 +70,14 @@ final class RedisCacheTest extends TestsUnit
         $driver = new RedisCache($item);
 
         self::assertFalse(
-            $driver->exists()
+            $driver->exists(),
         );
     }
 
     public function testExistsReturnsTrueAfterSave(): void
     {
         $item = $this->createRedisItem(
-            'redis-existing'
+            'redis-existing',
         );
 
         $item->setDir('users');
@@ -92,7 +92,7 @@ final class RedisCacheTest extends TestsUnit
     public function testSaveReplacesExistingValue(): void
     {
         $item = $this->createRedisItem(
-            'redis-replace'
+            'redis-replace',
         );
 
         $item->setDir('users');
@@ -104,7 +104,7 @@ final class RedisCacheTest extends TestsUnit
         $driver = new RedisCache($item);
 
         self::assertTrue(
-            $driver->save()
+            $driver->save(),
         );
 
         $item->setData([
@@ -112,23 +112,23 @@ final class RedisCacheTest extends TestsUnit
         ]);
 
         self::assertTrue(
-            $driver->save()
+            $driver->save(),
         );
 
         self::assertSame(
             ['version' => 2],
-            $driver->get()
+            $driver->get(),
         );
     }
 
     public function testSameKeyInDifferentDirectoriesIsIsolated(): void
     {
         $firstItem = $this->createRedisItem(
-            'same-key'
+            'same-key',
         );
 
         $secondItem = $this->createRedisItem(
-            'same-key'
+            'same-key',
         );
 
         $firstItem->setDir('users');
@@ -150,19 +150,19 @@ final class RedisCacheTest extends TestsUnit
 
         self::assertSame(
             ['source' => 'users'],
-            $first->get()
+            $first->get(),
         );
 
         self::assertSame(
             ['source' => 'admins'],
-            $second->get()
+            $second->get(),
         );
     }
 
     public function testDeleteRemovesCurrentCache(): void
     {
         $item = $this->createRedisItem(
-            'redis-delete'
+            'redis-delete',
         );
 
         $item->setDir('users');
@@ -174,18 +174,18 @@ final class RedisCacheTest extends TestsUnit
         self::assertTrue($driver->exists());
 
         self::assertTrue(
-            $driver->delete()
+            $driver->delete(),
         );
 
         self::assertFalse(
-            $driver->exists()
+            $driver->exists(),
         );
     }
 
     public function testDeleteIsIdempotent(): void
     {
         $item = $this->createRedisItem(
-            'redis-delete-twice'
+            'redis-delete-twice',
         );
 
         $item->setDir('users');
@@ -193,11 +193,11 @@ final class RedisCacheTest extends TestsUnit
         $driver = new RedisCache($item);
 
         self::assertTrue(
-            $driver->delete()
+            $driver->delete(),
         );
 
         self::assertTrue(
-            $driver->delete()
+            $driver->delete(),
         );
     }
 
@@ -225,14 +225,14 @@ final class RedisCacheTest extends TestsUnit
 
         self::assertSame(
             2,
-            $first->clear()
+            $first->clear(),
         );
 
         self::assertFalse($first->exists());
         self::assertFalse($second->exists());
 
         self::assertTrue(
-            $third->exists()
+            $third->exists(),
         );
     }
 
@@ -260,7 +260,7 @@ final class RedisCacheTest extends TestsUnit
 
         self::assertSame(
             3,
-            $first->clearAll()
+            $first->clearAll(),
         );
 
         self::assertFalse($first->exists());
@@ -284,7 +284,7 @@ final class RedisCacheTest extends TestsUnit
         ];
 
         $item = $this->createRedisItem(
-            'redis-mixed'
+            'redis-mixed',
         );
 
         $item->setDir('mixed');
@@ -293,19 +293,19 @@ final class RedisCacheTest extends TestsUnit
         $driver = new RedisCache($item);
 
         self::assertTrue(
-            $driver->save()
+            $driver->save(),
         );
 
         self::assertSame(
             $data,
-            $driver->get()
+            $driver->get(),
         );
     }
 
     public function testGetReturnsNullWhenCacheDoesNotExist(): void
     {
         $item = $this->createRedisItem(
-            'redis-not-found'
+            'redis-not-found',
         );
 
         $item->setDir('users');
@@ -313,14 +313,14 @@ final class RedisCacheTest extends TestsUnit
         $driver = new RedisCache($item);
 
         self::assertNull(
-            $driver->get()
+            $driver->get(),
         );
     }
 
     public function testGetFileReturnsNull(): void
     {
         $item = $this->createRedisItem(
-            'redis-file'
+            'redis-file',
         );
 
         $item->setDir('users');
@@ -328,7 +328,7 @@ final class RedisCacheTest extends TestsUnit
         $driver = new RedisCache($item);
 
         self::assertNull(
-            $driver->getFile()
+            $driver->getFile(),
         );
     }
 
@@ -340,7 +340,7 @@ final class RedisCacheTest extends TestsUnit
             $keys = $this->client->scan(
                 $iterator,
                 'ncache:*',
-                100
+                100,
             );
 
             if ($keys === false || $keys === []) {

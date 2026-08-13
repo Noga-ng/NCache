@@ -13,14 +13,14 @@ final class CacheCleanerTest extends TestsUnit
         parent::setUp();
 
         $this->directory(
-            'ncache-cleaner-'
+            'ncache-cleaner-',
         );
     }
 
     protected function tearDown(): void
     {
         $this->removeDirectory(
-            $this->directory
+            $this->directory,
         );
 
         parent::tearDown();
@@ -38,50 +38,50 @@ final class CacheCleanerTest extends TestsUnit
                 'php',
                 'json',
             ],
-            $cleaner->getExtensionAllowed()
+            $cleaner->getExtensionAllowed(),
         );
     }
 
     public function testDeleteExistingFile(): void
     {
         $file = $this->createFile(
-            'cache.php'
+            'cache.php',
         );
 
         $cleaner = $this->cacheCleaner(
-            'php'
+            'php',
         );
 
         self::assertTrue(
             $cleaner->delete(
-                $file
-            )
+                $file,
+            ),
         );
 
         self::assertFileDoesNotExist(
-            $file
+            $file,
         );
     }
 
     public function testDeleteMissingFileReturnsTrue(): void
     {
         $cleaner = $this->cacheCleaner(
-            'php'
+            'php',
         );
 
         self::assertTrue(
             $cleaner->delete(
                 $this->directory
                     . DIRECTORY_SEPARATOR
-                    . 'missing.php'
-            )
+                    . 'missing.php',
+            ),
         );
     }
 
     public function testClearDeletesOnlyAllowedExtensions(): void
     {
         $target = $this->fixtureDirectory(
-            'clear-extensions'
+            'clear-extensions',
         );
 
         $php = $target
@@ -99,22 +99,22 @@ final class CacheCleanerTest extends TestsUnit
         self::assertNotFalse(
             file_put_contents(
                 $php,
-                'php'
-            )
+                'php',
+            ),
         );
 
         self::assertNotFalse(
             file_put_contents(
                 $json,
-                'json'
-            )
+                'json',
+            ),
         );
 
         self::assertNotFalse(
             file_put_contents(
                 $txt,
-                'txt'
-            )
+                'txt',
+            ),
         );
 
         $cleaner = $this->cacheCleaner([
@@ -125,31 +125,31 @@ final class CacheCleanerTest extends TestsUnit
         self::assertSame(
             2,
             $cleaner->clear(
-                $target
-            )
+                $target,
+            ),
         );
 
         self::assertFileDoesNotExist(
-            $php
+            $php,
         );
 
         self::assertFileDoesNotExist(
-            $json
+            $json,
         );
 
         self::assertFileExists(
-            $txt
+            $txt,
         );
 
         self::assertFileExists(
-            $this->configFile
+            $this->configFile,
         );
     }
 
     public function testClearDeletesFilesRecursively(): void
     {
         $target = $this->fixtureDirectory(
-            'recursive'
+            'recursive',
         );
 
         $subDirectory = $target
@@ -160,8 +160,8 @@ final class CacheCleanerTest extends TestsUnit
             mkdir(
                 $subDirectory,
                 0o777,
-                true
-            )
+                true,
+            ),
         );
 
         $file = $subDirectory
@@ -171,30 +171,30 @@ final class CacheCleanerTest extends TestsUnit
         self::assertNotFalse(
             file_put_contents(
                 $file,
-                'cache'
-            )
+                'cache',
+            ),
         );
 
         $cleaner = $this->cacheCleaner(
-            'php'
+            'php',
         );
 
         self::assertSame(
             1,
             $cleaner->clear(
-                $target
-            )
+                $target,
+            ),
         );
 
         self::assertFileDoesNotExist(
-            $file
+            $file,
         );
     }
 
     public function testClearReturnsZeroWhenNothingMatches(): void
     {
         $target = $this->fixtureDirectory(
-            'no-match'
+            'no-match',
         );
 
         $file = $target
@@ -204,30 +204,30 @@ final class CacheCleanerTest extends TestsUnit
         self::assertNotFalse(
             file_put_contents(
                 $file,
-                'cache'
-            )
+                'cache',
+            ),
         );
 
         $cleaner = $this->cacheCleaner(
-            'php'
+            'php',
         );
 
         self::assertSame(
             0,
             $cleaner->clear(
-                $target
-            )
+                $target,
+            ),
         );
 
         self::assertFileExists(
-            $file
+            $file,
         );
     }
 
     public function testClearDoesNotDeleteDirectories(): void
     {
         $target = $this->fixtureDirectory(
-            'keep-directory'
+            'keep-directory',
         );
 
         $cacheDirectory = $target
@@ -238,8 +238,8 @@ final class CacheCleanerTest extends TestsUnit
             mkdir(
                 $cacheDirectory,
                 0o777,
-                true
-            )
+                true,
+            ),
         );
 
         $file = $cacheDirectory
@@ -249,27 +249,27 @@ final class CacheCleanerTest extends TestsUnit
         self::assertNotFalse(
             file_put_contents(
                 $file,
-                'cache'
-            )
+                'cache',
+            ),
         );
 
         $cleaner = $this->cacheCleaner(
-            'php'
+            'php',
         );
 
         self::assertSame(
             1,
             $cleaner->clear(
-                $target
-            )
+                $target,
+            ),
         );
 
         self::assertFileDoesNotExist(
-            $file
+            $file,
         );
 
         self::assertDirectoryExists(
-            $cacheDirectory
+            $cacheDirectory,
         );
     }
 
@@ -277,12 +277,12 @@ final class CacheCleanerTest extends TestsUnit
     {
         if (!function_exists('symlink')) {
             self::markTestSkipped(
-                'Symbolic links are not available.'
+                'Symbolic links are not available.',
             );
         }
 
         $targetDirectory = $this->fixtureDirectory(
-            'symlink'
+            'symlink',
         );
 
         $target = $targetDirectory
@@ -292,8 +292,8 @@ final class CacheCleanerTest extends TestsUnit
         self::assertNotFalse(
             file_put_contents(
                 $target,
-                'cache'
-            )
+                'cache',
+            ),
         );
 
         $link = $targetDirectory
@@ -302,68 +302,68 @@ final class CacheCleanerTest extends TestsUnit
 
         if (!@symlink($target, $link)) {
             self::markTestSkipped(
-                'Symbolic link creation is not authorized.'
+                'Symbolic link creation is not authorized.',
             );
         }
 
         self::assertTrue(
             is_link(
-                $link
-            )
+                $link,
+            ),
         );
 
         self::assertFileExists(
-            $target
+            $target,
         );
 
         $cleaner = $this->cacheCleaner(
-            'php'
+            'php',
         );
 
         self::assertSame(
             1,
             $cleaner->clear(
-                $targetDirectory
-            )
+                $targetDirectory,
+            ),
         );
 
         self::assertFileDoesNotExist(
-            $target
+            $target,
         );
 
         self::assertTrue(
             is_link(
-                $link
+                $link,
             ),
-            'CacheCleaner must not delete the symbolic link.'
+            'CacheCleaner must not delete the symbolic link.',
         );
     }
 
     public function testDeleteCanBeCalledTwice(): void
     {
         $file = $this->createFile(
-            'cache.php'
+            'cache.php',
         );
 
         $cleaner = $this->cacheCleaner(
-            'php'
+            'php',
         );
 
         self::assertTrue(
             $cleaner->delete(
-                $file
-            )
+                $file,
+            ),
         );
 
         self::assertTrue(
             $cleaner->delete(
-                $file
-            )
+                $file,
+            ),
         );
     }
 
     private function fixtureDirectory(
-        string $name
+        string $name,
     ): string {
         $directory = $this->directory
             . DIRECTORY_SEPARATOR
@@ -373,8 +373,8 @@ final class CacheCleanerTest extends TestsUnit
             mkdir(
                 $directory,
                 0o777,
-                true
-            )
+                true,
+            ),
         );
 
         return $directory;

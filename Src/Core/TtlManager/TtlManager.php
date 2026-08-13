@@ -14,8 +14,9 @@ final class TtlManager
     public function __construct(
         private readonly CacheItem $item,
         private readonly CacheRegistry $registry,
-        private readonly Clock $clock
-    ) {}
+        private readonly Clock $clock,
+    ) {
+    }
 
     public function preserveStoredExpiration(): void
     {
@@ -31,7 +32,7 @@ final class TtlManager
             $this->item->restoreExpiration(
                 $stored['ttl'],
                 $stored['expiresAt'],
-                $this->clock
+                $this->clock,
             );
         }
     }
@@ -64,7 +65,7 @@ final class TtlManager
         return Expiration::restore(
             $stored['ttl'],
             $stored['expiresAt'],
-            $this->clock
+            $this->clock,
         );
     }
 }

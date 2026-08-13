@@ -7,7 +7,6 @@ namespace NCache\Driver;
 use NCache\Config\Connection\RedisConn;
 use NCache\Core\CacheItem\CacheItem;
 use NCache\Exceptions\InvalidCacheArgumentException;
-use Override;
 
 final class RedisCache extends CacheDriver
 {
@@ -19,7 +18,7 @@ final class RedisCache extends CacheDriver
 
         if (!extension_loaded('redis')) {
             throw new InvalidCacheArgumentException(
-                'The Redis driver requires ext-redis.'
+                'The Redis driver requires ext-redis.',
             );
         }
     }
@@ -38,7 +37,7 @@ final class RedisCache extends CacheDriver
                 $config['port'],
                 $config['timeout'],
                 $config['password'],
-                $config['database']
+                $config['database'],
             );
     }
 
@@ -62,7 +61,7 @@ final class RedisCache extends CacheDriver
     protected function format(): string
     {
         return serialize(
-            $this->item->getData()
+            $this->item->getData(),
         );
     }
 
@@ -73,7 +72,7 @@ final class RedisCache extends CacheDriver
             ->connect()
             ->set(
                 $this->key(),
-                $this->format()
+                $this->format(),
             );
     }
 
@@ -83,7 +82,7 @@ final class RedisCache extends CacheDriver
             ->conn()
             ->connect()
             ->exists(
-                $this->key()
+                $this->key(),
             ) > 0;
     }
 
@@ -96,7 +95,7 @@ final class RedisCache extends CacheDriver
             ->conn()
             ->connect()
             ->get(
-                $this->key()
+                $this->key(),
             );
 
         if ($raw === false) {
@@ -105,7 +104,7 @@ final class RedisCache extends CacheDriver
 
         if (!\is_string($raw)) {
             throw new InvalidCacheArgumentException(
-                'Redis cache data must be a serialized string.'
+                'Redis cache data must be a serialized string.',
             );
         }
 
@@ -113,12 +112,12 @@ final class RedisCache extends CacheDriver
             $raw,
             [
                 'allowed_classes' => false,
-            ]
+            ],
         );
 
         if (!\is_array($data)) {
             throw new InvalidCacheArgumentException(
-                'Invalid Redis cache data.'
+                'Invalid Redis cache data.',
             );
         }
 
@@ -131,7 +130,7 @@ final class RedisCache extends CacheDriver
             ->conn()
             ->connect()
             ->del(
-                $this->key()
+                $this->key(),
             );
 
         return true;
@@ -144,19 +143,19 @@ final class RedisCache extends CacheDriver
         }
 
         return $this->deleteByPattern(
-            $this->prefix() . ':*'
+            $this->prefix() . ':*',
         );
     }
 
     public function clearAll(): int
     {
         return $this->deleteByPattern(
-            'ncache:*'
+            'ncache:*',
         );
     }
 
     private function deleteByPattern(
-        string $pattern
+        string $pattern,
     ): int {
         $redis = $this->conn()->connect();
 
@@ -167,7 +166,7 @@ final class RedisCache extends CacheDriver
             $keys = $redis->scan(
                 $iterator,
                 $pattern,
-                100
+                100,
             );
 
             if ($keys === false || $keys === []) {

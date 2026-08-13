@@ -12,7 +12,7 @@ final class CachePath
     private ?string $dir = null;
     public function __construct(
         private readonly string $basePath,
-        private readonly int $permission = 0o755
+        private readonly int $permission = 0o755,
     ) {
         $this->path = $this->basePath;
     }
@@ -22,7 +22,7 @@ final class CachePath
         $clone = clone $this;
         $clone->dir = $dir;
         $clone->path = $clone->dir === null || $clone->dir === '' ? rtrim($clone->basePath, '/\\')
-            : rtrim($clone->basePath, "/\\")
+            : rtrim($clone->basePath, '/\\')
             . DIRECTORY_SEPARATOR
             . trim($clone->dir, '/\\');
 
@@ -61,7 +61,7 @@ final class CachePath
     {
         return $this->create(rtrim(
             $this->basePath,
-            '/\\'
+            '/\\',
         ));
     }
     private function create(string $path): string
@@ -72,12 +72,12 @@ final class CachePath
             && !mkdir(
                 $path,
                 $this->permission,
-                true
+                true,
             )
             && !is_dir($path)
         ) {
             throw new FailedCreationDirException(
-                "Failed to create cache directory: {$path}"
+                "Failed to create cache directory: {$path}",
             );
         }
 

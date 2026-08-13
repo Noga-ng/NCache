@@ -24,19 +24,19 @@ final class StringCacheTest extends TestsUnit
     public function testGetFileReturnsTxtFilePath(): void
     {
         $driver = new StringCache(
-            $this->createStringItem('string-cache')
+            $this->createStringItem('string-cache'),
         );
 
         self::assertStringEndsWith(
             '.txt',
-            $driver->getFile()
+            $driver->getFile(),
         );
     }
 
     public function testExistsReturnsFalseBeforeSave(): void
     {
         $driver = new StringCache(
-            $this->createStringItem('missing-cache')
+            $this->createStringItem('missing-cache'),
         );
 
         self::assertFalse($driver->exists());
@@ -77,7 +77,7 @@ final class StringCacheTest extends TestsUnit
 
         self::assertStringContainsString(
             'Noga,Germainio',
-            str_replace(PHP_EOL, ',', $content)
+            str_replace(PHP_EOL, ',', $content),
         );
     }
 
@@ -99,8 +99,8 @@ final class StringCacheTest extends TestsUnit
         $driver->save();
 
         self::assertStringContainsString(
-            "Noga,42,19.5,true,false,null",
-            str_replace(PHP_EOL, ',', $driver->get())
+            'Noga,42,19.5,true,false,null',
+            str_replace(PHP_EOL, ',', $driver->get()),
         );
     }
 
@@ -120,7 +120,7 @@ final class StringCacheTest extends TestsUnit
 
         self::assertStringContainsString(
             '{"id":1,"name":"Noga"}',
-            $driver->get()
+            $driver->get(),
         );
     }
 
@@ -140,7 +140,7 @@ final class StringCacheTest extends TestsUnit
 
         self::assertStringContainsString(
             '{"id":1,"name":"Noga"}',
-            $driver->get()
+            $driver->get(),
         );
     }
 
@@ -158,7 +158,7 @@ final class StringCacheTest extends TestsUnit
 
         self::assertStringContainsString(
             'Données malagasy,Toamasina',
-            str_replace(PHP_EOL, ',', $driver->get())
+            str_replace(PHP_EOL, ',', $driver->get()),
         );
     }
 
@@ -174,7 +174,7 @@ final class StringCacheTest extends TestsUnit
 
         self::assertSame(
             $item->toArray(),
-            $driver->show()
+            $driver->show(),
         );
     }
 
@@ -183,7 +183,7 @@ final class StringCacheTest extends TestsUnit
         $firstItem = $this->createStringItem('replace-cache');
         $firstItem->setData(['version-one']);
 
-        new StringCache($firstItem)->save();
+        (new StringCache($firstItem))->save();
 
         $secondItem = $this->createStringItem('replace-cache');
         $secondItem->setData(['version-two']);
@@ -195,12 +195,12 @@ final class StringCacheTest extends TestsUnit
 
         self::assertStringContainsString(
             'version-two',
-            $content
+            $content,
         );
 
         self::assertStringNotContainsString(
             'version-one;',
-            $content
+            $content,
         );
     }
 
@@ -222,7 +222,7 @@ final class StringCacheTest extends TestsUnit
     public function testDeleteMissingFileReturnsTrue(): void
     {
         $driver = new StringCache(
-            $this->createStringItem('missing-delete')
+            $this->createStringItem('missing-delete'),
         );
 
         self::assertFileDoesNotExist($driver->getFile());
@@ -245,15 +245,15 @@ final class StringCacheTest extends TestsUnit
 
         self::assertSame(
             2,
-            $firstDriver->clear()
+            $firstDriver->clear(),
         );
 
         self::assertFileDoesNotExist(
-            $firstDriver->getFile()
+            $firstDriver->getFile(),
         );
 
         self::assertFileDoesNotExist(
-            $secondDriver->getFile()
+            $secondDriver->getFile(),
         );
     }
 
@@ -270,13 +270,13 @@ final class StringCacheTest extends TestsUnit
             . 'keep.json';
 
         self::assertNotFalse(
-            file_put_contents($jsonFile, '{}')
+            file_put_contents($jsonFile, '{}'),
         );
 
         self::assertSame(1, $driver->clear());
 
         self::assertFileDoesNotExist(
-            $driver->getFile()
+            $driver->getFile(),
         );
 
         self::assertFileExists($jsonFile);

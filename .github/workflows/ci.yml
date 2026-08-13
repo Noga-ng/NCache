@@ -16,16 +16,22 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.1'
+          extensions: json,pdo_sqlite,sqlite3,redis,memcached
           coverage: none
 
-      - name: Update Composer
-        run: composer update
+      - name: PHP version
+        run: php -v
 
       - name: Validate Composer
         run: composer validate --strict
 
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress
+
+      - name: PHP syntax check
+        run: |
+          find Src Tests -name "*.php" -print0 \
+            | xargs -0 -n1 php -l
 
       - name: PHP CS Fixer
         run: vendor/bin/php-cs-fixer check --diff
@@ -54,6 +60,7 @@ jobs:
 
     strategy:
       fail-fast: false
+
       matrix:
         php-version:
           - '8.1'
@@ -73,12 +80,12 @@ jobs:
           extensions: json,pdo_sqlite,sqlite3,redis,memcached
           coverage: none
 
-      - name: Update Composer
-        run: composer update
-        
-      - name: Validate composer
+      - name: PHP version
+        run: php -v
+
+      - name: Validate Composer
         run: composer validate --strict
-      
+
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress
 
@@ -87,16 +94,29 @@ jobs:
           php -r '
           $redis = new Redis();
           $redis->connect("127.0.0.1", 6379);
-          var_dump($redis->ping());
+
+          if ($redis->ping() === false) {
+              exit(1);
+          }
+
+          echo "Redis OK\n";
           '
 
       - name: Check Memcached
         run: |
           php -r '
-          $m = new Memcached();
-          $m->addServer("127.0.0.1", 11211);
-          $m->set("ci-test", "ok", 30);
-          var_dump($m->get("ci-test"));
+          $memcached = new Memcached();
+          $memcached->addServer("127.0.0.1", 11211);
+
+          if (!$memcached->set("ci-test", "ok", 30)) {
+              exit(1);
+          }
+
+          if ($memcached->get("ci-test") !== "ok") {
+              exit(1);
+          }
+
+          echo "Memcached OK\n";
           '
 
       - name: PHPUnit

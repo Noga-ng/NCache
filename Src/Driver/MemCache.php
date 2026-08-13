@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace NCache\Driver;
 
-use NCache\Config\Connection\MCached;
-use NCache\Exceptions\InvalidCacheArgumentException;
 use Memcached;
+use NCache\Config\Connection\MCached;
 use NCache\Core\CacheItem\CacheItem;
-use Override;
+use NCache\Exceptions\InvalidCacheArgumentException;
 
 final class MemCache extends CacheDriver
 {
@@ -20,7 +19,7 @@ final class MemCache extends CacheDriver
 
         if (!extension_loaded('redis')) {
             throw new InvalidCacheArgumentException(
-                'The Memcached driver requires ext-memcached.'
+                'The Memcached driver requires ext-memcached.',
             );
         }
     }
@@ -36,7 +35,7 @@ final class MemCache extends CacheDriver
             new MCached(
                 $config['host'],
                 $config['port'],
-                $config['weight']
+                $config['weight'],
             );
     }
 
@@ -75,7 +74,7 @@ final class MemCache extends CacheDriver
     protected function format(): string
     {
         return serialize(
-            $this->item->getData()
+            $this->item->getData(),
         );
     }
 
@@ -86,7 +85,7 @@ final class MemCache extends CacheDriver
         if (!$client->set(
             $this->key(),
             $this->format(),
-            0
+            0,
         )) {
             return false;
         }
@@ -102,7 +101,7 @@ final class MemCache extends CacheDriver
         $client = $this->client();
 
         $client->get(
-            $this->key()
+            $this->key(),
         );
 
         return $client->getResultCode()
@@ -117,7 +116,7 @@ final class MemCache extends CacheDriver
         $client = $this->client();
 
         $raw = $client->get(
-            $this->key()
+            $this->key(),
         );
 
         if (
@@ -130,18 +129,18 @@ final class MemCache extends CacheDriver
 
         if (!\is_string($raw)) {
             throw new InvalidCacheArgumentException(
-                'Memcached cache data must be a serialized string.'
+                'Memcached cache data must be a serialized string.',
             );
         }
 
         $data = unserialize(
             $raw,
-            ['allowed_classes' => false]
+            ['allowed_classes' => false],
         );
 
         if (!\is_array($data)) {
             throw new InvalidCacheArgumentException(
-                'Invalid Memcached cache data.'
+                'Invalid Memcached cache data.',
             );
         }
 
@@ -153,7 +152,7 @@ final class MemCache extends CacheDriver
         $client = $this->client();
 
         $client->delete(
-            $this->key()
+            $this->key(),
         );
 
         $this->unregisterKey();
@@ -166,7 +165,7 @@ final class MemCache extends CacheDriver
         $client = $this->client();
 
         $keys = $client->get(
-            $this->namespaceIndexKey()
+            $this->namespaceIndexKey(),
         );
 
         if (!\is_array($keys) || $keys === []) {
@@ -174,7 +173,7 @@ final class MemCache extends CacheDriver
         }
 
         $deleted = $client->deleteMulti(
-            $keys
+            $keys,
         );
 
         $count = 0;
@@ -186,7 +185,7 @@ final class MemCache extends CacheDriver
         }
 
         $client->delete(
-            $this->namespaceIndexKey()
+            $this->namespaceIndexKey(),
         );
 
         return $count;
@@ -197,7 +196,7 @@ final class MemCache extends CacheDriver
         $client = $this->client();
 
         $namespaces = $client->get(
-            $this->namespacesIndexKey()
+            $this->namespacesIndexKey(),
         );
 
         if (!\is_array($namespaces)) {
@@ -214,7 +213,7 @@ final class MemCache extends CacheDriver
             $indexKey = "ncache:index:{$namespace}";
 
             $keys = $client->get(
-                $indexKey
+                $indexKey,
             );
 
             if (!\is_array($keys)) {
@@ -235,7 +234,7 @@ final class MemCache extends CacheDriver
         }
 
         $client->delete(
-            $this->namespacesIndexKey()
+            $this->namespacesIndexKey(),
         );
 
         return $count;
@@ -262,10 +261,10 @@ final class MemCache extends CacheDriver
         if (!$client->set(
             $index,
             $keys,
-            0
+            0,
         )) {
             throw new InvalidCacheArgumentException(
-                'Unable to update Memcached namespace index.'
+                'Unable to update Memcached namespace index.',
             );
         }
     }
@@ -275,7 +274,7 @@ final class MemCache extends CacheDriver
         $client = $this->client();
 
         $keys = $client->get(
-            $this->namespaceIndexKey()
+            $this->namespaceIndexKey(),
         );
 
         if (!\is_array($keys)) {
@@ -285,15 +284,15 @@ final class MemCache extends CacheDriver
         $keys = array_values(
             array_filter(
                 $keys,
-                fn(mixed $key): bool
+                fn (mixed $key): bool
                     => \is_string($key)
-                    && $key !== $this->key()
-            )
+                    && $key !== $this->key(),
+            ),
         );
 
         if ($keys === []) {
             $client->delete(
-                $this->namespaceIndexKey()
+                $this->namespaceIndexKey(),
             );
 
             return;
@@ -302,7 +301,7 @@ final class MemCache extends CacheDriver
         $client->set(
             $this->namespaceIndexKey(),
             $keys,
-            0
+            0,
         );
     }
 
@@ -311,7 +310,7 @@ final class MemCache extends CacheDriver
         $client = $this->client();
 
         $namespaces = $client->get(
-            $this->namespacesIndexKey()
+            $this->namespacesIndexKey(),
         );
 
         if (!\is_array($namespaces)) {
@@ -323,7 +322,7 @@ final class MemCache extends CacheDriver
         if (!\in_array(
             $namespace,
             $namespaces,
-            true
+            true,
         )) {
             $namespaces[] = $namespace;
         }
@@ -331,7 +330,7 @@ final class MemCache extends CacheDriver
         $client->set(
             $this->namespacesIndexKey(),
             $namespaces,
-            0
+            0,
         );
     }
 
