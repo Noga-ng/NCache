@@ -10,13 +10,13 @@ use NCache\Contract\Clock;
 use NCache\Core\CacheItem\CacheItem;
 use NCache\Core\Clock\SystemClock;
 use NCache\Core\TtlManager\TtlManager;
-use NCache\Core\CachePath;
 use NCache\Core\Hash;
 use NCache\Driver\CacheDriver;
 use NCache\Enum\CType;
 use NCache\Enum\TtlState;
 use NCache\Exceptions\CacheHandleException;
 use NCache\Exceptions\InvalidCacheArgumentException;
+use NCache\Exceptions\UnexpectedConfigException;
 use NCache\Registry\CacheRegistry;
 use NCache\Registry\DriverRegistry;
 use Throwable;
@@ -29,34 +29,42 @@ final class NCache implements CacheInterface
     private CacheItem $cacheItem;
     private Clock $clock;
 
-    /**
-     * @param string $key
-     * @param CType $type
-     */
-    private function __construct(string $key, CType $type)
+    private function __construct(string $key, ?CType $type = null)
     {
-        $basePath = new CachePath(CacheConfig::config()->getBasePath());
-        $this->cacheItem = new CacheItem($key, $type, $basePath);
+        self::obligatorKey($key);
+
+        $config = self::config();
+
+        $ctype = $type
+            ?? $config->getDefaultDriver()
+            ?? throw new InvalidCacheArgumentException(
+                'Default driver is not defined.'
+            );
+
+        $this->cacheItem = new CacheItem(
+            $key,
+            $ctype,
+            $config
+        );
+
         $this->clock = new SystemClock();
     }
 
     /**
      * @param string $key
-     * @param CType $type
-     * @return static
+     * @param ?CType $type
+     * @return self
      */
-    public static function key(string $key, CType $type): static
+    public static function key(string $key, ?CType $type = null): self
     {
-        self::obligatorKey($key);
-        $instance = new NCache($key, $type);
-        return $instance;
+        return new self($key, $type);
     }
 
     /**
-     * @param non-empty-string $dir
+     * @param string $dir
      * @return static
      */
-    public function dir(string $dir): static
+    public function dir(string $dir = ''): static
     {
         $this->cacheItem->setDir($dir);
         return $this;
@@ -79,7 +87,7 @@ final class NCache implements CacheInterface
      * @param positive-int|null $ttl
      * @return static
      */
-    public function ttl(?int $ttl): static
+    public function ttl(?int $ttl = null): static
     {
         $this->cacheItem->setTtl($ttl, $this->clock);
         return $this;
@@ -144,8 +152,10 @@ final class NCache implements CacheInterface
 
             return true;
         } catch (Throwable $e) {
-            CacheHandleException::handle($e);
-            return false;
+            throw new CacheHandleException(
+                "Error as expected : ",
+                previous: $e
+            );
         }
     }
 
@@ -229,11 +239,11 @@ final class NCache implements CacheInterface
     }
 
     /**
-     * @param CType $type
+     * @param ?CType $type
      * @param string $dir
      * @return int
      */
-    public static function clear(CType $type, string $dir = ''): int
+    public static function clear(?CType $type = null, string $dir = ''): int
     {
         $instance = new self('__internal__', $type);
 
@@ -247,7 +257,7 @@ final class NCache implements CacheInterface
         $deleted = $driver->clear();
 
         if (\in_array(
-            $type,
+            $instance->cacheItem->type(),
             [CType::SQLite, CType::REDIS, CType::MEMCACHED],
             true
         )) {
@@ -304,12 +314,13 @@ final class NCache implements CacheInterface
     }
 
     /**
-     * @param string $baseDir
+     * load a file configuration
+     * @param string $filename
      * @return CacheConfig
      */
-    public static function config(string $baseDir): CacheConfig
+    public static function config(?string $filename = null): CacheConfig
     {
-        return CacheConfig::config($baseDir);
+        return CacheConfig::config($filename);
     }
 
     /**

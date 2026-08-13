@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit bootstrap="vendor/autoload.php" colors="true" stopOnFailure="false" backupGlobals="false" cacheDirectory=".phpunit.cache" backupStaticProperties="false">
   <testsuites>
-    <testsuite name="Builder SQL Suite">
+    <testsuite name="NCache Suite">
       <directory>./Tests/Units</directory>
     </testsuite>
   </testsuites>

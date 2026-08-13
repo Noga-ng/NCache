@@ -122,10 +122,10 @@ final class CacheRegistry
      */
     private function readData(): array
     {
-        $data = (new ReadFile(
+        $data = new ReadFile(
             $this->path(),
             CType::SERIALIZE
-        ))->get();
+        )->get();
 
         if (!\is_array($data)) {
             throw new InvalidCacheArgumentException(
@@ -405,7 +405,7 @@ final class CacheRegistry
             $this->getAll()
         );
 
-        (new CacheCleaner(['nc']))
+        new CacheCleaner(['nc'])
             ->delete($this->path());
 
         return $count;
@@ -422,13 +422,13 @@ final class CacheRegistry
     private function writeData(array $registry): bool
     {
         if ($registry['entries'] === []) {
-            return (new CacheCleaner(['nc']))
+            return new CacheCleaner(['nc'])
                 ->delete($this->path());
         }
 
-        return (new WriteFile(
+        return new WriteFile(
             $this->path(),
             serialize($registry)
-        ))->save();
+        )->save();
     }
 }

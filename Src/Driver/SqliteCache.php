@@ -5,13 +5,26 @@ declare(strict_types=1);
 namespace NCache\Driver;
 
 use NCache\Config\Connection\SQLitePdo;
+use NCache\Core\CacheItem\CacheItem;
 use NCache\Core\Hash;
 use NCache\Exceptions\InvalidCacheArgumentException;
+use Override;
 
 final class SqliteCache extends CacheDriver
 {
     private ?SQLitePdo $connection = null;
 
+
+    public function __construct(CacheItem $item)
+    {
+        parent::__construct($item);
+
+        if (!extension_loaded('redis')) {
+            throw new InvalidCacheArgumentException(
+                'The SQLite driver requires ext-pdo_sqlite.'
+            );
+        }
+    }
     private function conn(): SQLitePdo
     {
         return $this->connection ??=
@@ -28,7 +41,7 @@ final class SqliteCache extends CacheDriver
                 'SQLite cache requires a directory.'
             );
         }
-        return 'cache_' . (new Hash($t))->get();
+        return 'cache_' . new Hash($t)->get();
     }
 
     private function ensureTable(): void

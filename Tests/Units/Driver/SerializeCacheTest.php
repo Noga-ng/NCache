@@ -320,30 +320,43 @@ final class SerializeCacheTest extends TestsUnit
 
     public function testCacheDirectoryIsCreatedAutomatically(): void
     {
-        $nestedDirectory = $this->directory
-            . DIRECTORY_SEPARATOR
-            . 'nested'
-            . DIRECTORY_SEPARATOR
-            . 'serialize';
-
         $item = new CacheItem(
             'automatic-directory',
-            CType::SERIALIZE,
-            new CachePath($nestedDirectory)
+            CType::JSON,
+            $this->config()
+        );
+
+        $item->setDir(
+            'nested/serial'
         );
 
         $item->setData([
             'created' => true,
         ]);
 
-        $driver = new SerializeCache($item);
+        self::assertDirectoryExists(
+            $item->path()
+        );
 
-        self::assertDirectoryDoesNotExist($nestedDirectory);
+        $driver = new SerializeCache(
+            $item
+        );
 
-        self::assertTrue($driver->save());
+        self::assertFileDoesNotExist(
+            $driver->getFile()
+        );
 
-        self::assertDirectoryExists($nestedDirectory);
-        self::assertFileExists($driver->getFile());
+        self::assertTrue(
+            $driver->save()
+        );
+
+        self::assertDirectoryExists(
+            $item->path()
+        );
+
+        self::assertFileExists(
+            $driver->getFile()
+        );
     }
 
     public function testMultipleSuccessiveSavesKeepLatestContent(): void
@@ -357,7 +370,7 @@ final class SerializeCacheTest extends TestsUnit
                 'version' => $version,
             ]);
 
-            (new SerializeCache($item))->save();
+            new SerializeCache($item)->save();
         }
 
         $readerItem = $this->createSerializeItem($key);

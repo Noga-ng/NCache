@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NCache\Tests\Units\Registry;
 
+use NCache\Core\CacheItem\CacheItem;
 use NCache\Exceptions\InvalidCacheArgumentException;
 use NCache\Registry\CacheRegistry;
 use NCache\Tests\TestsUnit\TestsUnit;
@@ -14,35 +15,60 @@ final class CacheRegistryTest extends TestsUnit
     {
         parent::setUp();
 
-        $this->directory('ncache-registry-');
+        $this->directory(
+            'ncache-registry-'
+        );
     }
 
     protected function tearDown(): void
     {
-        $this->removeDirectory($this->directory);
+        $this->removeDirectory(
+            $this->directory
+        );
 
         parent::tearDown();
     }
 
     public function testRegistryStartsWithVersionOne(): void
     {
-        $item = $this->createJsonItem('users');
-        $registry = new CacheRegistry($item);
+        $item = $this->createJsonItem(
+            'users'
+        );
 
-        self::assertTrue($registry->save());
+        $registry = new CacheRegistry(
+            $item
+        );
+
+        self::assertTrue(
+            $registry->save()
+        );
 
         $data = $registry->getRegistry();
 
-        self::assertSame(1, $data['version']);
-        self::assertArrayHasKey('entries', $data);
+        self::assertSame(
+            1,
+            $data['version']
+        );
+
+        self::assertArrayHasKey(
+            'entries',
+            $data
+        );
     }
 
     public function testGetAllReturnsOnlyEntries(): void
     {
-        $item = $this->createJsonItem('users');
-        $registry = new CacheRegistry($item);
+        $item = $this->createJsonItem(
+            'users'
+        );
 
-        self::assertTrue($registry->save());
+        $registry = new CacheRegistry(
+            $item
+        );
+
+        self::assertTrue(
+            $registry->save()
+        );
 
         $entries = $registry->getAll();
 
@@ -59,22 +85,53 @@ final class CacheRegistryTest extends TestsUnit
 
     public function testMultipleEntriesAccumulateInsideEntries(): void
     {
-        $firstItem = $this->createJsonItem('first');
-        $secondItem = $this->createJsonItem('second');
-        $thirdItem = $this->createJsonItem('third');
+        $firstItem = $this->createJsonItem(
+            'first'
+        );
 
-        $first = new CacheRegistry($firstItem);
-        $second = new CacheRegistry($secondItem);
-        $third = new CacheRegistry($thirdItem);
+        $secondItem = $this->createJsonItem(
+            'second'
+        );
 
-        self::assertTrue($first->save());
-        self::assertTrue($second->save());
-        self::assertTrue($third->save());
+        $thirdItem = $this->createJsonItem(
+            'third'
+        );
+
+        $first = new CacheRegistry(
+            $firstItem
+        );
+
+        $second = new CacheRegistry(
+            $secondItem
+        );
+
+        $third = new CacheRegistry(
+            $thirdItem
+        );
+
+        self::assertTrue(
+            $first->save()
+        );
+
+        self::assertTrue(
+            $second->save()
+        );
+
+        self::assertTrue(
+            $third->save()
+        );
 
         $registry = $first->getRegistry();
 
-        self::assertSame(1, $registry['version']);
-        self::assertCount(3, $registry['entries']);
+        self::assertSame(
+            1,
+            $registry['version']
+        );
+
+        self::assertCount(
+            3,
+            $registry['entries']
+        );
 
         self::assertArrayHasKey(
             $firstItem->hashedKey(),
@@ -94,33 +151,67 @@ final class CacheRegistryTest extends TestsUnit
 
     public function testSavingSameKeyReplacesOnlyItsEntry(): void
     {
-        $firstItem = $this->createJsonItem('users');
-        $firstItem->setSignature('v1');
+        $firstItem = $this->createJsonItem(
+            'users'
+        );
 
-        $first = new CacheRegistry($firstItem);
+        $firstItem->setSignature(
+            'v1'
+        );
 
-        self::assertTrue($first->save());
+        $first = new CacheRegistry(
+            $firstItem
+        );
 
-        $secondItem = $this->createJsonItem('products');
-        $second = new CacheRegistry($secondItem);
+        self::assertTrue(
+            $first->save()
+        );
 
-        self::assertTrue($second->save());
+        $secondItem = $this->createJsonItem(
+            'products'
+        );
 
-        $updatedItem = $this->createJsonItem('users');
-        $updatedItem->setSignature('v2');
+        $second = new CacheRegistry(
+            $secondItem
+        );
 
-        $updated = new CacheRegistry($updatedItem);
+        self::assertTrue(
+            $second->save()
+        );
 
-        self::assertTrue($updated->save());
+        $updatedItem = $this->createJsonItem(
+            'users'
+        );
+
+        $updatedItem->setSignature(
+            'v2'
+        );
+
+        $updated = new CacheRegistry(
+            $updatedItem
+        );
+
+        self::assertTrue(
+            $updated->save()
+        );
 
         $data = $updated->getRegistry();
 
-        self::assertSame(1, $data['version']);
-        self::assertCount(2, $data['entries']);
+        self::assertSame(
+            1,
+            $data['version']
+        );
+
+        self::assertCount(
+            2,
+            $data['entries']
+        );
 
         self::assertSame(
             $updatedItem->getSignature(),
-            $data['entries'][$updatedItem->hashedKey()]['signature']
+            $data['entries'][
+                $updatedItem->hashedKey()
+            ]['signature']
         );
 
         self::assertArrayHasKey(
@@ -131,7 +222,9 @@ final class CacheRegistryTest extends TestsUnit
 
     public function testInvalidRegistryVersionTypeThrowsException(): void
     {
-        $item = $this->createJsonItem('invalid-version');
+        $item = $this->createJsonItem(
+            'invalid-version'
+        );
 
         $invalid = [
             'version' => '1',
@@ -140,12 +233,18 @@ final class CacheRegistryTest extends TestsUnit
 
         self::assertNotFalse(
             file_put_contents(
-                $this->registryPath(),
-                serialize($invalid)
+                $this->registryPath(
+                    $item
+                ),
+                serialize(
+                    $invalid
+                )
             )
         );
 
-        $registry = new CacheRegistry($item);
+        $registry = new CacheRegistry(
+            $item
+        );
 
         $this->expectException(
             InvalidCacheArgumentException::class
@@ -160,7 +259,9 @@ final class CacheRegistryTest extends TestsUnit
 
     public function testUnsupportedRegistryVersionThrowsException(): void
     {
-        $item = $this->createJsonItem('unsupported-version');
+        $item = $this->createJsonItem(
+            'unsupported-version'
+        );
 
         $invalid = [
             'version' => 2,
@@ -169,12 +270,18 @@ final class CacheRegistryTest extends TestsUnit
 
         self::assertNotFalse(
             file_put_contents(
-                $this->registryPath(),
-                serialize($invalid)
+                $this->registryPath(
+                    $item
+                ),
+                serialize(
+                    $invalid
+                )
             )
         );
 
-        $registry = new CacheRegistry($item);
+        $registry = new CacheRegistry(
+            $item
+        );
 
         $this->expectException(
             InvalidCacheArgumentException::class
@@ -189,7 +296,9 @@ final class CacheRegistryTest extends TestsUnit
 
     public function testInvalidEntriesStructureThrowsException(): void
     {
-        $item = $this->createJsonItem('invalid-entries');
+        $item = $this->createJsonItem(
+            'invalid-entries'
+        );
 
         $invalid = [
             'version' => 1,
@@ -198,12 +307,18 @@ final class CacheRegistryTest extends TestsUnit
 
         self::assertNotFalse(
             file_put_contents(
-                $this->registryPath(),
-                serialize($invalid)
+                $this->registryPath(
+                    $item
+                ),
+                serialize(
+                    $invalid
+                )
             )
         );
 
-        $registry = new CacheRegistry($item);
+        $registry = new CacheRegistry(
+            $item
+        );
 
         $this->expectException(
             InvalidCacheArgumentException::class
@@ -214,21 +329,45 @@ final class CacheRegistryTest extends TestsUnit
 
     public function testRemovePreservesRegistryVersion(): void
     {
-        $firstItem = $this->createJsonItem('first');
-        $secondItem = $this->createJsonItem('second');
+        $firstItem = $this->createJsonItem(
+            'first'
+        );
 
-        $first = new CacheRegistry($firstItem);
-        $second = new CacheRegistry($secondItem);
+        $secondItem = $this->createJsonItem(
+            'second'
+        );
 
-        self::assertTrue($first->save());
-        self::assertTrue($second->save());
+        $first = new CacheRegistry(
+            $firstItem
+        );
 
-        self::assertTrue($first->remove());
+        $second = new CacheRegistry(
+            $secondItem
+        );
+
+        self::assertTrue(
+            $first->save()
+        );
+
+        self::assertTrue(
+            $second->save()
+        );
+
+        self::assertTrue(
+            $first->remove()
+        );
 
         $registry = $second->getRegistry();
 
-        self::assertSame(1, $registry['version']);
-        self::assertCount(1, $registry['entries']);
+        self::assertSame(
+            1,
+            $registry['version']
+        );
+
+        self::assertCount(
+            1,
+            $registry['entries']
+        );
 
         self::assertArrayHasKey(
             $secondItem->hashedKey(),
@@ -238,43 +377,92 @@ final class CacheRegistryTest extends TestsUnit
 
     public function testRemovingLastEntryDeletesRegistryFile(): void
     {
-        $item = $this->createJsonItem('last-entry');
-
-        $registry = new CacheRegistry($item);
-
-        self::assertTrue($registry->save());
-        self::assertFileExists(
-            $this->registryPath()
+        $item = $this->createJsonItem(
+            'last-entry'
         );
 
-        self::assertTrue($registry->remove());
+        $registry = new CacheRegistry(
+            $item
+        );
+
+        self::assertTrue(
+            $registry->save()
+        );
+
+        self::assertFileExists(
+            $this->registryPath(
+                $item
+            )
+        );
+
+        self::assertTrue(
+            $registry->remove()
+        );
 
         self::assertFileDoesNotExist(
-            $this->registryPath()
+            $this->registryPath(
+                $item
+            )
         );
     }
 
     public function testRemoveMissingRemovesOnlyMissingFilesFromCurrentDirectory(): void
     {
-        $firstItem = $this->createJsonItem('first');
-        $secondItem = $this->createJsonItem('second');
+        $firstItem = $this->createJsonItem(
+            'first'
+        );
 
-        $firstFile = $this->createFile('json/first.json');
-        $secondFile = $this->createFile('json/second.json');
+        $secondItem = $this->createJsonItem(
+            'second'
+        );
 
-        $firstItem->setDir('json');
-        $secondItem->setDir('json');
+        $firstItem->setDir(
+            'json'
+        );
 
-        $first = new CacheRegistry($firstItem);
-        $second = new CacheRegistry($secondItem);
+        $secondItem->setDir(
+            'json'
+        );
 
-        $first->setFile($firstFile);
-        $second->setFile($secondFile);
+        $firstFile = $this->createCacheFile(
+            $firstItem,
+            'first.json'
+        );
 
-        self::assertTrue($first->save());
-        self::assertTrue($second->save());
+        $secondFile = $this->createCacheFile(
+            $secondItem,
+            'second.json'
+        );
 
-        self::assertTrue(unlink($firstFile));
+        $first = new CacheRegistry(
+            $firstItem
+        );
+
+        $second = new CacheRegistry(
+            $secondItem
+        );
+
+        $first->setFile(
+            $firstFile
+        );
+
+        $second->setFile(
+            $secondFile
+        );
+
+        self::assertTrue(
+            $first->save()
+        );
+
+        self::assertTrue(
+            $second->save()
+        );
+
+        self::assertTrue(
+            unlink(
+                $firstFile
+            )
+        );
 
         self::assertSame(
             1,
@@ -296,33 +484,76 @@ final class CacheRegistryTest extends TestsUnit
 
     public function testRemoveMissingDoesNotRemoveAnotherType(): void
     {
-        $jsonItem = $this->createJsonItem('json-cache');
-        $serializeItem = $this->createSerializeItem('serialize-cache');
+        $jsonItem = $this->createJsonItem(
+            'json-cache'
+        );
 
-        $jsonItem->setDir('shared');
-        $serializeItem->setDir('shared');
+        $serializeItem
+            = $this->createSerializeItem(
+                'serialize-cache'
+            );
 
-        $jsonFile = $this->createFile('shared/json.json');
-        $serializeFile = $this->createFile('shared/serialize.dat');
+        $jsonItem->setDir(
+            'shared'
+        );
 
-        $jsonRegistry = new CacheRegistry($jsonItem);
-        $serializeRegistry = new CacheRegistry($serializeItem);
+        $serializeItem->setDir(
+            'shared'
+        );
 
-        $jsonRegistry->setFile($jsonFile);
-        $serializeRegistry->setFile($serializeFile);
+        $jsonFile = $this->createCacheFile(
+            $jsonItem,
+            'json.json'
+        );
 
-        self::assertTrue($jsonRegistry->save());
-        self::assertTrue($serializeRegistry->save());
+        $serializeFile = $this->createCacheFile(
+            $serializeItem,
+            'serialize.dat'
+        );
 
-        self::assertTrue(unlink($jsonFile));
-        self::assertTrue(unlink($serializeFile));
+        $jsonRegistry = new CacheRegistry(
+            $jsonItem
+        );
+
+        $serializeRegistry = new CacheRegistry(
+            $serializeItem
+        );
+
+        $jsonRegistry->setFile(
+            $jsonFile
+        );
+
+        $serializeRegistry->setFile(
+            $serializeFile
+        );
+
+        self::assertTrue(
+            $jsonRegistry->save()
+        );
+
+        self::assertTrue(
+            $serializeRegistry->save()
+        );
+
+        self::assertTrue(
+            unlink(
+                $jsonFile
+            )
+        );
+
+        self::assertTrue(
+            unlink(
+                $serializeFile
+            )
+        );
 
         self::assertSame(
             1,
             $jsonRegistry->removeMissing()
         );
 
-        $entries = $jsonRegistry->getAll();
+        $entries
+            = $jsonRegistry->getAll();
 
         self::assertArrayNotHasKey(
             $jsonItem->hashedKey(),
@@ -337,38 +568,75 @@ final class CacheRegistryTest extends TestsUnit
 
     public function testRemoveMissingDoesNotRemoveSameTypeFromAnotherDirectory(): void
     {
-        $firstItem = $this->createJsonItem('first');
-        $secondItem = $this->createJsonItem('second');
-
-        $firstItem->setDir('json/first');
-        $secondItem->setDir('json/second');
-
-        $firstFile = $this->createFile(
-            'json/first/first.json'
+        $firstItem = $this->createJsonItem(
+            'first'
         );
 
-        $secondFile = $this->createFile(
-            'json/second/second.json'
+        $secondItem = $this->createJsonItem(
+            'second'
         );
 
-        $firstRegistry = new CacheRegistry($firstItem);
-        $secondRegistry = new CacheRegistry($secondItem);
+        $firstItem->setDir(
+            'json/first'
+        );
 
-        $firstRegistry->setFile($firstFile);
-        $secondRegistry->setFile($secondFile);
+        $secondItem->setDir(
+            'json/second'
+        );
 
-        self::assertTrue($firstRegistry->save());
-        self::assertTrue($secondRegistry->save());
+        $firstFile = $this->createCacheFile(
+            $firstItem,
+            'first.json'
+        );
 
-        self::assertTrue(unlink($firstFile));
-        self::assertTrue(unlink($secondFile));
+        $secondFile = $this->createCacheFile(
+            $secondItem,
+            'second.json'
+        );
+
+        $firstRegistry = new CacheRegistry(
+            $firstItem
+        );
+
+        $secondRegistry = new CacheRegistry(
+            $secondItem
+        );
+
+        $firstRegistry->setFile(
+            $firstFile
+        );
+
+        $secondRegistry->setFile(
+            $secondFile
+        );
+
+        self::assertTrue(
+            $firstRegistry->save()
+        );
+
+        self::assertTrue(
+            $secondRegistry->save()
+        );
+
+        self::assertTrue(
+            unlink(
+                $firstFile
+            )
+        );
+
+        self::assertTrue(
+            unlink(
+                $secondFile
+            )
+        );
 
         self::assertSame(
             1,
             $firstRegistry->removeMissing()
         );
 
-        $entries = $firstRegistry->getAll();
+        $entries
+            = $firstRegistry->getAll();
 
         self::assertArrayNotHasKey(
             $firstItem->hashedKey(),
@@ -383,40 +651,81 @@ final class CacheRegistryTest extends TestsUnit
 
     public function testRemoveMissingReturnsZeroWhenAllFilesExist(): void
     {
-        $item = $this->createJsonItem('existing');
-
-        $item->setDir('json');
-
-        $file = $this->createFile(
-            'json/existing.json'
+        $item = $this->createJsonItem(
+            'existing'
         );
 
-        $registry = new CacheRegistry($item);
-        $registry->setFile($file);
+        $item->setDir(
+            'json'
+        );
 
-        self::assertTrue($registry->save());
+        $file = $this->createCacheFile(
+            $item,
+            'existing.json'
+        );
+
+        $registry = new CacheRegistry(
+            $item
+        );
+
+        $registry->setFile(
+            $file
+        );
+
+        self::assertTrue(
+            $registry->save()
+        );
 
         self::assertSame(
             0,
             $registry->removeMissing()
         );
 
-        self::assertTrue($registry->has());
+        self::assertTrue(
+            $registry->has()
+        );
     }
 
     public function testRemoveCurrentScopeRemovesOnlyMatchingTypeAndNamespace(): void
     {
-        $usersFirst = $this->createSQLiteItem('user-1');
-        $usersSecond = $this->createSQLiteItem('user-2');
-        $admins = $this->createSQLiteItem('admin-1');
+        $usersFirst = $this->createSQLiteItem(
+            'user-1'
+        );
 
-        $usersFirst->setDir('users');
-        $usersSecond->setDir('users');
-        $admins->setDir('admins');
+        $usersSecond = $this->createSQLiteItem(
+            'user-2'
+        );
 
-        $usersFirstRegistry = new CacheRegistry($usersFirst);
-        $usersSecondRegistry = new CacheRegistry($usersSecond);
-        $adminsRegistry = new CacheRegistry($admins);
+        $admins = $this->createSQLiteItem(
+            'admin-1'
+        );
+
+        $usersFirst->setDir(
+            'users'
+        );
+
+        $usersSecond->setDir(
+            'users'
+        );
+
+        $admins->setDir(
+            'admins'
+        );
+
+        $usersFirstRegistry
+            = new CacheRegistry(
+                $usersFirst
+            );
+
+        $usersSecondRegistry
+            = new CacheRegistry(
+                $usersSecond
+            );
+
+        $adminsRegistry
+            = new CacheRegistry(
+                $admins
+            );
 
         self::assertTrue(
             $usersFirstRegistry->save()
@@ -432,7 +741,8 @@ final class CacheRegistryTest extends TestsUnit
 
         self::assertSame(
             2,
-            $usersFirstRegistry->removeCurrentScope()
+            $usersFirstRegistry
+                ->removeCurrentScope()
         );
 
         self::assertFalse(
@@ -458,16 +768,23 @@ final class CacheRegistryTest extends TestsUnit
             'same-key'
         );
 
-        $sqlite->setDir('users');
-        $redis->setDir('users');
-
-        $sqliteRegistry = new CacheRegistry(
-            $sqlite
+        $sqlite->setDir(
+            'users'
         );
 
-        $redisRegistry = new CacheRegistry(
-            $redis
+        $redis->setDir(
+            'users'
         );
+
+        $sqliteRegistry
+            = new CacheRegistry(
+                $sqlite
+            );
+
+        $redisRegistry
+            = new CacheRegistry(
+                $redis
+            );
 
         self::assertTrue(
             $sqliteRegistry->save()
@@ -479,7 +796,8 @@ final class CacheRegistryTest extends TestsUnit
 
         self::assertSame(
             1,
-            $sqliteRegistry->removeCurrentScope()
+            $sqliteRegistry
+                ->removeCurrentScope()
         );
 
         self::assertFalse(
@@ -493,42 +811,61 @@ final class CacheRegistryTest extends TestsUnit
 
     public function testRemoveByTypeRemovesAllNamespacesOfCurrentType(): void
     {
-        $sqliteUsers = $this->createSQLiteItem(
-            'sqlite-users'
+        $sqliteUsers
+            = $this->createSQLiteItem(
+                'sqlite-users'
+            );
+
+        $sqliteAdmins
+            = $this->createSQLiteItem(
+                'sqlite-admins'
+            );
+
+        $redis
+            = $this->createRedisItem(
+                'redis-users'
+            );
+
+        $json
+            = $this->createJsonItem(
+                'json-users'
+            );
+
+        $sqliteUsers->setDir(
+            'users'
         );
 
-        $sqliteAdmins = $this->createSQLiteItem(
-            'sqlite-admins'
+        $sqliteAdmins->setDir(
+            'admins'
         );
 
-        $redis = $this->createRedisItem(
-            'redis-users'
+        $redis->setDir(
+            'users'
         );
 
-        $json = $this->createJsonItem(
-            'json-users'
+        $json->setDir(
+            'users'
         );
 
-        $sqliteUsers->setDir('users');
-        $sqliteAdmins->setDir('admins');
-        $redis->setDir('users');
-        $json->setDir('users');
+        $sqliteUsersRegistry
+            = new CacheRegistry(
+                $sqliteUsers
+            );
 
-        $sqliteUsersRegistry = new CacheRegistry(
-            $sqliteUsers
-        );
+        $sqliteAdminsRegistry
+            = new CacheRegistry(
+                $sqliteAdmins
+            );
 
-        $sqliteAdminsRegistry = new CacheRegistry(
-            $sqliteAdmins
-        );
+        $redisRegistry
+            = new CacheRegistry(
+                $redis
+            );
 
-        $redisRegistry = new CacheRegistry(
-            $redis
-        );
-
-        $jsonRegistry = new CacheRegistry(
-            $json
-        );
+        $jsonRegistry
+            = new CacheRegistry(
+                $json
+            );
 
         self::assertTrue(
             $sqliteUsersRegistry->save()
@@ -548,7 +885,8 @@ final class CacheRegistryTest extends TestsUnit
 
         self::assertSame(
             2,
-            $sqliteUsersRegistry->removeByType()
+            $sqliteUsersRegistry
+                ->removeByType()
         );
 
         self::assertFalse(
@@ -574,7 +912,9 @@ final class CacheRegistryTest extends TestsUnit
             'sqlite-only'
         );
 
-        $item->setDir('users');
+        $item->setDir(
+            'users'
+        );
 
         $registry = new CacheRegistry(
             $item
@@ -593,15 +933,53 @@ final class CacheRegistryTest extends TestsUnit
             [],
             $registry->getAll()
         );
+
+        self::assertFileDoesNotExist(
+            $this->registryPath(
+                $item
+            )
+        );
     }
 
-    private function registryPath(): string
-    {
+    private function registryPath(
+        CacheItem $item
+    ): string {
         return rtrim(
-            $this->directory,
+            $item->basePath(),
             '/\\'
         )
             . DIRECTORY_SEPARATOR
             . 'NCache.nc';
+    }
+
+    private function createCacheFile(
+        CacheItem $item,
+        string $name,
+        string $content = 'cache'
+    ): string {
+        $directory = $item->path();
+
+        if (!is_dir($directory)) {
+            self::assertTrue(
+                mkdir(
+                    $directory,
+                    0o777,
+                    true
+                )
+            );
+        }
+
+        $file = $directory
+            . DIRECTORY_SEPARATOR
+            . $name;
+
+        self::assertNotFalse(
+            file_put_contents(
+                $file,
+                $content
+            )
+        );
+
+        return $file;
     }
 }

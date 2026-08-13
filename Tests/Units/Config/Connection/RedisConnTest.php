@@ -41,10 +41,10 @@ final class RedisConnTest extends TestCase
 
     public function testConnectionCanPingServer(): void
     {
-        $redis = (new RedisConn(
+        $redis = new RedisConn(
             self::HOST,
             self::PORT
-        ))->connect();
+        )->connect();
 
         self::assertTrue(
             $redis->ping()
@@ -53,10 +53,10 @@ final class RedisConnTest extends TestCase
 
     public function testConnectionCanWriteAndRead(): void
     {
-        $redis = (new RedisConn(
+        $redis = new RedisConn(
             self::HOST,
             self::PORT
-        ))->connect();
+        )->connect();
 
         $key = 'ncache:test:redis-connection';
 
@@ -77,10 +77,10 @@ final class RedisConnTest extends TestCase
 
     public function testConnectionCanDeleteValue(): void
     {
-        $redis = (new RedisConn(
+        $redis = new RedisConn(
             self::HOST,
             self::PORT
-        ))->connect();
+        )->connect();
 
         $key = 'ncache:test:redis-delete';
 

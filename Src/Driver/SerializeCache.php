@@ -6,19 +6,27 @@ namespace NCache\Driver;
 
 use NCache\Core\CacheItem\CacheItem;
 use NCache\Core\Files\CacheCleaner;
-use NCache\Core\Files\WriteFile;
 use NCache\Core\Files\ReadFile;
-use NCache\Enum\CType;
+use NCache\Core\Files\WriteFile;
 use NCache\Driver\CacheDriver;
+use NCache\Enum\CType;
 
 final class SerializeCache extends CacheDriver
 {
+    private string $extension;
+
     public function __construct(CacheItem $item)
     {
         parent::__construct($item);
-        $this->cacheCleaner = new CacheCleaner(['nc']);
+        $this->extension = $this->item->extension() !== null
+            ? "{$this->item->extension()}"
+            : 'nc';
+        $this->cacheCleaner = new CacheCleaner(
+            [
+                $this->extension,
+            ]
+        );
     }
-
 
     protected function format(): string
     {
@@ -27,15 +35,15 @@ final class SerializeCache extends CacheDriver
 
     private function buildFile(): string
     {
-        return $this->item->file() . ".nc";
+        return $this->item->file() . ".{$this->extension}";
     }
 
     public function save(): bool
     {
-        return (new WriteFile(
+        return new WriteFile(
             $this->buildFile(),
             $this->format()
-        ))->save();
+        )->save();
     }
 
     /**
@@ -43,10 +51,10 @@ final class SerializeCache extends CacheDriver
      */
     public function get(): mixed
     {
-        return (new ReadFile(
+        return new ReadFile(
             $this->buildFile(),
             CType::SERIALIZE
-        ))->get();
+        )->get();
     }
 
     public function getFile(): string
@@ -61,14 +69,15 @@ final class SerializeCache extends CacheDriver
 
     public function delete(): bool
     {
-        return $this->cacheCleaner
-                ->delete($this->buildFile());
+        return $this
+            ->cacheCleaner
+            ->delete($this->buildFile());
     }
 
     public function clear(): int
     {
-        return $this->cacheCleaner
-                 ->clear($this->item->path());
+        return $this
+            ->cacheCleaner
+            ->clear($this->item->path());
     }
-
 }

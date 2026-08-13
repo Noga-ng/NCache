@@ -7,8 +7,8 @@ namespace NCache\Tests\Units;
 use NCache\Config\CacheConfig;
 use NCache\Core\Clock\Duration;
 use NCache\Enum\CType;
-use NCache\NCache;
 use NCache\Tests\TestsUnit\TestsUnit;
+use NCache\NCache;
 
 final class NCacheTest extends TestsUnit
 {
@@ -21,8 +21,8 @@ final class NCacheTest extends TestsUnit
         );
 
         NCache::config(
-            $this->directory
-        );
+            $this->configFile
+        )->use('default');
     }
 
     protected function tearDown(): void
@@ -39,7 +39,7 @@ final class NCacheTest extends TestsUnit
     public function testConfigReturnsCacheConfig(): void
     {
         $config = NCache::config(
-            $this->directory
+            $this->configFile
         );
 
         self::assertInstanceOf(
@@ -48,7 +48,7 @@ final class NCacheTest extends TestsUnit
         );
 
         self::assertSame(
-            $this->directory,
+            $this->config()->getBasePath(),
             $config->getBasePath()
         );
     }
@@ -97,6 +97,102 @@ final class NCacheTest extends TestsUnit
             $cache->ttl(
                 Duration::days(1)
             )
+        );
+    }
+
+    public function testKeyUsesDefaultDriverWhenTypeIsOmitted(): void
+    {
+        $cache = NCache::key(
+            'default-driver'
+        );
+
+        self::assertSame(
+            'JSON',
+            $cache->show()['type']
+        );
+    }
+
+    public function testExplicitDriverOverridesDefaultDriver(): void
+    {
+        $cache = NCache::key(
+            'explicit-driver',
+            CType::SERIALIZE
+        );
+
+        self::assertSame(
+            'SERIALIZE',
+            $cache->show()['type']
+        );
+    }
+
+    public function testCacheIsForeverWhenTtlIsNotCalled(): void
+    {
+        $cache = NCache::key(
+            'forever'
+        )->set([
+            'id' => 1,
+        ]);
+
+        self::assertTrue(
+            $cache->put()
+        );
+
+        $registry = $cache->getRegistry();
+
+        self::assertNotNull($registry);
+        self::assertNull($registry['ttl']);
+        self::assertNull($registry['expiresAt']);
+    }
+
+    public function testTtlWithoutArgumentUsesDefaultTtl(): void
+    {
+        $cache = NCache::key(
+            'default-ttl'
+        )
+            ->ttl()
+            ->set([
+                'id' => 1,
+            ]);
+
+        self::assertTrue(
+            $cache->put()
+        );
+
+        $registry = $cache->getRegistry();
+
+        self::assertNotNull($registry);
+
+        self::assertSame(
+            3600,
+            $registry['ttl']
+        );
+
+        self::assertIsInt(
+            $registry['expiresAt']
+        );
+    }
+
+    public function testExplicitTtlOverridesDefaultTtl(): void
+    {
+        $cache = NCache::key(
+            'explicit-ttl'
+        )
+            ->ttl(120)
+            ->set([
+                'id' => 1,
+            ]);
+
+        self::assertTrue(
+            $cache->put()
+        );
+
+        $registry = $cache->getRegistry();
+
+        self::assertNotNull($registry);
+
+        self::assertSame(
+            120,
+            $registry['ttl']
         );
     }
 
@@ -954,7 +1050,6 @@ final class NCacheTest extends TestsUnit
         );
     }
 
-
     public function testSQLiteClearKeepsAnotherNamespace(): void
     {
         $usersFirst = NCache::key(
@@ -1062,6 +1157,4 @@ final class NCacheTest extends TestsUnit
             $json->has()
         );
     }
-
-
 }

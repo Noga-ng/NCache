@@ -17,7 +17,7 @@ final class RedisCacheTest extends TestsUnit
     {
         parent::setUp();
         $this->directory("redis-driver");
-        $this->client = (new RedisConn())->connect();
+        $this->client = new RedisConn()->connect();
 
         self::assertTrue(
             $this->client->isConnected()

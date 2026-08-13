@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace NCache\Core\CacheItem;
 
+use NCache\Config\CacheConfig;
 use NCache\Contract\Clock;
+use NCache\Core\TtlManager\Expiration;
 use NCache\Core\CachePath;
 use NCache\Core\Hash;
-use NCache\Core\TtlManager\Expiration;
 use NCache\Enum\CType;
 
 /**
@@ -18,22 +19,41 @@ final class CacheItem
     /** @var Expiration|null */
     private ?Expiration $expiration = null;
     private bool $ttlDefined = false;
-
     /** @var string|null */
     private ?string $signature = null;
-
     /** @var array<array-key,mixed> */
     private array $data = [];
+    private CachePath $cachePath;
 
     public function __construct(
         private readonly string $key,
         private readonly CType $type,
-        private CachePath $cachePath
-    ) {}
+        private readonly CacheConfig $config
+    ) {
+        $this->cachePath = new CachePath(
+            $this->config->getBasePath()
+        );
 
-    public function setDir(string $dir): void
+        $namespace = $this->config->getNamespace();
+
+        if ($namespace !== null && trim($namespace) !== '') {
+            $this->cachePath = $this->cachePath->dir(
+                $namespace
+            );
+        }
+    }
+
+    /**
+     * @param string $dirname
+     * @return void
+     */
+    public function setDir(?string $dirname = null): void
     {
-        $this->cachePath = $this->cachePath->dir($dir);
+        $namespace = ($dirname === null || trim($dirname) === '')
+            ? $this->config->getNamespace()
+            : $dirname;
+
+        $this->cachePath = $this->cachePath->dir($namespace);
     }
 
     /**
@@ -42,7 +62,7 @@ final class CacheItem
      */
     public function setSignature(mixed $signature): void
     {
-        $this->signature = (new Hash($signature))->get();
+        $this->signature = new Hash($signature)->get();
     }
 
     /**
@@ -68,6 +88,10 @@ final class CacheItem
      */
     public function setTtl(?int $ttl, Clock $clock): void
     {
+        $ttl = ($ttl === null)
+        ? $this->config->getDefaultTtl()
+        : $ttl;
+
         $this->expiration = Expiration::fromTTL($ttl, $clock);
         $this->ttlDefined = true;
     }
@@ -99,12 +123,12 @@ final class CacheItem
 
     public function hashedKey(): string
     {
-        $dir = $this->getDir() ?? "default";
-        return (new Hash([
+        $dir = $this->getDir() ?? 'default';
+        return new Hash([
             'type' => $this->typeName(),
             'dir' => $dir,
             'key' => $this->key(),
-        ]))->get();
+        ])->get();
     }
 
     public function type(): CType
@@ -172,6 +196,53 @@ final class CacheItem
     }
 
     /**
+     * @return array{
+     *     host:string,
+     *     port:int,
+     *     timeout:int|float,
+     *     password:string|null,
+     *     database:int
+     * }|null
+     */
+    public function redisConfig(): ?array
+    {
+        if ($this->type !== CType::REDIS) {
+            return null;
+        }
+
+        return $this->config->getRedis();
+    }
+
+    /**
+     * @return array{
+     *     host:string,
+     *     port:int,
+     *     weight:int
+     * }|null
+     */
+    public function memcachedConfig(): ?array
+    {
+        if ($this->type !== CType::MEMCACHED) {
+            return null;
+        }
+
+        return $this->config->getMemcached();
+    }
+
+    public function extension(): ?string
+    {
+        return match ($this->type) {
+            CType::JSON => 'json',
+            CType::SERIALIZE,
+            CType::STRING
+                => $this->config->getExtension(
+                    $this->type
+                ),
+            default => null,
+        };
+    }
+
+    /**
      * @return array<array-key,mixed>
      */
     public function getData(): array
@@ -196,6 +267,7 @@ final class CacheItem
             'type' => $this->typeName(),
             'name' => $this->key(),
             'key' => $this->hashedKey(),
+            'namespace' => $this->getDir(),
             'signature' => $this->getSignature(),
             'ttl' => $this->ttlValue(),
             'expiresAt' => $this->expiredAt(),

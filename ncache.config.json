@@ -1,0 +1,58 @@
+{
+  "shared": {
+    "cachePath": "./cache/shared",
+    "defaultDriver": "SERIALIZE",
+    "namespace": "default",
+    "extensions": {
+      "SERIALIZE": "nc",
+      "STRING": "txt"
+    },
+    "defaultTtl": "days(2)",
+    "drivers": {
+      "redis": {
+        "host": "127.0.0.1",
+        "port": 6379,
+        "timeout": 0,
+        "password": null,
+        "database":0
+      },
+      "memcached": {
+        "host": "127.0.0.1",
+        "port": 11211,
+        "weight": 0
+      }
+    }
+  },
+
+  "admin": {
+    "cachePath": "./cache",
+    "defaultDriver": "SERIALIZE",
+    "namespace": "admin",
+    "extensions": {
+      "SERIALIZE": "nc",
+      "STRING": "txt"
+    },
+    "defaultTtl": "minutes(15)",
+    "driversFrom": "shared"
+  },
+
+  "users": {
+    "cachePath": "./storage/users",
+    "defaultDriver": "REDIS",
+    "namespace": "users",
+    "extensions": {},
+    "defaultTtl": "hours(1)",
+    "driversFrom": "shared"
+  },
+
+  "client": {
+    "cachePath": "./clients",
+    "defaultDriver": "JSON",
+    "namespace": "client",
+    "extensions": {
+      "JSON": "json"
+    },
+    "defaultTtl": "make(1,10,15,25)",
+    "driversFrom": "shared"
+  }
+}

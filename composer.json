@@ -11,11 +11,14 @@
     }
   ],
 
-  "require": {
-    "php": ">=8.1",
-    "ext-memcached": "*"
-  },
-
+"require": {
+    "php": ">=8.1"
+},
+"suggest": {
+    "ext-redis": "Required for the Redis cache driver.",
+    "ext-memcached": "Required for the Memcached cache driver.",
+    "ext-pdo_sqlite": "Required for the SQLite cache driver."
+},
   "autoload": {
     "psr-4": {
       "NCache\\": "Src/"

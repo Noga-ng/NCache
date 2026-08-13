@@ -1,150 +1,570 @@
 # NCache
 
-![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)
+A lightweight and flexible caching library for PHP 8.1+.
 
-NCache est une bibliothèque de mise en cache légère pour PHP. Elle fournit une interface simple et extensible pour stocker et récupérer des données en cache, avec la possibilité d'utiliser plusieurs drivers (mémoire, fichiers, Redis, SQLite, etc.) selon vos besoins.
+NCache provides a unified API for multiple cache backends while keeping configuration, expiration, namespaces, signatures, and cache metadata consistent across drivers.
 
-> Remarque : Ce README a été rédigé d'après l'analyse du dépôt. Il décrit l'API publique, les drivers inclus et les dépendances observées. Adaptez les exemples et la configuration aux besoins spécifiques.
+## Features
 
-## Caractéristiques
+- PHP 8.1+
+- JSON cache
+- Serialized PHP cache
+- String cache
+- SQLite cache
+- Redis cache
+- Memcached cache
+- Configurable default driver
+- Multiple cache profiles
+- Cache namespaces
+- TTL and default TTL
+- Human-readable TTL configuration
+- Shared driver configuration with `driversFrom`
+- Cache signatures
+- Cache registry
+- Per-driver and per-namespace cache clearing
+- Redis database selection
 
-- API simple pour set/get/delete/clear
-- Support pour plusieurs drivers (Array, Filesystem, Redis, Sqlite, Serialize, ...)
-- TTL (time-to-live) configurable par clé
-- Namespaces / préfixes pour éviter les collisions de clés
-- Registre interne des entrées (métadonnées, signature)
-- Extensible : possibilité d'ajouter de nouveaux drivers
-
-## Prérequis
+## Requirements
 
 - PHP >= 8.1
-- Selon le driver utilisé, certaines extensions PHP peuvent être nécessaires :
-  - Redis : ext-redis (phpredis)
-  - SQLite : pdo_sqlite ou sqlite3
-  - Memcached : ext-memcached
+- Composer
+
+Depending on the driver used:
+
+- Redis extension for Redis
+- Memcached extension for Memcached
+- PDO SQLite for SQLite
 
 ## Installation
-
-Avec Composer (si le paquet est publié sur Packagist) :
 
 ```bash
 composer require noga-ng/ncache
 ```
 
-Depuis le dépôt :
+## Quick Start
 
-```bash
-git clone https://github.com/Noga-ng/NCache.git
-cd NCache
-composer install
+Create a configuration file:
+
+```json
+{
+    "default": {
+        "cachePath": "./cache",
+        "defaultDriver": "JSON",
+        "namespace": "default",
+        "extensions": {
+            "SERIALIZE": "nc",
+            "STRING": "txt"
+        },
+        "defaultTtl": "hours(1)"
+    }
+}
 ```
 
-## Utilisation basique
-
-Exemple générique en PHP :
+Load the configuration:
 
 ```php
 <?php
-require 'vendor/autoload.php';
 
 use NCache\NCache;
-use NCache\Enum\CType;
 
-// Créer un cache sur une clé
-$cache = NCache::key('ma_cle', CType::STRING)
-    ->ttl(3600) // TTL en secondes
-    ->set('ma valeur');
-
-// Persister en utilisant le driver configuré
-$cache->put();
-
-// Récupérer
-$value = NCache::key('ma_cle', CType::STRING)->get();
-
-// Supprimer
-NCache::key('ma_cle', CType::STRING)->delete();
-
-// Vider tout le cache d'un type / répertoire
-NCache::clear(CType::STRING, 'mon_dir');
+NCache::config(
+    __DIR__ . '/ncache.config.json'
+)->use('default');
 ```
 
-Remarques : adaptez CType selon le type attendu (STRING, JSON, etc.). Consultez Src/Enum pour les valeurs exactes.
+Store a value:
+
+```php
+NCache::key('user.42')
+    ->set([
+        'id' => 42,
+        'name' => 'Noga',
+    ])
+    ->put();
+```
+
+Retrieve it:
+
+```php
+$user = NCache::key('user.42')->get();
+```
+
+Check whether it exists:
+
+```php
+if (NCache::key('user.42')->has()) {
+    // Cache exists and is still valid.
+}
+```
+
+Delete it:
+
+```php
+NCache::key('user.42')->delete();
+```
 
 ## Configuration
 
-La configuration centrale est gérée par Src/Config/CacheConfig.php. Elle permet de définir :
+NCache uses JSON configuration files containing one or more cache profiles.
 
-- Le dossier de base pour les fichiers de cache
-- Le comportement GC (selon implémentation)
-- Paramètres spécifiques aux drivers (chemins, hôtes, ports)
+```json
+{
+    "shared": {
+        "cachePath": "./cache/shared",
+        "defaultDriver": "SERIALIZE",
+        "namespace": "default",
+        "extensions": {
+            "SERIALIZE": "nc",
+            "STRING": "txt"
+        },
+        "defaultTtl": "days(2)",
+        "drivers": {
+            "redis": {
+                "host": "127.0.0.1",
+                "port": 6379,
+                "timeout": 0,
+                "password": null,
+                "database": 0
+            },
+            "memcached": {
+                "host": "127.0.0.1",
+                "port": 11211,
+                "timeout": 0
+            }
+        }
+    },
 
-Exemple de configuration (fichier `config.php`) :
+    "admin": {
+        "cachePath": "./cache",
+        "defaultDriver": "SERIALIZE",
+        "namespace": "admin",
+        "extensions": {
+            "SERIALIZE": "nc",
+            "STRING": "txt"
+        },
+        "defaultTtl": "minutes(15)",
+        "driversFrom": "shared"
+    },
+
+    "users": {
+        "cachePath": "./storage/users",
+        "defaultDriver": "REDIS",
+        "namespace": "users",
+        "extensions": {},
+        "defaultTtl": "hours(1)",
+        "driversFrom": "shared"
+    },
+
+    "client": {
+        "cachePath": "./clients",
+        "defaultDriver": "JSON",
+        "namespace": "client",
+        "extensions": {
+            "JSON": "json"
+        },
+        "defaultTtl": "make(1,10,15,25)",
+        "driversFrom": "shared"
+    }
+}
+```
+
+Select the profile you want to use:
 
 ```php
-return [
-    'base_path' => __DIR__ . '/cache',
-    'default_ttl' => 3600,
-    'drivers' => [
-        'redis' => [ 'host' => '127.0.0.1', 'port' => 6379 ],
-        'filesystem' => [ 'path' => __DIR__ . '/cache' ],
-    ],
-];
+NCache::config(
+    __DIR__ . '/ncache.config.json'
+)->use('users');
 ```
 
-## Drivers inclus
+### Relative Cache Paths
 
-Le dépôt contient plusieurs implémentations de drivers (Src/Driver) :
+Relative `cachePath` values are resolved from the directory containing the configuration file.
 
-- JsonCache : persistance JSON en fichier
-- SerializeCache : sérialisation PHP
-- SqliteCache : stockage dans une base SQLite
-- RedisCache : driver pour ext-redis (attention : certaines méthodes semblent à implémenter)
-- MemCached : driver pour memcached
-- StringCache : driver spécialisé pour valeurs string
+For example:
 
-Note : certains drivers (ex. RedisCache) contiennent des méthodes avec des retours factices dans le code actuel. Vérifiez l'implémentation avant utilisation en production.
-
-## Tests
-
-Le projet inclut une configuration PHPUnit (phpunit.xml). Pour exécuter les tests :
-
-```bash
-composer install --dev
-composer run phpunit
-# ou
-./vendor/bin/phpunit -c phpunit.xml
+```text
+/project
+├── config
+│   └── ncache.config.json
+└── cache
 ```
 
-## Analyse statique
+Using:
 
-Les règles pour l'analyse statique sont fournies (phpstan). Exécution :
-
-```bash
-composer run analyse
+```json
+{
+    "cachePath": "../cache"
+}
 ```
 
-## Contribution
+the cache directory is resolved relative to `config/ncache.config.json`.
 
-Contributions bienvenues. Processus suggéré :
+This allows each configuration file to define its own cache location independently from the application's current working directory.
 
-1. Forkez le dépôt
-2. Créez une branche : `git checkout -b feature/nom`
-3. Ajoutez des tests et respectez les règles de codage
-4. Ouvrez une Pull Request
+## Cache Drivers
 
-Si vous corrigez ou implémentez un driver, merci d'ajouter des tests unitaires couvrant les cas principaux (save/get/delete/clear/exists).
+A default driver can be defined directly in a profile:
 
-## Roadmap / Améliorations proposées
+```json
+{
+    "defaultDriver": "JSON"
+}
+```
 
-- Compléter les drivers inachevés (ex: RedisCache)
-- Fournir un adaptateur PSR-16/PSR-6
-- Ajouter métriques de hit/miss
-- Documenter les options de configuration et les exemples d'intégration
+The driver can then be omitted:
 
-## Licence
+```php
+NCache::key('users')
+    ->set($users)
+    ->put();
+```
 
-Ce projet est distribué sous la licence MIT. Voir le fichier LICENSE pour plus de détails.
+A driver can also be selected explicitly:
 
-## Auteur
+```php
+use NCache\Enum\CType;
+use NCache\NCache;
 
-Noga-ng — https://github.com/Noga-ng
+NCache::key(
+    'users',
+    CType::REDIS
+)
+    ->set($users)
+    ->put();
+```
+
+An explicitly provided driver takes precedence over `defaultDriver`.
+
+## TTL
+
+NCache distinguishes between persistent cache, configured default TTL, and explicit TTL.
+
+### Persistent Cache
+
+If `ttl()` is not called:
+
+```php
+NCache::key('settings')
+    ->set($settings)
+    ->put();
+```
+
+the cache has no expiration.
+
+### Default TTL
+
+Calling `ttl()` without a value uses the `defaultTtl` defined by the active configuration profile:
+
+```php
+NCache::key('users')
+    ->ttl()
+    ->set($users)
+    ->put();
+```
+
+For example:
+
+```json
+{
+    "defaultTtl": "hours(1)"
+}
+```
+
+### Explicit TTL
+
+Passing a TTL explicitly overrides the configured default:
+
+```php
+NCache::key('users')
+    ->ttl(3600)
+    ->set($users)
+    ->put();
+```
+
+### Human-readable TTL
+
+Configuration files support human-readable duration expressions.
+
+```json
+{
+    "defaultTtl": "minutes(15)"
+}
+```
+
+Supported forms include:
+
+```text
+month(...)
+week(...)
+days(...)
+hours(...)
+minutes(...)
+second(...)
+make(days, hours, minutes, seconds)
+```
+
+Examples:
+
+```json
+{
+    "defaultTtl": "days(2)"
+}
+```
+
+```json
+{
+    "defaultTtl": "make(1,10,15,25)"
+}
+```
+
+A numeric TTL can also be used directly.
+
+```json
+{
+    "defaultTtl": 3600
+}
+```
+
+Set it to `null` when no default expiration should be defined.
+
+## Namespaces
+
+Each profile can define its own namespace:
+
+```json
+{
+    "namespace": "users"
+}
+```
+
+A namespace can also be selected for a specific cache operation:
+
+```php
+NCache::key('profile')
+    ->dir('api')
+    ->set($data)
+    ->put();
+```
+
+This allows identical cache keys to remain isolated between different cache scopes.
+
+## Shared Driver Configuration
+
+Multiple profiles often use the same Redis or Memcached server.
+
+`driversFrom` allows a profile to inherit driver connection settings from another profile instead of duplicating them.
+
+```json
+{
+    "shared": {
+        "cachePath": "./cache/shared",
+        "defaultDriver": "SERIALIZE",
+        "namespace": "shared",
+        "extensions": {},
+        "defaultTtl": null,
+        "drivers": {
+            "redis": {
+                "host": "127.0.0.1",
+                "port": 6379,
+                "timeout": 0,
+                "password": null,
+                "database": 0
+            }
+        }
+    },
+
+    "users": {
+        "cachePath": "./cache/users",
+        "defaultDriver": "REDIS",
+        "namespace": "users",
+        "extensions": {},
+        "defaultTtl": "hours(1)",
+        "driversFrom": "shared"
+    }
+}
+```
+
+This keeps connection configuration centralized while allowing each profile to keep its own cache path, namespace, default driver, and TTL.
+
+## Redis
+
+Redis configuration can be defined inside the `drivers` section:
+
+```json
+{
+    "redis": {
+        "host": "127.0.0.1",
+        "port": 6379,
+        "timeout": 0,
+        "password": null,
+        "database": 0
+    }
+}
+```
+
+The `database` option selects the Redis database used by the connection.
+
+Usage:
+
+```php
+NCache::key(
+    'users',
+    CType::REDIS
+)
+    ->set($users)
+    ->put();
+```
+
+## Memcached
+
+Memcached configuration can also be defined inside `drivers`:
+
+```json
+{
+    "memcached": {
+        "host": "127.0.0.1",
+        "port": 11211,
+        "timeout": 0
+    }
+}
+```
+
+Usage:
+
+```php
+NCache::key(
+    'users',
+    CType::MEMCACHED
+)
+    ->set($users)
+    ->put();
+```
+
+## Cache Signatures
+
+A signature associates cached data with the state or version of another resource.
+
+```php
+NCache::key('users')
+    ->signature('users-v2')
+    ->set($users)
+    ->put();
+```
+
+The signature can later be checked:
+
+```php
+$valid = NCache::key('users')
+    ->hasValidSignature('users-v2');
+```
+
+This is useful when cached data should only remain valid while another resource keeps the same state.
+
+## Append Data
+
+Data can be appended before writing the cache:
+
+```php
+NCache::key('users')
+    ->set([
+        ['id' => 1]
+    ])
+    ->append([
+        ['id' => 2]
+    ])
+    ->put();
+```
+
+## TTL Information
+
+The remaining lifetime of a cache entry can be retrieved with:
+
+```php
+$remaining = NCache::key('users')
+    ->ttlRemaining();
+```
+
+Its TTL state can also be inspected:
+
+```php
+$state = NCache::key('users')
+    ->ttlState();
+```
+
+## Registry
+
+NCache maintains cache metadata independently from the stored value.
+
+Registry information can be retrieved with:
+
+```php
+$registry = NCache::key('users')
+    ->getRegistry();
+```
+
+The registry contains metadata such as:
+
+- cache type
+- original cache name
+- internal hashed key
+- associated file
+- signature
+- TTL
+- expiration timestamp
+
+## Clearing Cache
+
+Clear caches for the default driver:
+
+```php
+NCache::clear();
+```
+
+Clear a specific driver:
+
+```php
+NCache::clear(
+    type: CType::JSON
+);
+```
+
+Clear a specific namespace:
+
+```php
+NCache::clear(
+    dir: 'users',
+    type: CType::JSON
+);
+```
+
+## Supported Drivers
+
+| Driver | CType |
+| --- | --- |
+| JSON | `CType::JSON` |
+| Serialized PHP | `CType::SERIALIZE` |
+| String | `CType::STRING` |
+| SQLite | `CType::SQLite` |
+| Redis | `CType::REDIS` |
+| Memcached | `CType::MEMCACHED` |
+
+## Quality
+
+NCache is developed and tested using:
+
+- PHPUnit
+- PHPStan level 9
+- PHP CS Fixer
+
+Current unit test suite:
+
+```text
+298 tests
+1060 assertions
+```
+
+NCache targets PHP 8.1 and newer.
+
+## License
+
+NCache is released under the MIT License.

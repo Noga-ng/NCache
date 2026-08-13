@@ -13,10 +13,10 @@ interface CacheInterface
 {
     /**
      * @param non-empty-string $key
-     * @param CType $type
-     * @return static
+     * @param ?CType $type
+     * @return self
      */
-    public static function key(string $key, CType $type): static;
+    public static function key(string $key, ?CType $type = null): self;
 
     public function has(): bool;
 
@@ -36,7 +36,7 @@ interface CacheInterface
      * @param positive-int|null $ttl
      * @return static
      */
-    public function ttl(?int $ttl): static;
+    public function ttl(?int $ttl = null): static;
 
     /**
      * @param ItemData $data
@@ -60,10 +60,10 @@ interface CacheInterface
     public function delete(): bool;
 
     /**
-     * @param CType $type
+     * @param ?CType $type
      * @param string $dir
      * @return int
      */
-    public static function clear(CType $type, string $dir): int;
+    public static function clear(?CType $type = null, string $dir = ''): int;
 
 }

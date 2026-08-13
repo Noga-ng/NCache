@@ -55,7 +55,7 @@ final class WriteFileTest extends TestsUnit
 
         $data = 'NCache content';
 
-        (new WriteFile($file, $data))->save();
+        new WriteFile($file, $data)->save();
 
         self::assertSame(
             $data,
@@ -69,7 +69,7 @@ final class WriteFileTest extends TestsUnit
             . DIRECTORY_SEPARATOR
             . 'empty.txt';
 
-        $result = (new WriteFile($file, ''))->save();
+        $result = new WriteFile($file, '')->save();
 
         self::assertTrue($result);
         self::assertFileExists($file);
@@ -85,7 +85,7 @@ final class WriteFileTest extends TestsUnit
 
         $data = str_repeat('NCache-', 20_000);
 
-        (new WriteFile($file, $data))->save();
+        new WriteFile($file, $data)->save();
 
         self::assertSame(
             strlen($data),
@@ -106,7 +106,7 @@ final class WriteFileTest extends TestsUnit
 
         file_put_contents($file, 'old value');
 
-        (new WriteFile($file, 'new value'))->save();
+        new WriteFile($file, 'new value')->save();
 
         self::assertSame(
             'new value',
@@ -120,7 +120,7 @@ final class WriteFileTest extends TestsUnit
             . DIRECTORY_SEPARATOR
             . 'cache.txt';
 
-        (new WriteFile($file, 'content'))->save();
+        new WriteFile($file, 'content')->save();
 
         $temporaryFiles = glob(
             $this->directory
@@ -165,7 +165,7 @@ final class WriteFileTest extends TestsUnit
 
         $data = "\x00\x01\x02\xFF\x10";
 
-        (new WriteFile($file, $data))->save();
+        new WriteFile($file, $data)->save();
 
         self::assertSame(
             $data,
@@ -181,7 +181,7 @@ final class WriteFileTest extends TestsUnit
 
         $data = 'Données de cache malagasy — Toamasina';
 
-        (new WriteFile($file, $data))->save();
+        new WriteFile($file, $data)->save();
 
         self::assertSame(
             $data,
@@ -205,7 +205,7 @@ final class WriteFileTest extends TestsUnit
             "does not exist"
         );
 
-        (new WriteFile($file, 'content'))->save();
+        new WriteFile($file, 'content')->save();
     }
 
     public function testSaveDoesNotCreateMissingDirectoryAutomatically(): void
@@ -219,7 +219,7 @@ final class WriteFileTest extends TestsUnit
             . 'cache.txt';
 
         try {
-            (new WriteFile($file, 'content'))->save();
+            new WriteFile($file, 'content')->save();
 
             self::fail(
                 'FailedWriteCacheException was not thrown.'
@@ -244,7 +244,7 @@ final class WriteFileTest extends TestsUnit
             . 'cache.txt';
 
         try {
-            (new WriteFile($file, 'content'))->save();
+            new WriteFile($file, 'content')->save();
 
             self::fail(
                 'FailedWriteCacheException was not thrown.'
@@ -266,9 +266,9 @@ final class WriteFileTest extends TestsUnit
             . DIRECTORY_SEPARATOR
             . 'cache.txt';
 
-        (new WriteFile($file, 'version 1'))->save();
-        (new WriteFile($file, 'version 2'))->save();
-        (new WriteFile($file, 'version 3'))->save();
+        new WriteFile($file, 'version 1')->save();
+        new WriteFile($file, 'version 2')->save();
+        new WriteFile($file, 'version 3')->save();
 
         self::assertSame(
             'version 3',
@@ -282,7 +282,7 @@ final class WriteFileTest extends TestsUnit
             . DIRECTORY_SEPARATOR
             . 'cache.txt';
 
-        (new WriteFile($file, 'content'))->save();
+        new WriteFile($file, 'content')->save();
 
         self::assertIsReadable($file);
     }

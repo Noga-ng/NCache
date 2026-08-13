@@ -183,7 +183,7 @@ final class StringCacheTest extends TestsUnit
         $firstItem = $this->createStringItem('replace-cache');
         $firstItem->setData(['version-one']);
 
-        (new StringCache($firstItem))->save();
+        new StringCache($firstItem)->save();
 
         $secondItem = $this->createStringItem('replace-cache');
         $secondItem->setData(['version-two']);

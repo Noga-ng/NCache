@@ -13,30 +13,59 @@ final class CacheDirectoryTest extends TestsUnit
     protected function setUp(): void
     {
         parent::setUp();
-        $this->directory('ncache-directory-');
+
+        $this->directory(
+            'ncache-directory-'
+        );
     }
 
     protected function tearDown(): void
     {
-        $this->removeDirectory($this->directory);
+        $this->removeDirectory(
+            $this->directory
+        );
+
         parent::tearDown();
     }
 
     public function testEmptyDirectoryReturnsEmptyList(): void
     {
-        $directory = $this->cacheDirectory($this->directory);
+        $directory = $this->cacheDirectory(
+            $this->directory
+        );
 
-        self::assertSame([], $directory->iterate());
+        $results = $this->withoutConfigFile(
+            $directory->iterate()
+        );
+
+        self::assertSame(
+            [],
+            $results
+        );
     }
 
     public function testIterateReturnsSplFileInfoInstances(): void
     {
-        $this->createFile('first.json');
-        $this->createFile('second.nc');
+        $this->createFile(
+            'first.json'
+        );
 
-        $results = $this->cacheDirectory($this->directory)->iterate();
+        $this->createFile(
+            'second.nc'
+        );
 
-        self::assertCount(2, $results);
+        $results = $this->withoutConfigFile(
+            $this
+                ->cacheDirectory(
+                    $this->directory
+                )
+                ->iterate()
+        );
+
+        self::assertCount(
+            2,
+            $results
+        );
 
         foreach ($results as $result) {
             self::assertInstanceOf(
@@ -48,20 +77,38 @@ final class CacheDirectoryTest extends TestsUnit
 
     public function testIterateReturnsFilesFromDirectory(): void
     {
-        $first = $this->createFile('first.json');
-        $second = $this->createFile('second.nc');
+        $first = $this->createFile(
+            'first.json'
+        );
 
-        $results = $this->cacheDirectory($this->directory)->iterate();
+        $second = $this->createFile(
+            'second.nc'
+        );
+
+        $results = $this->withoutConfigFile(
+            $this
+                ->cacheDirectory(
+                    $this->directory
+                )
+                ->iterate()
+        );
 
         self::assertSame(
-            $this->sortPaths([$first, $second]),
-            $this->extractPaths($results)
+            $this->sortPaths([
+                $first,
+                $second,
+            ]),
+            $this->extractPaths(
+                $results
+            )
         );
     }
 
     public function testIterateTraversesNestedDirectories(): void
     {
-        $rootFile = $this->createFile('root.json');
+        $rootFile = $this->createFile(
+            'root.json'
+        );
 
         $nestedFile = $this->createFile(
             'nested/cache.nc'
@@ -71,22 +118,36 @@ final class CacheDirectoryTest extends TestsUnit
             'nested/deep/cache.txt'
         );
 
-        $results = $this->cacheDirectory($this->directory)->iterate();
+        $results = $this->withoutConfigFile(
+            $this
+                ->cacheDirectory(
+                    $this->directory
+                )
+                ->iterate()
+        );
 
-        $paths = $this->extractPaths($results);
+        $paths = $this->extractPaths(
+            $results
+        );
 
         self::assertContains(
-            $this->normalizePath($rootFile),
+            $this->normalizePath(
+                $rootFile
+            ),
             $paths
         );
 
         self::assertContains(
-            $this->normalizePath($nestedFile),
+            $this->normalizePath(
+                $nestedFile
+            ),
             $paths
         );
 
         self::assertContains(
-            $this->normalizePath($deepFile),
+            $this->normalizePath(
+                $deepFile
+            ),
             $paths
         );
     }
@@ -98,12 +159,24 @@ final class CacheDirectoryTest extends TestsUnit
             . 'nested';
 
         self::assertTrue(
-            mkdir($nestedDirectory, 0o777, true)
+            mkdir(
+                $nestedDirectory,
+                0o777,
+                true
+            )
         );
 
-        $this->createFile('nested/cache.json');
+        $this->createFile(
+            'nested/cache.json'
+        );
 
-        $results = $this->cacheDirectory($this->directory)->iterate();
+        $results = $this->withoutConfigFile(
+            $this
+                ->cacheDirectory(
+                    $this->directory
+                )
+                ->iterate()
+        );
 
         $directories = array_filter(
             $results,
@@ -111,12 +184,18 @@ final class CacheDirectoryTest extends TestsUnit
                 => $file->isDir()
         );
 
-        self::assertNotEmpty($directories);
+        self::assertNotEmpty(
+            $directories
+        );
 
         self::assertContains(
-            $this->normalizePath($nestedDirectory),
+            $this->normalizePath(
+                $nestedDirectory
+            ),
             $this->extractPaths(
-                array_values($directories)
+                array_values(
+                    $directories
+                )
             )
         );
     }
@@ -126,7 +205,9 @@ final class CacheDirectoryTest extends TestsUnit
         $secondDirectory = sys_get_temp_dir()
             . DIRECTORY_SEPARATOR
             . 'ncache-directory-second-'
-            . bin2hex(random_bytes(8));
+            . bin2hex(
+                random_bytes(8)
+            );
 
         self::assertTrue(
             mkdir(
@@ -141,16 +222,34 @@ final class CacheDirectoryTest extends TestsUnit
                 'first.json'
             );
 
-            $secondFile = $this->createFile('second.nc');
+            $secondFile = $secondDirectory
+                . DIRECTORY_SEPARATOR
+                . 'second.nc';
 
-            $results = $this->cacheDirectory($this->directory)->iterate();
+            self::assertNotFalse(
+                file_put_contents(
+                    $secondFile,
+                    'cache'
+                )
+            );
+
+            $results = $this->withoutConfigFile(
+                $this
+                    ->cacheDirectory([
+                        $this->directory,
+                        $secondDirectory,
+                    ])
+                    ->iterate()
+            );
 
             self::assertSame(
                 $this->sortPaths([
                     $firstFile,
                     $secondFile,
                 ]),
-                $this->extractPaths($results)
+                $this->extractPaths(
+                    $results
+                )
             );
         } finally {
             $this->removeDirectory(
@@ -173,32 +272,69 @@ final class CacheDirectoryTest extends TestsUnit
             "cannot find a directory on {$missingDirectory}"
         );
 
-        $this->cacheDirectory($missingDirectory)->iterate();
+        $this
+            ->cacheDirectory(
+                $missingDirectory
+            )
+            ->iterate();
     }
 
     public function testRepeatedIterationDoesNotDuplicateResults(): void
     {
-        $this->createFile('first.json');
-        $this->createFile('second.nc');
+        $this->createFile(
+            'first.json'
+        );
 
-        $directory = $this->cacheDirectory($this->directory);
+        $this->createFile(
+            'second.nc'
+        );
 
-        $firstIteration = $directory->iterate();
-        $secondIteration = $directory->iterate();
+        $directory = $this->cacheDirectory(
+            $this->directory
+        );
+
+        $firstIteration = $this->withoutConfigFile(
+            $directory->iterate()
+        );
+
+        $secondIteration = $this->withoutConfigFile(
+            $directory->iterate()
+        );
 
         self::assertSame(
-            $this->extractPaths($firstIteration),
-            $this->extractPaths($secondIteration)
+            $this->extractPaths(
+                $firstIteration
+            ),
+            $this->extractPaths(
+                $secondIteration
+            )
         );
     }
 
+    /**
+     * @param list<SplFileInfo> $files
+     * @return list<SplFileInfo>
+     */
+    private function withoutConfigFile(
+        array $files
+    ): array {
+        return array_values(
+            array_filter(
+                $files,
+                static fn(SplFileInfo $file): bool
+                    => $file->getFilename()
+                        !== 'ncache.config.json'
+            )
+        );
+    }
 
     /**
      * @param list<SplFileInfo> $files
      * @return list<string>
      */
-    private function extractPaths(array $files): array
-    {
+    private function extractPaths(
+        array $files
+    ): array {
         $paths = array_map(
             fn(SplFileInfo $file): string
                 => $this->normalizePath(
@@ -207,32 +343,47 @@ final class CacheDirectoryTest extends TestsUnit
             $files
         );
 
-        sort($paths);
+        sort(
+            $paths
+        );
 
-        return $paths;
+        return array_values(
+            $paths
+        );
     }
 
     /**
      * @param list<string> $paths
      * @return list<string>
      */
-    private function sortPaths(array $paths): array
-    {
+    private function sortPaths(
+        array $paths
+    ): array {
         $paths = array_map(
             fn(string $path): string
-                => $this->normalizePath($path),
+                => $this->normalizePath(
+                    $path
+                ),
             $paths
         );
 
-        sort($paths);
+        sort(
+            $paths
+        );
 
-        return array_values($paths);
+        return array_values(
+            $paths
+        );
     }
 
-    private function normalizePath(string $path): string
-    {
+    private function normalizePath(
+        string $path
+    ): string {
         return str_replace(
-            ['/', '\\'],
+            [
+                '/',
+                '\\',
+            ],
             DIRECTORY_SEPARATOR,
             $path
         );

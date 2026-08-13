@@ -5,6 +5,12 @@
 /.github export-ignore
 /.vscode export-ignore
 /.idea export-ignore
+/.phpunit.result.cache
+/.php-cs-fixer.dist.php
+/phpstan.neon
+/phpunit.xml.bak
+/phpunit.xml
+/phpunit.xml.bak
 
 # Tests
 /Tests export-ignore

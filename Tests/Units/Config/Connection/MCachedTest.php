@@ -114,10 +114,10 @@ final class MCachedTest extends TestCase
 
     public function testConnectionCanWriteAndRead(): void
     {
-        $client = (new MCached(
+        $client = new MCached(
             self::HOST,
             self::PORT
-        ))->connect();
+        )->connect();
 
         $key = 'ncache_connection_test';
 

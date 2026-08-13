@@ -12,13 +12,13 @@
 
     <testsuites>
         <testsuite name="NCache Tests Suite">
-            <directory>./Tests</directory>
+            <directory>./Tests/Units</directory>
         </testsuite>
     </testsuites>
 
     <filter>
         <whitelist>
-            <directory suffix=".php">Test</directory>
+            <directory suffix=".php">Tests</directory>
         </whitelist>
     </filter>
 

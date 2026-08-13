@@ -40,6 +40,8 @@ final class SqliteCacheTest extends TestsUnit
         self::assertFileExists(
             $this->directory
                 . DIRECTORY_SEPARATOR
+                . 'cache'
+                . DIRECTORY_SEPARATOR
                 . 'CacheDb'
                 . DIRECTORY_SEPARATOR
                 . 'nc.db'

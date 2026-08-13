@@ -5,16 +5,41 @@ declare(strict_types=1);
 namespace NCache\Driver;
 
 use NCache\Config\Connection\RedisConn;
+use NCache\Core\CacheItem\CacheItem;
 use NCache\Exceptions\InvalidCacheArgumentException;
+use Override;
 
 final class RedisCache extends CacheDriver
 {
     private ?RedisConn $connection = null;
 
+    public function __construct(CacheItem $item)
+    {
+        parent::__construct($item);
+
+        if (!extension_loaded('redis')) {
+            throw new InvalidCacheArgumentException(
+                'The Redis driver requires ext-redis.'
+            );
+        }
+    }
+
     private function conn(): RedisConn
     {
+        $config = $this->item->redisConfig();
+
+        if ($config === null) {
+            return $this->connection ??= new RedisConn();
+        }
+
         return $this->connection ??=
-            new RedisConn();
+            new RedisConn(
+                $config['host'],
+                $config['port'],
+                $config['timeout'],
+                $config['password'],
+                $config['database']
+            );
     }
 
     private function namespace(): string

@@ -7,15 +7,37 @@ namespace NCache\Driver;
 use NCache\Config\Connection\MCached;
 use NCache\Exceptions\InvalidCacheArgumentException;
 use Memcached;
+use NCache\Core\CacheItem\CacheItem;
+use Override;
 
 final class MemCache extends CacheDriver
 {
     private ?MCached $connection = null;
 
+    public function __construct(CacheItem $item)
+    {
+        parent::__construct($item);
+
+        if (!extension_loaded('redis')) {
+            throw new InvalidCacheArgumentException(
+                'The Memcached driver requires ext-memcached.'
+            );
+        }
+    }
+
     private function conn(): MCached
     {
+        $config = $this->item->memcachedConfig();
+        if ($config === null) {
+            return $this->connection ??=
+               new MCached();
+        }
         return $this->connection ??=
-            new MCached();
+            new MCached(
+                $config['host'],
+                $config['port'],
+                $config['weight']
+            );
     }
 
     private function client(): Memcached

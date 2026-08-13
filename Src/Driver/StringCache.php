@@ -12,10 +12,17 @@ use NCache\Exceptions\InvalidCacheArgumentException;
 
 final class StringCache extends CacheDriver
 {
+    private string $extension;
+
     public function __construct(CacheItem $item)
     {
         parent::__construct($item);
-        $this->cacheCleaner = new CacheCleaner(['txt']);
+        $this->extension = $this->item->extension() !== null
+        ? "{$this->item->extension()}"
+        : "txt";
+        $this->cacheCleaner = new CacheCleaner(
+            [$this->extension]
+        );
     }
 
     public function exists(): bool
@@ -61,10 +68,10 @@ final class StringCache extends CacheDriver
 
     public function save(): bool
     {
-        return (new WriteFile(
+        return new WriteFile(
             $this->buildFile(),
             $this->format()
-        ))->save();
+        )->save();
     }
 
     /**
@@ -72,10 +79,10 @@ final class StringCache extends CacheDriver
      */
     public function get(): string
     {
-        $content = (new ReadFile(
+        $content = new ReadFile(
             $this->buildFile(),
             $this->item->type()
-        ))->get();
+        )->get();
 
         if (!\is_string($content)) {
             throw new InvalidCacheArgumentException(
@@ -90,9 +97,7 @@ final class StringCache extends CacheDriver
     {
         $file = (string) $this->item->file();
 
-        return str_ends_with($file, '.txt')
-            ? $file
-            : "{$file}.txt";
+        return "{$file}.{$this->extension}";
     }
 
     public function getFile(): string

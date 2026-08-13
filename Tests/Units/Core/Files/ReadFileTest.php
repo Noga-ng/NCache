@@ -39,7 +39,7 @@ final class ReadFileTest extends TestsUnit
 
         self::assertSame(
             $content,
-            (new ReadFile($file, CType::STRING))->get()
+            new ReadFile($file, CType::STRING)->get()
         );
     }
 
@@ -57,7 +57,7 @@ final class ReadFileTest extends TestsUnit
 
         self::assertSame(
             $data,
-            (new ReadFile($file, CType::JSON))->get()
+            new ReadFile($file, CType::JSON)->get()
         );
     }
 
@@ -75,7 +75,7 @@ final class ReadFileTest extends TestsUnit
 
         self::assertSame(
             $data,
-            (new ReadFile($file, CType::SERIALIZE))->get()
+            new ReadFile($file, CType::SERIALIZE)->get()
         );
     }
 
@@ -85,7 +85,7 @@ final class ReadFileTest extends TestsUnit
 
         self::assertSame(
             '',
-            (new ReadFile($file, CType::STRING))->get()
+            new ReadFile($file, CType::STRING)->get()
         );
     }
 
@@ -112,7 +112,7 @@ final class ReadFileTest extends TestsUnit
             FailedReadCacheException::class
         );
 
-        (new ReadFile($file, CType::JSON))->get();
+        new ReadFile($file, CType::JSON)->get();
     }
 
     public function testJsonMustContainArray(): void
@@ -126,7 +126,7 @@ final class ReadFileTest extends TestsUnit
             FailedReadCacheException::class
         );
 
-        (new ReadFile($file, CType::JSON))->get();
+        new ReadFile($file, CType::JSON)->get();
     }
 
     public function testSerializedDataMustContainArray(): void
@@ -140,7 +140,7 @@ final class ReadFileTest extends TestsUnit
             FailedReadCacheException::class
         );
 
-        (new ReadFile($file, CType::SERIALIZE))->get();
+        new ReadFile($file, CType::SERIALIZE)->get();
     }
 
     public function testCorruptedSerializedDataThrowsException(): void
@@ -154,7 +154,7 @@ final class ReadFileTest extends TestsUnit
             FailedReadCacheException::class
         );
 
-        (new ReadFile($file, CType::SERIALIZE))->get();
+        new ReadFile($file, CType::SERIALIZE)->get();
     }
 
     public function testLargeFileCanBeRead(): void
@@ -168,7 +168,7 @@ final class ReadFileTest extends TestsUnit
 
         self::assertSame(
             $content,
-            (new ReadFile($file, CType::STRING))->get()
+            new ReadFile($file, CType::STRING)->get()
         );
     }
 
