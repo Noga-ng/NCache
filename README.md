@@ -2,7 +2,7 @@
 
 A lightweight and flexible caching library for PHP 8.1+.
 
-NCache provides a unified API for multiple cache backends while keeping configuration, expiration, namespaces, signatures, and cache metadata consistent across drivers.
+NCache provides a unified API for multiple cache backends while keeping configuration, expiration, profiles, namespaces, signatures, and cache metadata consistent across drivers.
 
 ## Features
 
@@ -14,14 +14,15 @@ NCache provides a unified API for multiple cache backends while keeping configur
 - Redis cache
 - Memcached cache
 - Configurable default driver
-- Multiple cache profiles
+- Multiple isolated cache profiles
+- Immutable configuration state per cache instance
 - Cache namespaces
 - TTL and default TTL
 - Human-readable TTL configuration
 - Shared driver configuration with `driversFrom`
 - Cache signatures
 - Cache registry
-- Per-driver and per-namespace cache clearing
+- Per-driver and scoped cache clearing
 - Redis database selection
 
 ## Requirements
@@ -52,6 +53,7 @@ Create a configuration file:
         "defaultDriver": "JSON",
         "namespace": "default",
         "extensions": {
+            "JSON": "json",
             "SERIALIZE": "nc",
             "STRING": "txt"
         },
@@ -60,7 +62,7 @@ Create a configuration file:
 }
 ```
 
-Load the configuration:
+Load the configuration and select a profile:
 
 ```php
 <?php
@@ -105,7 +107,7 @@ NCache::key('user.42')->delete();
 
 ## Configuration
 
-NCache uses JSON configuration files containing one or more cache profiles.
+NCache uses a JSON configuration file containing one or more cache profiles.
 
 ```json
 {
@@ -129,7 +131,7 @@ NCache uses JSON configuration files containing one or more cache profiles.
             "memcached": {
                 "host": "127.0.0.1",
                 "port": 11211,
-                "timeout": 0
+                "weight": 0
             }
         }
     },
@@ -168,7 +170,7 @@ NCache uses JSON configuration files containing one or more cache profiles.
 }
 ```
 
-Select the profile you want to use:
+Select the profile to use:
 
 ```php
 NCache::config(
@@ -176,7 +178,44 @@ NCache::config(
 )->use('users');
 ```
 
-### Relative Cache Paths
+## Configuration State and Profile Isolation
+
+When a cache instance is created with `NCache::key()`, NCache captures the resolved state of the currently selected profile.
+
+This means that changing the active profile later does not modify cache instances that were already created.
+
+```php
+$config = NCache::config(
+    __DIR__ . '/ncache.config.json'
+);
+
+$config->use('users');
+
+$userCache = NCache::key('user.42');
+
+$config->use('admin');
+
+$adminCache = NCache::key('dashboard');
+```
+
+`$userCache` keeps the resolved `users` configuration, while `$adminCache` uses the `admin` configuration.
+
+Switching profiles again does not mutate either cache instance:
+
+```php
+$config->use('default');
+```
+
+The configuration states remain isolated:
+
+```text
+$userCache  -> users
+$adminCache -> admin
+```
+
+This prevents an existing cache instance from unexpectedly switching its path, namespace, TTL configuration, extensions, or driver connection settings when another profile becomes active.
+
+## Relative Cache Paths
 
 Relative `cachePath` values are resolved from the directory containing the configuration file.
 
@@ -199,7 +238,7 @@ Using:
 
 the cache directory is resolved relative to `config/ncache.config.json`.
 
-This allows each configuration file to define its own cache location independently from the application's current working directory.
+This allows each configuration file to define its cache location independently from the application's current working directory.
 
 ## Cache Drivers
 
@@ -253,7 +292,7 @@ the cache has no expiration.
 
 ### Default TTL
 
-Calling `ttl()` without a value uses the `defaultTtl` defined by the active configuration profile:
+Calling `ttl()` without a value uses the `defaultTtl` of the cache profile:
 
 ```php
 NCache::key('users')
@@ -283,7 +322,7 @@ NCache::key('users')
 
 ### Human-readable TTL
 
-Configuration files support human-readable duration expressions.
+Configuration files support human-readable duration expressions:
 
 ```json
 {
@@ -291,7 +330,7 @@ Configuration files support human-readable duration expressions.
 }
 ```
 
-Supported forms include:
+Supported forms:
 
 ```text
 month(...)
@@ -317,7 +356,7 @@ Examples:
 }
 ```
 
-A numeric TTL can also be used directly.
+A numeric TTL can also be used directly:
 
 ```json
 {
@@ -337,7 +376,13 @@ Each profile can define its own namespace:
 }
 ```
 
-A namespace can also be selected for a specific cache operation:
+Namespaces isolate cache entries belonging to different profiles or application contexts.
+
+For example, two profiles may use the same cache key while remaining logically separated by their configuration.
+
+## Cache Directories and Scopes
+
+A cache operation can use an additional directory or scope with `dir()`:
 
 ```php
 NCache::key('profile')
@@ -346,11 +391,13 @@ NCache::key('profile')
     ->put();
 ```
 
-This allows identical cache keys to remain isolated between different cache scopes.
+For file-based drivers, this creates an additional cache path below the profile's configured `cachePath`.
+
+It also allows cache entries using identical keys to remain separated between different cache scopes.
 
 ## Shared Driver Configuration
 
-Multiple profiles often use the same Redis or Memcached server.
+Multiple profiles can use the same Redis or Memcached server.
 
 `driversFrom` allows a profile to inherit driver connection settings from another profile instead of duplicating them.
 
@@ -369,6 +416,11 @@ Multiple profiles often use the same Redis or Memcached server.
                 "timeout": 0,
                 "password": null,
                 "database": 0
+            },
+            "memcached": {
+                "host": "127.0.0.1",
+                "port": 11211,
+                "weight": 0
             }
         }
     },
@@ -384,11 +436,13 @@ Multiple profiles often use the same Redis or Memcached server.
 }
 ```
 
-This keeps connection configuration centralized while allowing each profile to keep its own cache path, namespace, default driver, and TTL.
+The inherited driver configuration is resolved when the profile state is created.
+
+Each profile still keeps its own cache path, namespace, default driver, extensions, and default TTL.
 
 ## Redis
 
-Redis configuration can be defined inside the `drivers` section:
+Redis configuration is defined inside the `drivers` section:
 
 ```json
 {
@@ -417,14 +471,14 @@ NCache::key(
 
 ## Memcached
 
-Memcached configuration can also be defined inside `drivers`:
+Memcached configuration is defined inside `drivers`:
 
 ```json
 {
     "memcached": {
         "host": "127.0.0.1",
         "port": 11211,
-        "timeout": 0
+        "weight": 0
     }
 }
 ```
@@ -458,7 +512,7 @@ $valid = NCache::key('users')
     ->hasValidSignature('users-v2');
 ```
 
-This is useful when cached data should only remain valid while another resource keeps the same state.
+This is useful when cached data should remain valid only while another resource keeps the same state.
 
 ## Append Data
 
@@ -467,10 +521,10 @@ Data can be appended before writing the cache:
 ```php
 NCache::key('users')
     ->set([
-        ['id' => 1]
+        ['id' => 1],
     ])
     ->append([
-        ['id' => 2]
+        ['id' => 2],
     ])
     ->put();
 ```
@@ -528,7 +582,7 @@ NCache::clear(
 );
 ```
 
-Clear a specific namespace:
+Clear a specific directory or scope:
 
 ```php
 NCache::clear(
@@ -555,15 +609,17 @@ NCache is developed and tested using:
 - PHPUnit
 - PHPStan level 9
 - PHP CS Fixer
+- GitHub Actions
 
-Current unit test suite:
+Continuous integration currently validates NCache on:
 
-```text
-298 tests
-1060 assertions
-```
+- PHP 8.1
+- PHP 8.2
+- PHP 8.3
+- PHP 8.4
+- PHP 8.5
 
-NCache targets PHP 8.1 and newer.
+The CI suite also validates Redis and Memcached integration.
 
 ## License
 
