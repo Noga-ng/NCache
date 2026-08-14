@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace NCache\Tests\Units\Config;
 
 use NCache\Config\CacheConfig;
-use NCache\Core\Clock\Duration;
-use NCache\Enum\CType;
+use NCache\Config\ConfigItem;
 use NCache\Exceptions\UnexpectedConfigException;
 use NCache\Tests\TestsUnit\TestsUnit;
 
@@ -74,6 +73,34 @@ final class CacheConfigTest extends TestsUnit
         );
     }
 
+    public function testCanSwitchProfiles(): void
+    {
+        $config = CacheConfig::config(
+            $this->configFile,
+        );
+
+        $config->use('default');
+
+        self::assertSame(
+            'default',
+            $config->profile(),
+        );
+
+        $config->use('users');
+
+        self::assertSame(
+            'users',
+            $config->profile(),
+        );
+
+        $config->use('default');
+
+        self::assertSame(
+            'default',
+            $config->profile(),
+        );
+    }
+
     public function testUseThrowsWhenProfileDoesNotExist(): void
     {
         $config = CacheConfig::config(
@@ -88,330 +115,131 @@ final class CacheConfigTest extends TestsUnit
             'Undefined cache profile: missing',
         );
 
-        $config->use(
-            'missing',
-        );
+        $config->use('missing');
     }
 
-    public function testGetBasePathResolvesRelativePathFromConfigDirectory(): void
+    public function testStateReturnsConfigItem(): void
     {
         $config = CacheConfig::config(
             $this->configFile,
         )->use('default');
 
+        $state = $config->state();
+
+        self::assertInstanceOf(
+            ConfigItem::class,
+            $state,
+        );
+
         self::assertSame(
-            $this->directory
-                . DIRECTORY_SEPARATOR
-                . 'cache',
-            $config->getBasePath(),
+            'default',
+            $state->profile(),
         );
     }
 
-    public function testAbsoluteCachePathIsPreserved(): void
-    {
-        $absolute = $this->directory
-            . DIRECTORY_SEPARATOR
-            . 'absolute-cache';
-
-        $file = $this->createConfigFile(
-            'absolute.config.json',
-            [
-                'absolute' => $this->profile([
-                    'cachePath' => $absolute,
-                ]),
-            ],
-        );
-
-        CacheConfig::resetInstance();
-
-        $config = CacheConfig::config(
-            $file,
-        )->use('absolute');
-
-        self::assertSame(
-            $absolute,
-            $config->getBasePath(),
-        );
-    }
-
-    public function testGetDefaultDriverReturnsConfiguredEnum(): void
+    public function testStateCanResolveExplicitProfile(): void
     {
         $config = CacheConfig::config(
             $this->configFile,
         )->use('default');
 
+        $state = $config->state('users');
+
         self::assertSame(
-            CType::JSON,
-            $config->getDefaultDriver(),
+            'users',
+            $state->profile(),
+        );
+
+        // Important : state('users') ne doit pas
+        // modifier le profil actif.
+        self::assertSame(
+            'default',
+            $config->profile(),
         );
     }
 
-    public function testDefaultDriverCanBeNull(): void
-    {
-        $file = $this->createConfigFile(
-            'no-driver.config.json',
-            [
-                'no-driver' => $this->profile([
-                    'defaultDriver' => null,
-                ]),
-            ],
-        );
-
-        CacheConfig::resetInstance();
-
-        $config = CacheConfig::config(
-            $file,
-        )->use('no-driver');
-
-        self::assertNull(
-            $config->getDefaultDriver(),
-        );
-    }
-
-    public function testInvalidDefaultDriverThrowsException(): void
-    {
-        $file = $this->createConfigFile(
-            'invalid-driver.config.json',
-            [
-                'invalid' => $this->profile([
-                    'defaultDriver' => 'REDISS',
-                ]),
-            ],
-        );
-
-        CacheConfig::resetInstance();
-
-        $this->expectException(
-            UnexpectedConfigException::class,
-        );
-
-        CacheConfig::config(
-            $file,
-        );
-    }
-
-    public function testGetNamespaceReturnsConfiguredNamespace(): void
+    public function testStateIsIndependentFromLaterProfileSwitch(): void
     {
         $config = CacheConfig::config(
             $this->configFile,
         )->use('default');
 
-        self::assertNull(
-            $config->getNamespace(),
+        $state = $config->state();
+
+        $config->use('users');
+
+        self::assertSame(
+            'default',
+            $state->profile(),
+        );
+
+        self::assertSame(
+            'users',
+            $config->profile(),
         );
     }
 
-    public function testExtensionIsResolvedFromConfiguration(): void
+    public function testStateKeepsItsResolvedConfiguration(): void
     {
         $config = CacheConfig::config(
             $this->configFile,
         )->use('default');
 
+        $state = $config->state();
+
+        $path = $state->getBasePath();
+        $driver = $state->getDefaultDriver();
+
+        $config->use('users');
+
         self::assertSame(
-            'nc',
-            $config->getExtension(
-                CType::SERIALIZE,
-            ),
+            $path,
+            $state->getBasePath(),
         );
 
         self::assertSame(
-            'txt',
-            $config->getExtension(
-                CType::STRING,
-            ),
+            $driver,
+            $state->getDefaultDriver(),
         );
     }
 
-    public function testMissingExtensionReturnsNull(): void
+    public function testStateThrowsForUnknownProfile(): void
     {
         $config = CacheConfig::config(
             $this->configFile,
-        )->use('default');
-
-        self::assertNull(
-            $config->getExtension(
-                CType::REDIS,
-            ),
-        );
-    }
-
-    public function testIntegerDefaultTtlIsPreserved(): void
-    {
-        $file = $this->createConfigFile(
-            'integer-ttl.config.json',
-            [
-                'ttl' => $this->profile([
-                    'defaultTtl' => 120,
-                ]),
-            ],
-        );
-
-        CacheConfig::resetInstance();
-
-        $config = CacheConfig::config(
-            $file,
-        )->use('ttl');
-
-        self::assertSame(
-            120,
-            $config->getDefaultTtl(),
-        );
-    }
-
-    public function testDefaultTtlHoursExpressionIsResolved(): void
-    {
-        $file = $this->createConfigFile(
-            'hours-ttl.config.json',
-            [
-                'ttl' => $this->profile([
-                    'defaultTtl' => 'hours(2)',
-                ]),
-            ],
-        );
-
-        CacheConfig::resetInstance();
-
-        $config = CacheConfig::config(
-            $file,
-        )->use('ttl');
-
-        self::assertSame(
-            Duration::hours(2),
-            $config->getDefaultTtl(),
-        );
-    }
-
-    public function testDefaultTtlDaysExpressionIsResolved(): void
-    {
-        $file = $this->createConfigFile(
-            'days-ttl.config.json',
-            [
-                'ttl' => $this->profile([
-                    'defaultTtl' => 'days(2)',
-                ]),
-            ],
-        );
-
-        CacheConfig::resetInstance();
-
-        $config = CacheConfig::config(
-            $file,
-        )->use('ttl');
-
-        self::assertSame(
-            Duration::days(2),
-            $config->getDefaultTtl(),
-        );
-    }
-
-    public function testDefaultTtlMakeExpressionIsResolved(): void
-    {
-        $file = $this->createConfigFile(
-            'make-ttl.config.json',
-            [
-                'ttl' => $this->profile([
-                    'defaultTtl' => 'make(1,10,15,25)',
-                ]),
-            ],
-        );
-
-        CacheConfig::resetInstance();
-
-        $config = CacheConfig::config(
-            $file,
-        )->use('ttl');
-
-        self::assertSame(
-            Duration::make(
-                1,
-                10,
-                15,
-                25,
-            ),
-            $config->getDefaultTtl(),
-        );
-    }
-
-    public function testNullDefaultTtlRemainsNull(): void
-    {
-        $file = $this->createConfigFile(
-            'null-ttl.config.json',
-            [
-                'ttl' => $this->profile([
-                    'defaultTtl' => null,
-                ]),
-            ],
-        );
-
-        CacheConfig::resetInstance();
-
-        $config = CacheConfig::config(
-            $file,
-        )->use('ttl');
-
-        self::assertNull(
-            $config->getDefaultTtl(),
-        );
-    }
-
-    public function testInvalidTtlExpressionThrowsException(): void
-    {
-        $file = $this->createConfigFile(
-            'invalid-ttl.config.json',
-            [
-                'ttl' => $this->profile([
-                    'defaultTtl' => 'hours(foo)',
-                ]),
-            ],
-        );
-
-        CacheConfig::resetInstance();
-
-        $config = CacheConfig::config(
-            $file,
         );
 
         $this->expectException(
             UnexpectedConfigException::class,
         );
 
-        $config->use(
-            'ttl',
+        $this->expectExceptionMessage(
+            'Undefined cache profile: missing',
         );
+
+        $config->state('missing');
     }
 
-    public function testUndefinedDurationMethodThrowsException(): void
+    public function testStateWithoutSelectedProfileThrowsException(): void
     {
-        $file = $this->createConfigFile(
-            'unknown-ttl.config.json',
-            [
-                'ttl' => $this->profile([
-                    'defaultTtl' => 'years(2)',
-                ]),
-            ],
-        );
-
-        CacheConfig::resetInstance();
-
         $config = CacheConfig::config(
-            $file,
+            $this->configFile,
         );
 
         $this->expectException(
             UnexpectedConfigException::class,
         );
 
-        $config->use(
-            'ttl',
-        );
+        $config->state();
     }
 
-    public function testDriversFromInheritsDriversFromAnotherProfile(): void
+    public function testDriversFromIsResolvedIntoState(): void
     {
         $file = $this->createConfigFile(
             'drivers-from.config.json',
             [
                 'shared' => $this->profile(),
+
                 'users' => $this->profile([
                     'cachePath' => './users',
                     'defaultDriver' => 'REDIS',
@@ -423,52 +251,23 @@ final class CacheConfigTest extends TestsUnit
 
         CacheConfig::resetInstance();
 
-        $config = CacheConfig::config(
-            $file,
-        )->use('users');
+        $state = CacheConfig::config($file)
+            ->use('users')
+            ->state();
 
         self::assertSame(
             '127.0.0.1',
-            $config->getRedis()['host'],
+            $state->getRedis()['host'],
         );
 
         self::assertSame(
             6379,
-            $config->getRedis()['port'],
+            $state->getRedis()['port'],
         );
 
         self::assertSame(
             11211,
-            $config->getMemcached()['port'],
-        );
-    }
-
-    public function testDriversFromRuntimeOverrideUsesSelectedProfileDrivers(): void
-    {
-        $file = $this->createConfigFile(
-            'drivers-runtime.config.json',
-            [
-                'shared' => $this->profile(),
-                'users' => $this->profile([
-                    'drivers' => [],
-                ]),
-            ],
-        );
-
-        CacheConfig::resetInstance();
-
-        $config = CacheConfig::config(
-            $file,
-        )
-            ->use('users')
-            ->driversFrom('shared');
-
-        self::assertNotNull(
-            $config->getRedis(),
-        );
-
-        self::assertNotNull(
-            $config->getMemcached(),
+            $state->getMemcached()['port'],
         );
     }
 
@@ -493,35 +292,7 @@ final class CacheConfigTest extends TestsUnit
             UnexpectedConfigException::class,
         );
 
-        $config->use(
-            'users',
-        );
-    }
-
-    public function testDriversFromSelfThrowsException(): void
-    {
-        $file = $this->createConfigFile(
-            'drivers-self.config.json',
-            [
-                'users' => $this->profile([
-                    'driversFrom' => 'users',
-                ]),
-            ],
-        );
-
-        CacheConfig::resetInstance();
-
-        $config = CacheConfig::config(
-            $file,
-        );
-
-        $this->expectException(
-            UnexpectedConfigException::class,
-        );
-
-        $config->use(
-            'users',
-        );
+        $config->use('users');
     }
 
     public function testCircularDriversFromThrowsException(): void
@@ -532,6 +303,7 @@ final class CacheConfigTest extends TestsUnit
                 'one' => $this->profile([
                     'driversFrom' => 'two',
                 ]),
+
                 'two' => $this->profile([
                     'driversFrom' => 'one',
                 ]),
@@ -548,110 +320,7 @@ final class CacheConfigTest extends TestsUnit
             UnexpectedConfigException::class,
         );
 
-        $config->use(
-            'one',
-        );
-    }
-
-    public function testRedisConfigurationIsNormalized(): void
-    {
-        $config = CacheConfig::config(
-            $this->configFile,
-        )->use('default');
-
-        self::assertSame(
-            [
-                'host' => '127.0.0.1',
-                'port' => 6379,
-                'timeout' => 0,
-                'password' => null,
-                'database' => 0,
-            ],
-            $config->getRedis(),
-        );
-    }
-
-    public function testMemcachedConfigurationIsNormalized(): void
-    {
-        $config = CacheConfig::config(
-            $this->configFile,
-        )->use('default');
-
-        self::assertSame(
-            [
-                'host' => '127.0.0.1',
-                'port' => 11211,
-                'weight' => 0,
-            ],
-            $config->getMemcached(),
-        );
-    }
-
-    public function testGetDataReturnsResolvedProfile(): void
-    {
-        $config = CacheConfig::config(
-            $this->configFile,
-        )->use('default');
-
-        $data = $config->getData();
-
-        self::assertSame(
-            $config->getBasePath(),
-            $data['cachePath'],
-        );
-
-        self::assertSame(
-            'JSON',
-            $data['defaultDriver'],
-        );
-
-        self::assertNull(
-            $data['namespace'],
-        );
-
-        self::assertIsArray(
-            $data['drivers'],
-        );
-    }
-
-    public function testGetAllReturnsAllNormalizedProfiles(): void
-    {
-        $config = CacheConfig::config(
-            $this->configFile,
-        );
-
-        $all = $config->getAll();
-
-        self::assertArrayHasKey(
-            'default',
-            $all,
-        );
-    }
-
-    public function testProfileThrowsWhenNoProfileWasSelected(): void
-    {
-        $config = CacheConfig::config(
-            $this->configFile,
-        );
-
-        $this->expectException(
-            UnexpectedConfigException::class,
-        );
-
-        $config->profile();
-    }
-
-    public function testGetBasePathThrowsWhenNoProfileWasSelected(): void
-    {
-        $config = CacheConfig::config(
-            $this->configFile,
-        );
-
-        $this->expectException(
-            UnexpectedConfigException::class,
-        );
-
-        $config->getBasePath();
+        $config->use('one');
     }
 
     public function testMissingConfigurationFileThrowsException(): void

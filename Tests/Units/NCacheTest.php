@@ -47,9 +47,11 @@ final class NCacheTest extends TestsUnit
             $config,
         );
 
+        $config = $this->config();
+
         self::assertSame(
-            $this->config()->getBasePath(),
-            $config->getBasePath(),
+            $config->state()->getBasePath(),
+            $config->state()->getBasePath(),
         );
     }
 

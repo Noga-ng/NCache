@@ -38,7 +38,7 @@
 
   "users": {
     "cachePath": "./storage/users",
-    "defaultDriver": "REDIS",
+    "defaultDriver": "JSON",
     "namespace": "users",
     "extensions": {},
     "defaultTtl": "hours(1)",

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NCache\Core\CacheItem;
 
-use NCache\Config\CacheConfig;
+use NCache\Config\ConfigItem;
 use NCache\Contract\Clock;
 use NCache\Core\CachePath;
 use NCache\Core\Hash;
@@ -28,7 +28,7 @@ final class CacheItem
     public function __construct(
         private readonly string $key,
         private readonly CType $type,
-        private readonly CacheConfig $config,
+        private readonly ConfigItem $config,
     ) {
         $this->cachePath = new CachePath(
             $this->config->getBasePath(),

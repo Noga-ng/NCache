@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NCache\Tests\Units\Core\CacheItem;
 
+use NCache\Core\CacheItem\CacheItem;
 use NCache\Core\Hash;
 use NCache\Enum\CType;
 use NCache\Tests\TestsUnit\TestsUnit;
@@ -49,13 +50,11 @@ final class CacheItemTest extends TestsUnit
         $dir = $item->getDir()
             ?? 'default';
 
-        $expected
-            = (new Hash([
-                'type' => $item->typeName(),
-                'dir' => $dir,
-                'key' => $item->key(),
-            ]))
-        ->get();
+        $expected = (new Hash([
+            'type' => $item->typeName(),
+            'dir' => $dir,
+            'key' => $item->key(),
+        ]))->get();
 
         self::assertSame(
             $expected,
@@ -176,8 +175,7 @@ final class CacheItemTest extends TestsUnit
         self::assertSame(
             (new Hash(
                 $signatureData,
-            ))
-            ->get(),
+            ))->get(),
             $item->getSignature(),
         );
     }
@@ -246,16 +244,9 @@ final class CacheItemTest extends TestsUnit
             'users',
         );
 
-        /*
-         * Ce test suppose que le profil "default"
-         * de TestsUnit définit defaultTtl.
-         *
-         * S'il vaut null dans ta config de test,
-         * remplace-le par un profil dédié avec
-         * defaultTtl = "hours(1)".
-         */
         $expected = $this
             ->config()
+            ->state()
             ->getDefaultTtl();
 
         $item->setTtl(
@@ -271,14 +262,6 @@ final class CacheItemTest extends TestsUnit
             $expected,
             $item->ttlValue(),
         );
-
-        if ($expected === null) {
-            self::assertNull(
-                $item->expiredAt(),
-            );
-
-            return;
-        }
 
         self::assertIsInt(
             $item->expiredAt(),
@@ -375,8 +358,13 @@ final class CacheItemTest extends TestsUnit
             CType::REDIS,
         );
 
+        $expected = $this
+            ->config()
+            ->state()
+            ->getRedis();
+
         self::assertSame(
-            $this->config()->getRedis(),
+            $expected,
             $item->redisConfig(),
         );
     }
@@ -400,8 +388,13 @@ final class CacheItemTest extends TestsUnit
             CType::MEMCACHED,
         );
 
+        $expected = $this
+            ->config()
+            ->state()
+            ->getMemcached();
+
         self::assertSame(
-            $this->config()->getMemcached(),
+            $expected,
             $item->memcachedConfig(),
         );
     }
@@ -438,12 +431,15 @@ final class CacheItemTest extends TestsUnit
             CType::SERIALIZE,
         );
 
+        $expected = $this
+            ->config()
+            ->state()
+            ->getExtension(
+                CType::SERIALIZE,
+            );
+
         self::assertSame(
-            $this
-                ->config()
-                ->getExtension(
-                    CType::SERIALIZE,
-                ),
+            $expected,
             $item->extension(),
         );
     }
@@ -455,13 +451,83 @@ final class CacheItemTest extends TestsUnit
             CType::STRING,
         );
 
+        $expected = $this
+            ->config()
+            ->state()
+            ->getExtension(
+                CType::STRING,
+            );
+
         self::assertSame(
-            $this
-                ->config()
-                ->getExtension(
-                    CType::STRING,
-                ),
+            $expected,
             $item->extension(),
+        );
+    }
+
+    public function testItemConfigurationDoesNotChangeAfterProfileSwitch(): void
+    {
+        $config = $this->config();
+
+        $config->use(
+            'users',
+        );
+
+        $state = $config->state();
+
+        $item = new CacheItem(
+            'users-cache',
+            CType::JSON,
+            $state,
+        );
+
+        $originalPath = $item->basePath();
+
+        self::assertSame(
+            'users',
+            $state->profile(),
+        );
+
+        $config->use(
+            'default',
+        );
+
+        self::assertSame(
+            'default',
+            $config->profile(),
+        );
+
+        self::assertSame(
+            'users',
+            $state->profile(),
+        );
+
+        self::assertSame(
+            $originalPath,
+            $item->basePath(),
+        );
+    }
+
+    public function testExplicitStateDoesNotChangeActiveProfile(): void
+    {
+        $config = $this->config();
+
+        self::assertSame(
+            'default',
+            $config->profile(),
+        );
+
+        $usersState = $config->state(
+            'users',
+        );
+
+        self::assertSame(
+            'users',
+            $usersState->profile(),
+        );
+
+        self::assertSame(
+            'default',
+            $config->profile(),
         );
     }
 
@@ -506,8 +572,7 @@ final class CacheItemTest extends TestsUnit
         self::assertSame(
             (new Hash(
                 'users-version-1',
-            ))
-            ->get(),
+            ))->get(),
             $result['signature'],
         );
 

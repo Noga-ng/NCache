@@ -33,9 +33,9 @@ final class NCache implements CacheInterface
         self::obligatorKey($key);
 
         $config = self::config();
-
+        $state = $config->state();
         $ctype = $type
-            ?? $config->getDefaultDriver()
+            ?? $state->getDefaultDriver()
             ?? throw new InvalidCacheArgumentException(
                 'Default driver is not defined.',
             );
@@ -43,7 +43,7 @@ final class NCache implements CacheInterface
         $this->cacheItem = new CacheItem(
             $key,
             $ctype,
-            $config,
+            $state,
         );
 
         $this->clock = new SystemClock();

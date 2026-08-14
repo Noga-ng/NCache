@@ -1,29 +1,23 @@
 <?php
 
 declare(strict_types=1);
+require __DIR__.'/../vendor/autoload.php';
 
 use NCache\NCache;
 
-require __DIR__ . '/../vendor/autoload.php';
-
-$file = __DIR__ . '/../ncache.config.json';
+$file = __DIR__.'/../ncache.config.json';
 
 NCache::config($file)
         ->use('admin');
 
-$n = Ncache::key('noga');
+$n = NCache::key('noga');
 
-$n->set(
-    [
-        'name' => 'noga',
-        'role' => 'admin',
-        'title' => 'creator of NCache',
-        'local' => 'Madagascar,Toamasina',
-    ],
-);
+$n->set(['noga','germainio']);
 
 $n->put();
 
-$res = $n->get();
+$s = $n->get();
 
-var_dump($res);
+print_r([
+    $s,
+]);

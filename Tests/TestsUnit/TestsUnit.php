@@ -96,7 +96,7 @@ abstract class TestsUnit extends TestCase
         return new CacheItem(
             $key,
             $type,
-            $this->config(),
+            $this->config()->state(),
         );
     }
 
@@ -189,6 +189,20 @@ abstract class TestsUnit extends TestCase
                         'weight' => 0,
                     ],
                 ],
+            ],
+            'users' => [
+                'cachePath' => './cache',
+                'defaultDriver' => 'JSON',
+                'namespace' => null,
+
+                'extensions' => [
+                    'JSON' => 'json',
+                    'SERIALIZE' => 'nc',
+                    'STRING' => 'txt',
+                ],
+
+                'defaultTtl' => 'hours(1)',
+                'driversFrom' => 'default',
             ],
         ];
 

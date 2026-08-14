@@ -516,7 +516,7 @@ final class JsonCacheTest extends TestsUnit
         $item = new CacheItem(
             'automatic-directory',
             CType::JSON,
-            $this->config(),
+            $this->config()->state(),
         );
 
         $item->setDir(
