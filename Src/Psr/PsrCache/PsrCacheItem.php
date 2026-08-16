@@ -32,7 +32,15 @@ final class PsrCacheItem implements CacheItemInterface
 
     public function isHit(): bool
     {
-        return $this->hit;
+        if (!$this->hit) {
+            return false;
+        }
+
+        if ($this->expiration === null) {
+            return true;
+        }
+
+        return $this->expiration->getTimestamp() > time();
     }
 
     public function set(mixed $value): static

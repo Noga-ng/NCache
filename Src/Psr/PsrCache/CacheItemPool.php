@@ -39,6 +39,7 @@ final class CacheItemPool implements CacheItemPoolInterface
     private function cache(string $key): NCache
     {
         $this->activate();
+        $this->validateKey($key);
         return NCache::key($key, $this->type);
     }
 
@@ -103,8 +104,9 @@ final class CacheItemPool implements CacheItemPoolInterface
 
     public function deleteItem(string $key): bool
     {
-        return $this->cache($key)
-                 ->delete();
+        return $this
+            ->cache($key)
+            ->delete();
     }
 
     /**
@@ -149,6 +151,21 @@ final class CacheItemPool implements CacheItemPoolInterface
         }
 
         return true;
+    }
+
+    private function validateKey(string $key): void
+    {
+        if ($key === '') {
+            throw new InvalidCacheArgumentException(
+                'Cache key cannot be empty.',
+            );
+        }
+
+        if (preg_match('/[{}()\/\\\\@:]/', $key) === 1) {
+            throw new InvalidCacheArgumentException(
+                "Invalid PSR-16 cache key: {$key}",
+            );
+        }
     }
 
     /**
