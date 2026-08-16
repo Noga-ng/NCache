@@ -668,6 +668,87 @@ NCache::clear(
 );
 ```
 
+## PSR Compatibility
+
+NCache provides adapters for the standard PHP-FIG caching interfaces while keeping the native NCache API independent.
+
+### PSR-16 — Simple Cache
+
+NCache implements `Psr\SimpleCache\CacheInterface` through the `SimpleCache` adapter.
+
+```php
+use NCache\Psr\SimpleCache\SimpleCache;
+
+$cache = new SimpleCache(
+    __DIR__ . '/ncache.config.json',
+    'default',
+);
+
+$cache->set(
+    'user.42',
+    ['id' => 42],
+    3600,
+);
+
+$user = $cache->get(
+    'user.42',
+);
+```
+
+PSR-16 provides a simple key/value caching API with support for TTL, multiple operations, deletion, and cache clearing.
+
+**[Read the PSR-16 documentation](Src/Psr/SimpleCache/README.md)**
+
+### PSR-6 — Caching Interface
+
+NCache also implements the PSR-6 cache item and cache pool interfaces:
+
+- `Psr\Cache\CacheItemInterface`
+- `Psr\Cache\CacheItemPoolInterface`
+
+```php
+use NCache\Psr\PsrCache\CacheItemPool;
+
+$pool = new CacheItemPool(
+    __DIR__ . '/ncache.config.json',
+    'default',
+);
+
+$item = $pool->getItem(
+    'user.42',
+);
+
+if (!$item->isHit()) {
+    $item
+        ->set([
+            'id' => 42,
+        ])
+        ->expiresAfter(
+            3600,
+        );
+
+    $pool->save(
+        $item,
+    );
+}
+
+$user = $item->get();
+```
+
+PSR-6 provides cache items, cache pools, expiration management, and deferred persistence through `saveDeferred()` and `commit()`.
+
+**[Read the PSR-6 documentation](Src/Psr/PsrCache/README.md)**
+
+### Which API Should I Use?
+
+| API | Recommended for |
+| --- | --- |
+| Native NCache | Full NCache features such as tags, signatures, namespaces, and driver control |
+| PSR-16 | Simple and portable key/value caching |
+| PSR-6 | Libraries and frameworks requiring cache items and cache pools |
+
+The PSR adapters are optional compatibility layers. They do not replace or restrict the native NCache API.
+
 ## Supported Drivers
 
 | Driver | CType |
