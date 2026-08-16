@@ -7,3 +7,4 @@ cache/
 cache.txt
 .phpunit.result.cache
 .php-cs-fixer.cache
+noga.php

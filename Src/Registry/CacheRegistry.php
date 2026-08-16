@@ -228,6 +228,13 @@ final class CacheRegistry implements CacheRegistryInterface
             );
         }
 
+        if (!\array_key_exists('size', $entry) ||
+        ($entry['size'] !== null && !\is_int($entry['size']))) {
+            throw new InvalidCacheArgumentException(
+                "Registry entry 'size' must be a int or null.",
+            );
+        }
+
         foreach (['file', 'signature'] as $field) {
             if (
                 !\array_key_exists($field, $entry) ||

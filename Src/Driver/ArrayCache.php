@@ -9,6 +9,7 @@ use NCache\Core\Files\CacheCleaner;
 use NCache\Core\Files\ReadFile;
 use NCache\Core\Files\WriteFile;
 use NCache\Enum\CType;
+use NCache\Exceptions\FailedReadCacheException;
 
 final class ArrayCache extends CacheDriver
 {
@@ -74,7 +75,15 @@ final class ArrayCache extends CacheDriver
             CType::ARRAY_PHP,
         ))->get();
 
-        return \is_array($data) ? $data : [];
+        if (!\is_array($data)) {
+            throw new FailedReadCacheException(
+                'ArrayCache expected an array, got '
+                . gettype($data)
+                . ": '{$this->buildFile()}'.",
+            );
+        }
+
+        return $data;
     }
 
     public function getFile(): string
