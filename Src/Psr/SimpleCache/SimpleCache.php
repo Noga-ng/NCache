@@ -16,7 +16,7 @@ use Psr\SimpleCache\CacheInterface;
 final class SimpleCache implements CacheInterface
 {
     public function __construct(
-        private readonly string $config,
+        private readonly ?string $config = null,
         private readonly string $profile = 'default',
         private readonly ?CType $type = null,
     ) {
@@ -53,9 +53,13 @@ final class SimpleCache implements CacheInterface
      */
     public function get(string $key, mixed $default = null): mixed
     {
-        $value = $this->cache($key)->get();
+        $cache = $this->cache($key);
 
-        return $value ?? $default;
+        if (!$cache->has()) {
+            return $default;
+        }
+
+        return $cache->get();
     }
 
     /**
