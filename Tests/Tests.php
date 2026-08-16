@@ -12,7 +12,7 @@ NCache::config($file)->use('admin');
 
 $n = NCache::key('noga');
 
-NCache::invalidateTag("users.noga");
+NCache::invalidateTag('users.noga');
 
 // $n->set('my data');
 // $n->tags();

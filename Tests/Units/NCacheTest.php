@@ -1,12 +1,14 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace NCache\Tests\Units;
 
 use NCache\Config\CacheConfig;
 use NCache\Core\Clock\Duration;
 use NCache\Enum\CType;
-use NCache\Tests\TestsUnit\TestsUnit;
 use NCache\NCache;
+use NCache\Tests\TestsUnit\TestsUnit;
 
 final class NCacheTest extends TestsUnit
 {

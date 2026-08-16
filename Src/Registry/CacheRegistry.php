@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace NCache\Registry;
 
@@ -48,7 +50,8 @@ final class CacheRegistry implements CacheRegistryInterface
 
     public function __construct(
         private readonly CacheItem $item,
-    ) {}
+    ) {
+    }
 
     /**
      * @return CrEntry
@@ -256,7 +259,9 @@ final class CacheRegistry implements CacheRegistryInterface
             );
         }
 
-        if ($entry['tags'] !== null) {
+        if ($entry['tags'] !== null
+            && \is_array($entry['tags'])) {
+
             $tags = $entry['tags'];
 
             if (
@@ -284,6 +289,8 @@ final class CacheRegistry implements CacheRegistryInterface
                     );
                 }
             }
+
+
         }
 
         foreach (['file', 'signature'] as $field) {

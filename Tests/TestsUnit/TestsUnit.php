@@ -172,7 +172,7 @@ abstract class TestsUnit extends TestCase
                     'STRING' => 'txt',
                 ],
 
-                'defaultTags'=>["default.tag"],
+                'defaultTags' => ['default.tag'],
                 'defaultTtl' => 'hours(1)',
 
                 'drivers' => [
@@ -201,8 +201,8 @@ abstract class TestsUnit extends TestCase
                     'SERIALIZE' => 'nc',
                     'STRING' => 'txt',
                 ],
-                
-                'defaultTags'=>["users.tag"],
+
+                'defaultTags' => ['users.tag'],
                 'defaultTtl' => 'hours(1)',
                 'driversFrom' => 'default',
             ],
