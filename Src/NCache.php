@@ -200,13 +200,16 @@ final class NCache implements CacheInterface
 
     /**
      * @return array{
-     * type: string,
-     * name: string,
-     * key: string,
-     * file: string|null,
-     * signature: string|null,
-     * ttl: int|null,
-     * expiresAt: int|null
+     *     type: string,
+     *     name: string,
+     *     key: string,
+     *     namespace:string|null,
+     *     file: string|null,
+     *     size: int|null,
+     *     signature: string|null,
+     *     ttl: int|null,
+     *     expiresAt: int|null,
+     *     tags: list<string>
      * }|null
      */
     public function getRegistry(): ?array
