@@ -269,6 +269,9 @@ final class NCache implements CacheInterface
         )->remaining();
     }
 
+    /**
+     * @return TtlState|null
+     */
     public function ttlState(): ?TtlState
     {
         return $this->ttlManager(
@@ -297,7 +300,7 @@ final class NCache implements CacheInterface
     }
 
     /**
-     * @param ?CType $type
+     * @param CType|null $type
      * @param string $dir
      * @return int
      */
