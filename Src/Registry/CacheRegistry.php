@@ -14,6 +14,11 @@ use NCache\Exceptions\CacheRegistryException;
 use NCache\Exceptions\InvalidCacheArgumentException;
 
 /**
+ * @phpstan-type Tags array{
+ * state:bool,
+ * entries:list<string>
+ * }
+ * 
  * @phpstan-type CrEntry array{
  *     type: string,
  *     name: string,
@@ -24,7 +29,7 @@ use NCache\Exceptions\InvalidCacheArgumentException;
  *     signature: string|null,
  *     ttl: int|null,
  *     expiresAt: int|null,
- *     tags: list<string>|null
+ *     tags: Tags|null
  * }
  *
  * @phpstan-type CrEntries array<string, CrEntry>
@@ -310,41 +315,30 @@ final class CacheRegistry implements CacheRegistryInterface
         );
     }
 
-    public function invalidateTag(string $tag): int
-    {
-        return $this->transaction(
-            function (array $data) use ($tag): array {
-                $count = 0;
-                $entries = &$data['entries'];
+  public function invalidateTag(string $tag): bool {
+    return $this->transaction(
+        function (array $data) use ($tag): array {
+            foreach ($data['entries'] as $key => $entry ) {
+                $tags = $entry['tags'];
 
-                foreach ($entries as $key => $entry) {
-                    $entryTags = $entry['tags'];
-
-                    if ($entryTags === null) {
-                        continue;
-                    }
-
-                    if (!\in_array($tag, $entryTags, true)) {
-                        continue;
-                    }
-
-                    // Supprime le fichier de cache
-                    $file = $entry['file'];
-                    if ($file !== null && is_file($file)) {
-                        @unlink($file);
-                    }
-
-                    unset($entries[$key]);
-                    $count++;
+                if ($tags === null) {
+                    continue;
                 }
 
-                return [
-                    'data' => $data,
-                    'result' => $count,
-                ];
-            },
-        );
-    }
+                if (!\in_array($tag,$tags['entries'],true)) {
+                    continue;
+                }
+
+                $data['entries'][$key]['tags']['state'] = false;
+            }
+
+            return [
+                'data' => $data,
+                'result' => true,
+            ];
+        },
+    );
+}
 
     public function remove(): bool
     {

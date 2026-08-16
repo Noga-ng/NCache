@@ -225,7 +225,10 @@ final class NCache implements CacheInterface
     }
 
     /**
-     * @return list<string>|null
+     * @return array{
+     * state:bool,
+     * entries:list<string>
+     * }|null
      */
     public function getTags(): ?array
     {
@@ -256,10 +259,11 @@ final class NCache implements CacheInterface
         )->state();
     }
 
-    public static function invalidateTag(string $tag): int
+    public static function invalidateTag(string $tag): bool
     {
         $instance = new self('__internal__');
-        return $instance->registry()->invalidateTag($tag);
+        return $instance->registry()
+                    ->invalidateTag($tag);
     }
 
     public function delete(): bool
