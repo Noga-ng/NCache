@@ -99,12 +99,12 @@ final class NCache implements CacheInterface
     public function tags(mixed $tags = null): static
     {
         $tags = \is_array($tags)
-        ? $tags
-        : (
-            $tags !== null
-            ? [$tags]
-            : null
-        );
+            ? $tags
+            : (
+                $tags !== null
+                    ? [$tags]
+                    : null
+            );
 
         $this->cacheItem->setTags($tags);
         return $this;
@@ -138,7 +138,14 @@ final class NCache implements CacheInterface
             return false;
         }
 
-        if ($this->ttlManager($registry)->isExpired()) {
+        if (!$registry->tagIsValid()) {
+            $this->delete();
+            return false;
+        }
+
+        if ($this
+                ->ttlManager($registry)
+                ->isExpired()) {
             $this->delete();
 
             return false;
@@ -187,6 +194,12 @@ final class NCache implements CacheInterface
             return null;
         }
 
+        if (!$registry->tagIsValid()) {
+            $this->delete();
+
+            return null;
+        }
+
         $driver = $this->driver();
 
         if (!$driver->exists()) {
@@ -195,9 +208,10 @@ final class NCache implements CacheInterface
             return null;
         }
 
-        if ($this->ttlManager($registry)->isExpired()) {
-            $driver->delete();
-            $registry->remove();
+        if ($this
+                ->ttlManager($registry)
+                ->isExpired()) {
+            $this->delete();
 
             return null;
         }
@@ -216,7 +230,10 @@ final class NCache implements CacheInterface
      *     signature: string|null,
      *     ttl: int|null,
      *     expiresAt: int|null,
-     *     tags: list<string>|null
+     *     tags: array{
+     *              state:bool,
+     *              entries:list<string>
+     *      }|null
      * }|null
      */
     public function getRegistry(): ?array
@@ -262,8 +279,9 @@ final class NCache implements CacheInterface
     public static function invalidateTag(string $tag): bool
     {
         $instance = new self('__internal__');
-        return $instance->registry()
-                    ->invalidateTag($tag);
+        return $instance
+            ->registry()
+            ->invalidateTag($tag);
     }
 
     public function delete(): bool

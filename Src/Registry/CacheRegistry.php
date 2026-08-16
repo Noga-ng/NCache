@@ -18,7 +18,7 @@ use NCache\Exceptions\InvalidCacheArgumentException;
  * state:bool,
  * entries:list<string>
  * }
- * 
+ *
  * @phpstan-type CrEntry array{
  *     type: string,
  *     name: string,
@@ -68,7 +68,7 @@ final class CacheRegistry implements CacheRegistryInterface
             'signature' => $this->item->getSignature(),
             'ttl' => $this->item->ttlValue(),
             'expiresAt' => $this->item->expiredAt(),
-            'tags' => $this->item->getTags(),
+            'tags' => $this->tagState(),
         ];
     }
 
@@ -90,6 +90,23 @@ final class CacheRegistry implements CacheRegistryInterface
         return [
             'version' => self::VERSION,
             'entries' => [],
+        ];
+    }
+
+    /**
+     * @return Tags|null
+     */
+    private function tagState(): ?array
+    {
+        $tags = $this->item->getTags();
+
+        if ($tags === null) {
+            return null;
+        }
+
+        return [
+            'state' => true,
+            'entries' => $tags,
         ];
     }
 
@@ -315,30 +332,48 @@ final class CacheRegistry implements CacheRegistryInterface
         );
     }
 
-  public function invalidateTag(string $tag): bool {
-    return $this->transaction(
-        function (array $data) use ($tag): array {
-            foreach ($data['entries'] as $key => $entry ) {
-                $tags = $entry['tags'];
+    public function tagIsValid(): bool
+    {
+        $entry = $this->get();
 
-                if ($tags === null) {
-                    continue;
+        if ($entry === null) {
+            return true;
+        }
+
+        $tags = $entry['tags'];
+
+        if ($tags === null) {
+            return true;
+        }
+
+        return $tags['state'];
+    }
+
+    public function invalidateTag(string $tag): bool
+    {
+        return $this->transaction(
+            function (array $data) use ($tag): array {
+                foreach ($data['entries'] as $key => $entry) {
+                    $tags = $entry['tags'];
+
+                    if ($tags === null) {
+                        continue;
+                    }
+
+                    if (!\in_array($tag, $tags['entries'], true)) {
+                        continue;
+                    }
+
+                    $data['entries'][$key]['tags']['state'] = false;
                 }
 
-                if (!\in_array($tag,$tags['entries'],true)) {
-                    continue;
-                }
-
-                $data['entries'][$key]['tags']['state'] = false;
-            }
-
-            return [
-                'data' => $data,
-                'result' => true,
-            ];
-        },
-    );
-}
+                return [
+                    'data' => $data,
+                    'result' => true,
+                ];
+            },
+        );
+    }
 
     public function remove(): bool
     {

@@ -1,20 +1,17 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace NCache\Core\CacheItem;
 
 use NCache\Config\ConfigItem;
 use NCache\Contract\Clock;
-use NCache\Core\TtlManager\Expiration;
 use NCache\Core\CachePath;
 use NCache\Core\Hash;
+use NCache\Core\TtlManager\Expiration;
 use NCache\Enum\CType;
 
 /**
- * @phpstan-type Tags array{
- * state:bool,
- * entries:list<string>
- * }|null
- *
  * @phpstan-type ItemData array<array-key,mixed>|string|int|bool|float|null
  */
 final class CacheItem
@@ -32,7 +29,7 @@ final class CacheItem
     private ?string $signature = null;
 
     /**
-     * @var Tags 
+     * @var list<string>|null
      */
     private ?array $tags = null;
 
@@ -114,10 +111,7 @@ final class CacheItem
             ? $this->config->getDefaultTags()
             : $tags;
 
-        $this->tags = [
-            'state' => true,
-            'entries' => $tags
-        ];
+        $this->tags = $tags;
     }
 
     /**
@@ -220,7 +214,7 @@ final class CacheItem
     }
 
     /**
-     * @return Tags|null
+     * @return list<string>|null
      */
     public function getTags(): ?array
     {
@@ -305,7 +299,7 @@ final class CacheItem
      * key: string,
      * name: string,
      * namespace: string|null,
-     * tags: Tags|null,
+     * tags: list<string>|null,
      * signature: string|null,
      * ttl: int|null,
      * type: string
