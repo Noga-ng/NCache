@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace NCache\Tests\Units\Registry;
 
 use NCache\Core\CacheItem\CacheItem;
+use NCache\Driver\ArrayCache;
 use NCache\Driver\CacheDriver;
 use NCache\Driver\JsonCache;
 use NCache\Driver\SerializeCache;
@@ -45,6 +46,17 @@ final class DriverRegistryTest extends TestsUnit
         );
 
         self::assertInstanceOf(SerializeCache::class, $driver);
+        self::assertInstanceOf(CacheDriver::class, $driver);
+    }
+
+
+    public function testMakeReturnsArrayCache(): void
+    {
+        $driver = DriverRegistry::make(
+            $this->DrItem(CType::ARRAY_PHP),
+        );
+
+        self::assertInstanceOf(ArrayCache::class, $driver);
         self::assertInstanceOf(CacheDriver::class, $driver);
     }
 

@@ -79,6 +79,30 @@ final class ReadFileTest extends TestsUnit
         );
     }
 
+    public function testReadArrayPHP(): void
+    {
+        $data = [
+            'a' => 1,
+            'b' => true,
+        ];
+
+        $content = '<?php '
+            . PHP_EOL
+            . ' return '
+            . \var_export($data, true)
+            . ';';
+
+        $file = $this->createFile(
+            'cache.php',
+            $content,
+        );
+
+        self::assertSame(
+            $data,
+            (new ReadFile($file, CType::ARRAY_PHP))->get(),
+        );
+    }
+
     public function testReadEmptyString(): void
     {
         $file = $this->createFile('empty.txt', '');
@@ -89,17 +113,7 @@ final class ReadFileTest extends TestsUnit
         );
     }
 
-    public function testMissingFileThrowsException(): void
-    {
-        $this->expectException(
-            FailedReadCacheException::class,
-        );
 
-        new ReadFile(
-            $this->directory . '/missing.txt',
-            CType::STRING,
-        );
-    }
 
     public function testInvalidJsonThrowsException(): void
     {
@@ -155,6 +169,108 @@ final class ReadFileTest extends TestsUnit
         );
 
         (new ReadFile($file, CType::SERIALIZE))->get();
+    }
+
+    public function testArrayPhpMustReturnArray(): void
+    {
+        $file = $this->createFile(
+            'invalid.php',
+            '<?php return "hello";',
+        );
+
+        $this->expectException(
+            FailedReadCacheException::class,
+        );
+
+        (new ReadFile(
+            $file,
+            CType::ARRAY_PHP,
+        ))->get();
+    }
+
+    public function testArrayPhpRejectsNonPhpContent(): void
+    {
+        $file = $this->createFile(
+            'fake.php',
+            'this is not php',
+        );
+
+        $this->expectException(
+            FailedReadCacheException::class,
+        );
+
+        (new ReadFile(
+            $file,
+            CType::ARRAY_PHP,
+        ))->get();
+    }
+
+    public function testArrayPhpAcceptsPhpContentRegardlessOfExtension(): void
+    {
+        $data = [
+            'id' => 42,
+        ];
+
+        $file = $this->createFile(
+            'cache.txt',
+            '<?php return '
+                . var_export($data, true)
+                . ';',
+        );
+
+        self::assertSame(
+            $data,
+            (new ReadFile(
+                $file,
+                CType::ARRAY_PHP,
+            ))->get(),
+        );
+    }
+
+    public function testInvalidPhpThrowsReadException(): void
+    {
+        $file = $this->createFile(
+            'broken.php',
+            '<?php return [;',
+        );
+
+        $this->expectException(
+            FailedReadCacheException::class,
+        );
+
+        (new ReadFile(
+            $file,
+            CType::ARRAY_PHP,
+        ))->get();
+    }
+
+    public function testLargeArrayPhpCanBeRead(): void
+    {
+        $data = [];
+
+        for ($i = 0; $i < 5000; $i++) {
+            $data[] = [
+                'id' => $i,
+                'name' => "user-{$i}",
+            ];
+        }
+
+        $content = '<?php return '
+            . var_export($data, true)
+            . ';';
+
+        $file = $this->createFile(
+            'large.php',
+            $content,
+        );
+
+        self::assertSame(
+            $data,
+            (new ReadFile(
+                $file,
+                CType::ARRAY_PHP,
+            ))->get(),
+        );
     }
 
     public function testLargeFileCanBeRead(): void

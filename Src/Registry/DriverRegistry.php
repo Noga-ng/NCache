@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace NCache\Registry;
 
 use NCache\Core\CacheItem\CacheItem;
+use NCache\Driver\ArrayCache;
 use NCache\Driver\CacheDriver;
 use NCache\Driver\JsonCache;
 use NCache\Driver\MemCache;
@@ -23,6 +24,7 @@ final class DriverRegistry
     private static array $drivers = [
         'SERIALIZE' => SerializeCache::class,
         'JSON' => JsonCache::class,
+        'ARRAY_PHP' => ArrayCache::class,
         'STRING' => StringCache::class,
         'REDIS' => RedisCache::class,
         'SQLite' => SqliteCache::class,

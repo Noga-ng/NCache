@@ -11,6 +11,7 @@ use Throwable;
 final class WriteFile
 {
     private string $tmp = '';
+
     public function __construct(
         private readonly string $file,
         private readonly string $data,
@@ -20,8 +21,12 @@ final class WriteFile
     private function tmp(): string
     {
         $file = dirname($this->file);
-        return $file . DIRECTORY_SEPARATOR . bin2hex(random_bytes(16)) . '.tmp';
+        return $file
+        . DIRECTORY_SEPARATOR
+        . bin2hex(random_bytes(16))
+        . '.tmp';
     }
+
     public function save(): bool
     {
         try {
@@ -54,8 +59,8 @@ final class WriteFile
                 "The directory '{$directory}' is not writable.",
             );
         }
-        $mode = 'xb';
-        $handle = fopen($target, $mode);
+
+        $handle = fopen($target, 'xb');
 
         if ($handle === false) {
             throw new FailedWriteCacheException(
@@ -75,22 +80,6 @@ final class WriteFile
                 );
             }
 
-            /*
-             * Required when writing directly to an existing file opened
-             * with c+b. The temporary file created with xb is already empty.
-             */
-            if (!ftruncate($handle, 0)) {
-                throw new FailedWriteCacheException(
-                    "Failed to truncate file '{$target}'.",
-                );
-            }
-
-            if (fseek($handle, 0) !== 0) {
-                throw new FailedWriteCacheException(
-                    "Failed to move the cursor in file '{$target}'.",
-                );
-            }
-
             $this->writeAll($handle, $target);
 
             if (!fflush($handle)) {
@@ -100,6 +89,7 @@ final class WriteFile
             }
 
             $completed = true;
+
         } finally {
             if ($locked) {
                 flock($handle, LOCK_UN);
@@ -122,7 +112,7 @@ final class WriteFile
     /**
      * @param resource $handle
      */
-    private function writeAll($handle, string $file): void
+    private function writeAll(mixed $handle, string $file): void
     {
         $length = \strlen($this->data);
         $offset = 0;

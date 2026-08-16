@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace NCache\Registry;
 
+use NCache\Contract\CacheRegistryInterface;
 use NCache\Core\CacheItem\CacheItem;
 use NCache\Core\Files\CacheCleaner;
 use NCache\Core\Files\ReadFile;
 use NCache\Core\Files\WriteFile;
 use NCache\Enum\CType;
+use NCache\Exceptions\CacheRegistryException;
 use NCache\Exceptions\InvalidCacheArgumentException;
 
 /**
@@ -18,6 +20,7 @@ use NCache\Exceptions\InvalidCacheArgumentException;
  *     key: string,
  *     namespace:string|null,
  *     file: string|null,
+ *     size: int|null,
  *     signature: string|null,
  *     ttl: int|null,
  *     expiresAt: int|null
@@ -30,7 +33,7 @@ use NCache\Exceptions\InvalidCacheArgumentException;
  *     entries: CrEntries
  * }
  */
-final class CacheRegistry
+final class CacheRegistry implements CacheRegistryInterface
 {
     /**
      * @var positive-int
@@ -55,6 +58,7 @@ final class CacheRegistry
             'key' => $this->item->hashedKey(),
             'namespace' => $this->item->getDir(),
             'file' => $this->file,
+            'size' => $this->fileSize(),
             'signature' => $this->item->getSignature(),
             'ttl' => $this->item->ttlValue(),
             'expiresAt' => $this->item->expiredAt(),
@@ -82,39 +86,45 @@ final class CacheRegistry
         ];
     }
 
-    /**
-     * @return CrRegistry
-     */
-    private function metaData(): array
-    {
-        $registry = is_file($this->path())
-            ? $this->readData()
-            : $this->emptyRegistry();
-
-        $registry['entries'] = array_replace(
-            $registry['entries'],
-            $this->group(),
-        );
-
-        return $registry;
-    }
-
     public function setFile(?string $file): void
     {
         $this->file = $file;
     }
 
+    private function fileSize(): ?int
+    {
+        $size = $this->file !== null
+            ? filesize($this->file)
+            : false;
+
+        return $size !== false ? $size : null;
+    }
+
     private function path(): string
     {
-        return rtrim($this->item->basePath(), '/\\')
+        return rtrim(
+            $this->item->basePath(),
+            '/\\',
+        )
             . DIRECTORY_SEPARATOR
             . 'NCache.nc';
     }
 
     public function save(): bool
     {
-        return $this->writeData(
-            $this->metaData(),
+        return $this->transaction(
+            function (array $data): array {
+                $entries = $data['entries'];
+                $data['entries'] = array_replace(
+                    $entries,
+                    $this->group(),
+                );
+
+                return [
+                    'data' => $data,
+                    'result' => true,
+                ];
+            },
         );
     }
 
@@ -135,8 +145,8 @@ final class CacheRegistry
         }
 
         if (
-            !isset($data['version'])
-            || !\is_int($data['version'])
+            !isset($data['version']) ||
+            !\is_int($data['version'])
         ) {
             throw new InvalidCacheArgumentException(
                 'Registry version must be an integer.',
@@ -149,8 +159,8 @@ final class CacheRegistry
             );
         }
 
-        if (!\array_key_exists('entries', $data)
-                || !\is_array($data['entries'])) {
+        if (!\array_key_exists('entries', $data) ||
+                !\is_array($data['entries'])) {
             throw new InvalidCacheArgumentException(
                 'Registry entries must be an array.',
             );
@@ -182,8 +192,8 @@ final class CacheRegistry
     private function validateEntry(array $entry): void
     {
         if (
-            !isset($entry['type'])
-            || !\is_string($entry['type'])
+            !isset($entry['type']) ||
+            !\is_string($entry['type'])
         ) {
             throw new InvalidCacheArgumentException(
                 'Registry entry type must be a string.',
@@ -191,8 +201,8 @@ final class CacheRegistry
         }
 
         if (
-            !isset($entry['name'])
-            || !\is_string($entry['name'])
+            !isset($entry['name']) ||
+            !\is_string($entry['name'])
         ) {
             throw new InvalidCacheArgumentException(
                 'Registry entry name must be a string.',
@@ -200,20 +210,19 @@ final class CacheRegistry
         }
 
         if (
-            !isset($entry['key'])
-            || !\is_string($entry['key'])
+            !isset($entry['key']) ||
+            !\is_string($entry['key'])
         ) {
             throw new InvalidCacheArgumentException(
                 'Registry entry key must be a string.',
             );
         }
 
-        if (!\array_key_exists('namespace', $entry)
-            || (
-                $entry['namespace'] !== null
-                && !\is_string($entry['namespace'])
-            )
-        ) {
+        if (!\array_key_exists('namespace', $entry) ||
+                (
+                    $entry['namespace'] !== null &&
+                    !\is_string($entry['namespace'])
+                )) {
             throw new InvalidCacheArgumentException(
                 'Registry entry namespace must be a string or null.',
             );
@@ -221,10 +230,10 @@ final class CacheRegistry
 
         foreach (['file', 'signature'] as $field) {
             if (
-                !\array_key_exists($field, $entry)
-                || (
-                    $entry[$field] !== null
-                    && !\is_string($entry[$field])
+                !\array_key_exists($field, $entry) ||
+                (
+                    $entry[$field] !== null &&
+                    !\is_string($entry[$field])
                 )
             ) {
                 throw new InvalidCacheArgumentException(
@@ -235,10 +244,10 @@ final class CacheRegistry
 
         foreach (['ttl', 'expiresAt'] as $field) {
             if (
-                !\array_key_exists($field, $entry)
-                || (
-                    $entry[$field] !== null
-                    && !\is_int($entry[$field])
+                !\array_key_exists($field, $entry) ||
+                (
+                    $entry[$field] !== null &&
+                    !\is_int($entry[$field])
                 )
             ) {
                 throw new InvalidCacheArgumentException(
@@ -287,129 +296,154 @@ final class CacheRegistry
 
     public function remove(): bool
     {
-        $data = $this->getRegistry();
-        $entries = $data['entries'];
-        $key = $this->registryKey();
+        return $this->transaction(
+            function (array $data): array {
+                $key = $this->item->hashedKey();
 
-        if (!\array_key_exists($key, $entries)) {
-            return true;
-        }
+                if (!isset($data['entries'][$key])) {
+                    return [
+                        'data' => $data,
+                        'result' => true,
+                    ];
+                }
 
-        unset($data['entries'][$key]);
+                unset($data['entries'][$key]);
 
-        return $this->writeData($data);
+                return [
+                    'data' => $data,
+                    'result' => true,
+                ];
+            },
+        );
     }
 
     public function removeMissing(): int
     {
-        $data = $this->getRegistry();
-        $entries = $data['entries'];
-        $count = 0;
+        return $this->transaction(
+            function (array $data): array {
+                $entries = $data['entries'];
+                $count = 0;
 
-        $currentType = $this->item->typeName();
-        $currentDirectory = $this->item->path();
+                $currentType = $this->item->typeName();
+                $currentDirectory = $this->item->path();
 
-        foreach ($entries as $key => $entry) {
-            if ($entry['type'] !== $currentType) {
-                continue;
-            }
+                foreach ($entries as $key => $entry) {
+                    if ($entry['type'] !== $currentType) {
+                        continue;
+                    }
 
-            $file = $entry['file'];
+                    $file = $entry['file'];
 
-            if ($file === null) {
-                continue;
-            }
+                    if ($file === null) {
+                        continue;
+                    }
 
-            if (dirname($file) !== $currentDirectory) {
-                continue;
-            }
+                    if (dirname($file) !== $currentDirectory) {
+                        continue;
+                    }
 
-            if (is_file($file)) {
-                continue;
-            }
+                    if (is_file($file)) {
+                        continue;
+                    }
 
-            unset($data['entries'][$key]);
-            $count++;
-        }
+                    unset($data['entries'][$key]);
+                    $count++;
+                }
 
-        if ($count === 0) {
-            return 0;
-        }
+                if ($count === 0) {
+                    return [
+                        'data' => $data,
+                        'result' => 0,
+                    ];
+                }
 
-        $this->writeData($data);
-
-        return $count;
+                return [
+                    'data' => $data,
+                    'result' => $count,
+                ];
+            },
+        );
     }
 
     public function removeCurrentScope(): int
     {
-        $data = $this->getRegistry();
-        $count = 0;
+        return $this->transaction(
+            function (array $data): array {
+                $count = 0;
 
-        $currentType = $this->item->typeName();
-        $currentNamespace = $this->item->getDir();
+                $currentType = $this->item->typeName();
 
-        foreach ($data['entries'] as $key => $entry) {
-            if ($entry['type'] !== $currentType) {
-                continue;
-            }
+                $currentNamespace = $this->item->getDir();
 
-            if ($entry['namespace'] !== $currentNamespace) {
-                continue;
-            }
+                foreach ($data['entries'] as $key => $entry) {
+                    if ($entry['type'] !== $currentType) {
+                        continue;
+                    }
 
-            unset($data['entries'][$key]);
-            $count++;
-        }
+                    if ($entry['namespace'] !== $currentNamespace) {
+                        continue;
+                    }
 
-        if ($count === 0) {
-            return 0;
-        }
+                    unset($data['entries'][$key]);
+                    $count++;
+                }
 
-        $this->writeData($data);
-
-        return $count;
+                return [
+                    'data' => $data,
+                    'result' => $count,
+                ];
+            },
+        );
     }
 
     public function removeByType(): int
     {
-        $data = $this->getRegistry();
-        $count = 0;
+        return $this->transaction(
+            function (array $data): array {
+                $count = 0;
 
-        $currentType = $this->item->typeName();
+                $currentType = $this->item->typeName();
 
-        foreach ($data['entries'] as $key => $entry) {
-            if ($entry['type'] !== $currentType) {
-                continue;
-            }
+                foreach ($data['entries'] as $key => $entry) {
+                    if ($entry['type'] !== $currentType) {
+                        continue;
+                    }
 
-            unset($data['entries'][$key]);
-            $count++;
-        }
+                    unset($data['entries'][$key]);
+                    $count++;
+                }
 
-        if ($count === 0) {
-            return 0;
-        }
+                if ($count === 0) {
+                    return [
+                        'data' => $data,
+                        'result' => 0,
+                    ];
+                }
 
-        $this->writeData($data);
-
-        return $count;
+                return [
+                    'data' => $data,
+                    'result' => $count,
+                ];
+            },
+        );
     }
 
     public function clear(): int
     {
-        if (!is_file($this->path())) {
-            return 0;
-        }
+        return $this->transaction(
+            function (array $data): array {
+                $count = \count(
+                    $data['entries'],
+                );
 
-        $count = \count(
-            $this->getAll(),
+                $data['entries'] = [];
+
+                return [
+                    'data' => $data,
+                    'result' => $count,
+                ];
+            },
         );
-
-        (new CacheCleaner(['nc']))
-            ->delete($this->path());
-
-        return $count;
     }
 
     public function registryKey(): string
@@ -418,15 +452,98 @@ final class CacheRegistry
     }
 
     /**
+     * @template TResult
+     *
+     * @param callable(CrRegistry): array{
+     *     data: CrRegistry,
+     *     result: TResult
+     * } $callback
+     *
+     * @return TResult
+     */
+    private function transaction(callable $callback): mixed
+    {
+        $lockFile = $this->path() . '.lock';
+
+        $handle = fopen(
+            $lockFile,
+            'c',
+        );
+
+        if ($handle === false) {
+            throw new CacheRegistryException(
+                "Unable to open registry lock: {$lockFile}",
+            );
+        }
+
+        $locked = false;
+
+        try {
+            if (!flock($handle, LOCK_EX)) {
+                throw new CacheRegistryException(
+                    "Unable to lock registry: {$this->path()}",
+                );
+            }
+
+            $locked = true;
+
+            $data = is_file($this->path())
+                ? $this->readData()
+                : $this->emptyRegistry();
+
+            $transaction = $callback($data);
+
+            $newData = $transaction['data'];
+
+            if ($newData !== $data) {
+                $this->persistRegistry(
+                    $newData,
+                );
+            }
+
+            return $transaction['result'];
+        } finally {
+            if ($locked) {
+                flock(
+                    $handle,
+                    LOCK_UN,
+                );
+            }
+
+            fclose(
+                $handle,
+            );
+        }
+    }
+
+    /**
+     * @param CrRegistry $data
+     */
+    private function persistRegistry(array $data): void
+    {
+        if ($data['entries'] === []) {
+            if (is_file($this->path()) &&
+                !(new CacheCleaner(['nc']))
+                    ->delete($this->path())) {
+                throw new CacheRegistryException(
+                    "Unable to remove empty registry: {$this->path()}",
+                );
+            }
+            return;
+        }
+
+        if (!$this->writeData($data)) {
+            throw new CacheRegistryException(
+                "Unable to write registry: {$this->path()}",
+            );
+        }
+    }
+
+    /**
      * @param CrRegistry $registry
      */
     private function writeData(array $registry): bool
     {
-        if ($registry['entries'] === []) {
-            return (new CacheCleaner(['nc']))
-                ->delete($this->path());
-        }
-
         return (new WriteFile(
             $this->path(),
             serialize($registry),

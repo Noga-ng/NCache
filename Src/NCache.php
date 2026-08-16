@@ -9,7 +9,7 @@ use NCache\Contract\CacheInterface;
 use NCache\Contract\Clock;
 use NCache\Core\CacheItem\CacheItem;
 use NCache\Core\Clock\SystemClock;
-use NCache\Core\Hash;
+use NCache\Core\Signature\Signature;
 use NCache\Core\TtlManager\TtlManager;
 use NCache\Driver\CacheDriver;
 use NCache\Enum\CType;
@@ -278,12 +278,20 @@ final class NCache implements CacheInterface
      */
     public function hasValidSignature(mixed $data): bool
     {
-        $registry = $this->registry();
-        $signature = (new Hash($data))->get();
-        $cache = $registry->get();
+        return (new Signature(
+            $data,
+            $this->registry(),
+        ))->validate();
+    }
 
-        return (isset($cache['signature'])
-            && $cache['signature'] === $signature);
+    /**
+     * load a file configuration
+     * @param string $filename
+     * @return CacheConfig
+     */
+    public static function config(?string $filename = null): CacheConfig
+    {
+        return CacheConfig::config($filename);
     }
 
     /**
@@ -310,16 +318,6 @@ final class NCache implements CacheInterface
         return new CacheRegistry(
             $this->cacheItem,
         );
-    }
-
-    /**
-     * load a file configuration
-     * @param string $filename
-     * @return CacheConfig
-     */
-    public static function config(?string $filename = null): CacheConfig
-    {
-        return CacheConfig::config($filename);
     }
 
     /**

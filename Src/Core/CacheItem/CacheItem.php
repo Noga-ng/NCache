@@ -234,6 +234,7 @@ final class CacheItem
         return match ($this->type) {
             CType::JSON => 'json',
             CType::SERIALIZE,
+            CType::ARRAY_PHP,
             CType::STRING
                 => $this->config->getExtension(
                     $this->type,
