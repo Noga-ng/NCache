@@ -3,21 +3,20 @@
 declare(strict_types=1);
 
 use NCache\NCache;
+use NCache\Psr\SimpleCache\SimpleCache;
 
 require __DIR__.'/../vendor/autoload.php';
 
 $file = __DIR__.'/../ncache.config.json';
 
-NCache::config($file)->use('admin');
 
-$n = NCache::key('noga');
+$s = new SimpleCache(
+    $file,
+    "admin"
+);
 
-// NCache::invalidateTag('users.noga');
+$s->set("noga",["noga","germainio"]);
 
-$n->set('my data');
-$n->tags();
-$n->put();
-
-$s = $n->getTags();
+$s = $s->get("noga",["n"]);
 
 print_r($s);

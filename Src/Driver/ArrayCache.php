@@ -28,12 +28,13 @@ final class ArrayCache extends CacheDriver
 
     protected function format(): string
     {
+        $data = $this->normalize($this->item->getData());
         return '<?php'
             . PHP_EOL
             . PHP_EOL
             . 'return '
             . var_export(
-                $this->item->getData(),
+                $data,
                 true,
             )
             . ';'
@@ -115,4 +116,18 @@ final class ArrayCache extends CacheDriver
                 $this->item->path(),
             );
     }
+
+    private function normalize(mixed $value): mixed {
+    if (\is_object($value)) {
+        return $this->normalize(get_object_vars($value));
+    }
+
+    if (\is_array($value)) {
+        foreach ($value as $key => $item) {
+            $value[$key] = $this->normalize($item);
+        }
+    }
+
+    return $value;
+}
 }
