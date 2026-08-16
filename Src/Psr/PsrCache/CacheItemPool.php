@@ -59,13 +59,14 @@ final class CacheItemPool implements CacheItemPoolInterface
 
     /**
      * @param string[] $keys
-     * @return iterable<CacheItemInterface>
+     * @return iterable<string,CacheItemInterface>
      */
     public function getItems(array $keys = []): iterable
     {
         $items = [];
+
         foreach ($keys as $key) {
-            $items[] = $this->getItem($key);
+            $items[$key] = $this->getItem($key);
         }
 
         return $items;
@@ -102,12 +103,8 @@ final class CacheItemPool implements CacheItemPoolInterface
 
     public function deleteItem(string $key): bool
     {
-        $cache = $this->cache($key);
-        if (!$cache->has()) {
-            return false;
-        }
-
-        return $cache->delete();
+        return $this->cache($key)
+                 ->delete();
     }
 
     /**
@@ -117,7 +114,9 @@ final class CacheItemPool implements CacheItemPoolInterface
     public function deleteItems(array $keys): bool
     {
         foreach ($keys as $key) {
-            return $this->deleteItem($key);
+            if (!$this->deleteItem($key)) {
+                return false;
+            }
         }
 
         return true;
