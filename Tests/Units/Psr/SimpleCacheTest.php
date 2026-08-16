@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NCache\Tests\Units\Psr\SimpleCache;
+namespace NCache\Tests\Units\Psr;
 
 use DateInterval;
 use NCache\Enum\CType;
