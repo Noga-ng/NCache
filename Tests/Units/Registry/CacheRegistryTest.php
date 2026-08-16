@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace NCache\Tests\Units\Registry;
 
@@ -327,6 +325,205 @@ final class CacheRegistryTest extends TestsUnit
         $registry->getRegistry();
     }
 
+    public function testRegistryStoresTags(): void
+    {
+        $item = $this->createJsonItem(
+            'users',
+        );
+
+        $item->setTags([
+            'users',
+            'api',
+        ]);
+
+        $registry = new CacheRegistry(
+            $item,
+        );
+
+        self::assertTrue(
+            $registry->save(),
+        );
+
+        self::assertSame(
+            [
+                'state' => true,
+                'entries' => [
+                    'users',
+                    'api',
+                ],
+            ],
+            $registry->get()['tags'],
+        );
+    }
+
+    public function testRegistryWithoutTagsStoresNull(): void
+    {
+        $item = $this->createJsonItem(
+            'users',
+        );
+
+        $registry = new CacheRegistry(
+            $item,
+        );
+
+        self::assertTrue(
+            $registry->save(),
+        );
+
+        self::assertNull(
+            $registry->get()['tags'],
+        );
+    }
+
+    public function testTagIsValidReturnsTrueForActiveTags(): void
+    {
+        $item = $this->createJsonItem(
+            'users',
+        );
+
+        $item->setTags([
+            'users',
+        ]);
+
+        $registry = new CacheRegistry(
+            $item,
+        );
+
+        self::assertTrue(
+            $registry->save(),
+        );
+
+        self::assertTrue(
+            $registry->tagIsValid(),
+        );
+    }
+
+    public function testInvalidateTagChangesStateWithoutRemovingEntry(): void
+    {
+        $item = $this->createJsonItem(
+            'users',
+        );
+
+        $item->setTags([
+            'users',
+            'api',
+        ]);
+
+        $registry = new CacheRegistry(
+            $item,
+        );
+
+        self::assertTrue(
+            $registry->save(),
+        );
+
+        self::assertTrue(
+            $registry->invalidateTag(
+                'users',
+            ),
+        );
+
+        $entry = $registry->get();
+
+        self::assertNotNull(
+            $entry,
+        );
+
+        self::assertSame(
+            [
+                'state' => false,
+                'entries' => [
+                    'users',
+                    'api',
+                ],
+            ],
+            $entry['tags'],
+        );
+
+        self::assertFalse(
+            $registry->tagIsValid(),
+        );
+    }
+
+    public function testInvalidateUnknownTagDoesNotChangeState(): void
+    {
+        $item = $this->createJsonItem(
+            'users',
+        );
+
+        $item->setTags([
+            'users',
+        ]);
+
+        $registry = new CacheRegistry(
+            $item,
+        );
+
+        self::assertTrue(
+            $registry->save(),
+        );
+
+        self::assertTrue(
+            $registry->invalidateTag(
+                'unknown',
+            ),
+        );
+
+        self::assertTrue(
+            $registry->tagIsValid(),
+        );
+    }
+
+    public function testInvalidateTagInvalidatesEveryMatchingEntry(): void
+    {
+        $first = $this->createJsonItem(
+            'user.1',
+        );
+
+        $first->setTags([
+            'users',
+        ]);
+
+        $firstRegistry = new CacheRegistry(
+            $first,
+        );
+
+        self::assertTrue(
+            $firstRegistry->save(),
+        );
+
+        $second = $this->createJsonItem(
+            'user.2',
+        );
+
+        $second->setTags([
+            'users',
+            'api',
+        ]);
+
+        $secondRegistry = new CacheRegistry(
+            $second,
+        );
+
+        self::assertTrue(
+            $secondRegistry->save(),
+        );
+
+        self::assertTrue(
+            $firstRegistry->invalidateTag(
+                'users',
+            ),
+        );
+
+        self::assertFalse(
+            $firstRegistry->tagIsValid(),
+        );
+
+        self::assertFalse(
+            $secondRegistry->tagIsValid(),
+        );
+    }
+
     public function testRemovePreservesRegistryVersion(): void
     {
         $firstItem = $this->createJsonItem(
@@ -488,8 +685,8 @@ final class CacheRegistryTest extends TestsUnit
             'json-cache',
         );
 
-        $serializeItem
-            = $this->createSerializeItem(
+        $serializeItem =
+            $this->createSerializeItem(
                 'serialize-cache',
             );
 
@@ -552,8 +749,8 @@ final class CacheRegistryTest extends TestsUnit
             $jsonRegistry->removeMissing(),
         );
 
-        $entries
-            = $jsonRegistry->getAll();
+        $entries =
+            $jsonRegistry->getAll();
 
         self::assertArrayNotHasKey(
             $jsonItem->hashedKey(),
@@ -635,8 +832,8 @@ final class CacheRegistryTest extends TestsUnit
             $firstRegistry->removeMissing(),
         );
 
-        $entries
-            = $firstRegistry->getAll();
+        $entries =
+            $firstRegistry->getAll();
 
         self::assertArrayNotHasKey(
             $firstItem->hashedKey(),
@@ -712,18 +909,18 @@ final class CacheRegistryTest extends TestsUnit
             'admins',
         );
 
-        $usersFirstRegistry
-            = new CacheRegistry(
+        $usersFirstRegistry =
+            new CacheRegistry(
                 $usersFirst,
             );
 
-        $usersSecondRegistry
-            = new CacheRegistry(
+        $usersSecondRegistry =
+            new CacheRegistry(
                 $usersSecond,
             );
 
-        $adminsRegistry
-            = new CacheRegistry(
+        $adminsRegistry =
+            new CacheRegistry(
                 $admins,
             );
 
@@ -776,13 +973,13 @@ final class CacheRegistryTest extends TestsUnit
             'users',
         );
 
-        $sqliteRegistry
-            = new CacheRegistry(
+        $sqliteRegistry =
+            new CacheRegistry(
                 $sqlite,
             );
 
-        $redisRegistry
-            = new CacheRegistry(
+        $redisRegistry =
+            new CacheRegistry(
                 $redis,
             );
 
@@ -811,23 +1008,23 @@ final class CacheRegistryTest extends TestsUnit
 
     public function testRemoveByTypeRemovesAllNamespacesOfCurrentType(): void
     {
-        $sqliteUsers
-            = $this->createSQLiteItem(
+        $sqliteUsers =
+            $this->createSQLiteItem(
                 'sqlite-users',
             );
 
-        $sqliteAdmins
-            = $this->createSQLiteItem(
+        $sqliteAdmins =
+            $this->createSQLiteItem(
                 'sqlite-admins',
             );
 
-        $redis
-            = $this->createRedisItem(
+        $redis =
+            $this->createRedisItem(
                 'redis-users',
             );
 
-        $json
-            = $this->createJsonItem(
+        $json =
+            $this->createJsonItem(
                 'json-users',
             );
 
@@ -847,23 +1044,23 @@ final class CacheRegistryTest extends TestsUnit
             'users',
         );
 
-        $sqliteUsersRegistry
-            = new CacheRegistry(
+        $sqliteUsersRegistry =
+            new CacheRegistry(
                 $sqliteUsers,
             );
 
-        $sqliteAdminsRegistry
-            = new CacheRegistry(
+        $sqliteAdminsRegistry =
+            new CacheRegistry(
                 $sqliteAdmins,
             );
 
-        $redisRegistry
-            = new CacheRegistry(
+        $redisRegistry =
+            new CacheRegistry(
                 $redis,
             );
 
-        $jsonRegistry
-            = new CacheRegistry(
+        $jsonRegistry =
+            new CacheRegistry(
                 $json,
             );
 
@@ -963,7 +1160,7 @@ final class CacheRegistryTest extends TestsUnit
             self::assertTrue(
                 mkdir(
                     $directory,
-                    0o777,
+                    0777,
                     true,
                 ),
             );

@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace NCache\Registry;
 
@@ -50,8 +48,7 @@ final class CacheRegistry implements CacheRegistryInterface
 
     public function __construct(
         private readonly CacheItem $item,
-    ) {
-    }
+    ) {}
 
     /**
      * @return CrEntry
@@ -259,11 +256,34 @@ final class CacheRegistry implements CacheRegistryInterface
             );
         }
 
-        if (!\array_key_exists('tags', $entry) ||
-                ($entry['tags'] !== null && !\is_array($entry['tags']))) {
-            throw new InvalidCacheArgumentException(
-                "Registry entry 'tags' must be an array.",
-            );
+        if ($entry['tags'] !== null) {
+            $tags = $entry['tags'];
+
+            if (
+                !\array_key_exists('state', $tags) ||
+                !\is_bool($tags['state'])
+            ) {
+                throw new InvalidCacheArgumentException(
+                    'Registry tag state must be a boolean.',
+                );
+            }
+
+            if (
+                !\array_key_exists('entries', $tags) ||
+                !\is_array($tags['entries'])
+            ) {
+                throw new InvalidCacheArgumentException(
+                    'Registry tag entries must be an array.',
+                );
+            }
+
+            foreach ($tags['entries'] as $tag) {
+                if (!\is_string($tag)) {
+                    throw new InvalidCacheArgumentException(
+                        'Registry tags must contain strings.',
+                    );
+                }
+            }
         }
 
         foreach (['file', 'signature'] as $field) {

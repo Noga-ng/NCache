@@ -1,14 +1,12 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace NCache\Tests\Units;
 
 use NCache\Config\CacheConfig;
 use NCache\Core\Clock\Duration;
 use NCache\Enum\CType;
-use NCache\NCache;
 use NCache\Tests\TestsUnit\TestsUnit;
+use NCache\NCache;
 
 final class NCacheTest extends TestsUnit
 {
@@ -784,6 +782,190 @@ final class NCacheTest extends TestsUnit
             $cache->hasValidSignature([
                 'version' => 2,
             ]),
+        );
+    }
+
+    public function testCacheCanBeTagged(): void
+    {
+        $cache = NCache::key(
+            'users',
+        )
+            ->tags([
+                'users',
+                'api',
+            ])
+            ->set([
+                'id' => 1,
+            ]);
+
+        self::assertTrue(
+            $cache->put(),
+        );
+
+        self::assertSame(
+            [
+                'state' => true,
+                'entries' => [
+                    'users',
+                    'api',
+                ],
+            ],
+            $cache->getTags(),
+        );
+    }
+
+    public function testSingleTagIsNormalized(): void
+    {
+        $cache = NCache::key(
+            'users',
+        )
+            ->tags('users')
+            ->set([
+                'id' => 1,
+            ]);
+
+        self::assertTrue(
+            $cache->put(),
+        );
+
+        self::assertSame(
+            [
+                'state' => true,
+                'entries' => [
+                    'users',
+                ],
+            ],
+            $cache->getTags(),
+        );
+    }
+
+    public function testInvalidatedTagUsesLazyDeleteOnGet(): void
+    {
+        $cache = NCache::key(
+            'user.1',
+        )
+            ->tags('users')
+            ->set([
+                'id' => 1,
+            ]);
+
+        self::assertTrue(
+            $cache->put(),
+        );
+
+        self::assertSame(
+            [
+                'id' => 1,
+            ],
+            $cache->get(),
+        );
+
+        self::assertTrue(
+            NCache::invalidateTag(
+                'users',
+            ),
+        );
+
+        // Invalidation does not immediately remove
+        // the registry entry.
+        $registry = $cache->getRegistry();
+
+        self::assertNotNull(
+            $registry,
+        );
+
+        self::assertFalse(
+            $registry['tags']['state'],
+        );
+
+        // Access triggers the lazy deletion.
+        self::assertNull(
+            $cache->get(),
+        );
+
+        // Registry entry is now removed too.
+        self::assertNull(
+            $cache->getRegistry(),
+        );
+    }
+
+    public function testInvalidatedTagUsesLazyDeleteOnHas(): void
+    {
+        $cache = NCache::key(
+            'user.1',
+        )
+            ->tags('users')
+            ->set([
+                'id' => 1,
+            ]);
+
+        self::assertTrue(
+            $cache->put(),
+        );
+
+        self::assertTrue(
+            $cache->has(),
+        );
+
+        self::assertTrue(
+            NCache::invalidateTag(
+                'users',
+            ),
+        );
+
+        self::assertNotNull(
+            $cache->getRegistry(),
+        );
+
+        self::assertFalse(
+            $cache->has(),
+        );
+
+        self::assertNull(
+            $cache->getRegistry(),
+        );
+    }
+
+    public function testInvalidateTagDoesNotAffectUnrelatedCache(): void
+    {
+        $users = NCache::key(
+            'user.1',
+        )
+            ->tags('users')
+            ->set([
+                'id' => 1,
+            ]);
+
+        $articles = NCache::key(
+            'article.1',
+        )
+            ->tags('articles')
+            ->set([
+                'id' => 1,
+            ]);
+
+        self::assertTrue($users->put());
+        self::assertTrue($articles->put());
+
+        self::assertTrue(
+            NCache::invalidateTag(
+                'users',
+            ),
+        );
+
+        self::assertNull(
+            $users->get(),
+        );
+
+        self::assertSame(
+            [
+                'id' => 1,
+            ],
+            $articles->get(),
+        );
+
+        self::assertTrue(
+            $articles->has(),
         );
     }
 
