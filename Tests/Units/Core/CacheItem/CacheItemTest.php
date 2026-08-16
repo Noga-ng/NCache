@@ -54,6 +54,7 @@ final class CacheItemTest extends TestsUnit
             'type' => $item->typeName(),
             'dir' => $dir,
             'key' => $item->key(),
+            'profile' => $item->profile(),
         ]))->get();
 
         self::assertSame(

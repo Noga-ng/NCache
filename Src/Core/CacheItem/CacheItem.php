@@ -146,7 +146,7 @@ final class CacheItem
             'type' => $this->typeName(),
             'dir' => $dir,
             'key' => $this->key(),
-            'profile' => $this->config->profile(),
+            'profile' => $this->profile(),
         ]))->get();
     }
 
@@ -189,6 +189,11 @@ final class CacheItem
     public function expiredAt(): ?int
     {
         return $this->expiration?->timestamp();
+    }
+
+    public function profile(): string
+    {
+        return $this->config->profile();
     }
 
     /**
@@ -303,12 +308,14 @@ final class CacheItem
      * tags: list<string>|null,
      * signature: string|null,
      * ttl: int|null,
-     * type: string
+     * type: string,
+     * profile: string
      * }
      */
     public function toArray(): array
     {
         return [
+            'profile' => $this->profile(),
             'type' => $this->typeName(),
             'name' => $this->key(),
             'key' => $this->hashedKey(),
