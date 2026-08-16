@@ -20,6 +20,7 @@ NCache provides a unified API for file-based, SQLite, Redis, and Memcached cache
 - Relative cache paths resolved from the configuration file
 - Cache namespaces and scoped directories
 - Persistent cache, default TTL, and explicit TTL
+- Default tags per profile
 - Human-readable TTL expressions
 - Shared Redis/Memcached configuration with `driversFrom`
 - Redis database selection
@@ -476,6 +477,24 @@ Memcached configuration is defined in `drivers.memcached`:
 }
 ```
 
+## Default Tags
+
+Each profile can define default tags that are automatically applied to every cache entry created under that profile.
+
+```json
+{
+    "articles": {
+        "cachePath": "./cache/articles",
+        "defaultDriver": "JSON",
+        "namespace": "articles",
+        "defaultTags": ["article", "content"],
+        "defaultTtl": "hours(1)"
+    }
+}
+```
+
+All entries created under the `articles` profile will carry the tags `article` and `content` unless overridden explicitly.
+
 ## Cache Signatures
 
 A signature associates cached data with the state or version of another resource.
@@ -504,12 +523,12 @@ Tag a cache entry when storing:
 
 ```php
 NCache::key('article.1')
-    ->tag('article')
+    ->tags('article')
     ->set($article)
     ->put();
 
 NCache::key('articles.recent')
-    ->tag(['article', 'homepage'])
+    ->tags(['article', 'homepage'])
     ->set($list)
     ->put();
 ```
