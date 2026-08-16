@@ -23,7 +23,8 @@ use NCache\Exceptions\InvalidCacheArgumentException;
  *     size: int|null,
  *     signature: string|null,
  *     ttl: int|null,
- *     expiresAt: int|null
+ *     expiresAt: int|null,
+ *     tags: list<string>
  * }
  *
  * @phpstan-type CrEntries array<string, CrEntry>
@@ -62,6 +63,7 @@ final class CacheRegistry implements CacheRegistryInterface
             'signature' => $this->item->getSignature(),
             'ttl' => $this->item->ttlValue(),
             'expiresAt' => $this->item->expiredAt(),
+            'tags' => $this->item->getTags(),
         ];
     }
 
@@ -229,9 +231,15 @@ final class CacheRegistry implements CacheRegistryInterface
         }
 
         if (!\array_key_exists('size', $entry) ||
-        ($entry['size'] !== null && !\is_int($entry['size']))) {
+                ($entry['size'] !== null && !\is_int($entry['size']))) {
             throw new InvalidCacheArgumentException(
                 "Registry entry 'size' must be a int or null.",
+            );
+        }
+
+        if (!\array_key_exists('tags', $entry) || !\is_array($entry['tags'])) {
+            throw new InvalidCacheArgumentException(
+                "Registry entry 'tags' must be an array.",
             );
         }
 
@@ -298,6 +306,36 @@ final class CacheRegistry implements CacheRegistryInterface
         return \array_key_exists(
             $this->registryKey(),
             $this->getAll(),
+        );
+    }
+
+    public function invalidateTag(string $tag): int
+    {
+        return $this->transaction(
+            function (array $data) use ($tag): array {
+                $count = 0;
+                $entries = &$data['entries'];
+
+                foreach ($entries as $key => $entry) {
+                    if (!\in_array($tag, $entry['tags'], true)) {
+                        continue;
+                    }
+
+                    // Supprime le fichier de cache
+                    $file = $entry['file'];
+                    if ($file !== null && is_file($file)) {
+                        @unlink($file);
+                    }
+
+                    unset($entries[$key]);
+                    $count++;
+                }
+
+                return [
+                    'data' => $data,
+                    'result' => $count,
+                ];
+            },
         );
     }
 

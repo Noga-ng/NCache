@@ -16,13 +16,28 @@ use NCache\Enum\CType;
  */
 final class CacheItem
 {
-    /** @var Expiration|null */
+    /**
+     * @var Expiration|null
+     */
     private ?Expiration $expiration = null;
+
     private bool $ttlDefined = false;
-    /** @var string|null */
+
+    /**
+     * @var string|null
+     */
     private ?string $signature = null;
-    /** @var array<array-key,mixed> */
+
+    /**
+     * @var list<string>
+     */
+    private array $tags = [];
+
+    /**
+     * @var array<array-key,mixed>
+     */
     private array $data = [];
+
     private CachePath $cachePath;
 
     public function __construct(
@@ -89,11 +104,20 @@ final class CacheItem
     public function setTtl(?int $ttl, Clock $clock): void
     {
         $ttl = ($ttl === null)
-        ? $this->config->getDefaultTtl()
-        : $ttl;
+            ? $this->config->getDefaultTtl()
+            : $ttl;
 
         $this->expiration = Expiration::fromTTL($ttl, $clock);
         $this->ttlDefined = true;
+    }
+
+    /**
+     * @param list<string> $tags
+     * @return void
+     */
+    public function setTags(array $tags): void
+    {
+        $this->tags = array_values(array_filter($tags, 'is_string'));
     }
 
     /**
@@ -196,6 +220,14 @@ final class CacheItem
     }
 
     /**
+     * @return list<string>
+     */
+    public function getTags(): array
+    {
+        return $this->tags;
+    }
+
+    /**
      * @return array{
      *     host:string,
      *     port:int,
@@ -235,8 +267,8 @@ final class CacheItem
             CType::JSON => 'json',
             CType::SERIALIZE,
             CType::ARRAY_PHP,
-            CType::STRING
-                => $this->config->getExtension(
+            CType::STRING =>
+                $this->config->getExtension(
                     $this->type,
                 ),
             default => null,

@@ -93,6 +93,17 @@ final class NCache implements CacheInterface
     }
 
     /**
+     * @param list<string>|string $tags
+     * @return static
+     */
+    public function tag(array|string $tags): static
+    {
+        $tags = \is_array($tags) ? $tags : [$tags];
+        $this->cacheItem->setTags($tags);
+        return $this;
+    }
+
+    /**
      * @param ItemData $data
      * @return static
      */
@@ -223,6 +234,12 @@ final class NCache implements CacheInterface
         return $this->ttlManager(
             $this->registry(),
         )->state();
+    }
+
+    public static function invalidateTag(string $tag): int
+    {
+        $instance = new self('__internal__');
+        return $instance->registry()->invalidateTag($tag);
     }
 
     public function delete(): bool
