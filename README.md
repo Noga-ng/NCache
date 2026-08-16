@@ -2,7 +2,7 @@
 
 A lightweight, multi-driver caching library for PHP 8.1+.
 
-NCache provides a unified API for file-based, SQLite, Redis, and Memcached caches while keeping profiles, TTL, namespaces, signatures, tags, metadata, and cache clearing consistent across drivers.
+NCache provides a unified API for file-based, SQLite, Redis, and Memcached caches while keeping profiles, TTL, namespaces, signatures, metadata, and cache clearing consistent across drivers.
 
 ## Features
 
@@ -20,16 +20,16 @@ NCache provides a unified API for file-based, SQLite, Redis, and Memcached cache
 - Relative cache paths resolved from the configuration file
 - Cache namespaces and scoped directories
 - Persistent cache, default TTL, and explicit TTL
-- Default tags per profile
 - Human-readable TTL expressions
 - Shared Redis/Memcached configuration with `driversFrom`
 - Redis database selection
 - Cache signatures
-- Cache tags (group invalidation)
+- Cache tags and global tag invalidation
+- Lazy deletion of tag-invalidated entries
 - Cache registry with metadata
 - Transactional registry updates using file locking
 - Atomic file replacement for file-based cache writes
-- Per-driver, scoped, and tag-based cache clearing
+- Per-driver and scoped cache clearing
 
 ## Requirements
 
@@ -72,6 +72,8 @@ Create a configuration file:
 Load the configuration and select a profile:
 
 ```php
+<?php
+
 use NCache\NCache;
 
 NCache::config(
@@ -277,7 +279,7 @@ NCache::key(
     CType::ARRAY_PHP
 )
     ->set([
-        'home'  => '/',
+        'home' => '/',
         'users' => '/users',
     ])
     ->put();
@@ -289,7 +291,7 @@ The generated cache is equivalent to:
 <?php
 
 return [
-    'home'  => '/',
+    'home' => '/',
     'users' => '/users',
 ];
 ```
@@ -477,23 +479,89 @@ Memcached configuration is defined in `drivers.memcached`:
 }
 ```
 
-## Default Tags
+## Cache Tags
 
-Each profile can define default tags that are automatically applied to every cache entry created under that profile.
+Tags allow multiple cache entries to be grouped logically and invalidated together without depending on a specific cache driver.
 
-```json
-{
-    "articles": {
-        "cachePath": "./cache/articles",
-        "defaultDriver": "JSON",
-        "namespace": "articles",
-        "defaultTags": ["article", "content"],
-        "defaultTtl": "hours(1)"
-    }
-}
+Attach one tag:
+
+```php
+NCache::key('user.42')
+    ->tags('users')
+    ->set($user)
+    ->put();
 ```
 
-All entries created under the `articles` profile will carry the tags `article` and `content` unless overridden explicitly.
+Attach multiple tags:
+
+```php
+NCache::key('article.42')
+    ->tags([
+        'articles',
+        'homepage',
+    ])
+    ->set($article)
+    ->put();
+```
+
+The registry stores tag metadata with the cache entry:
+
+```php
+[
+    'state' => true,
+    'entries' => [
+        'articles',
+        'homepage',
+    ],
+]
+```
+
+### Tag Invalidation
+
+Invalidate every cache entry associated with a tag:
+
+```php
+NCache::invalidateTag('articles');
+```
+
+Tag invalidation is intentionally **lazy**. `invalidateTag()` does not immediately delete the underlying cached value. Matching registry entries are only marked as invalid:
+
+```php
+[
+    'state' => false,
+    'entries' => [
+        'articles',
+        'homepage',
+    ],
+]
+```
+
+The next `get()` or `has()` operation detects the invalid tag state, deletes the cached value through its own driver, and removes the corresponding registry entry.
+
+```text
+invalidateTag()
+      |
+      v
+registry: tags.state = false
+      |
+      | no immediate backend deletion
+      v
+get() / has()
+      |
+      v
+lazy delete
+      |
+      +-- cached value
+      +-- registry entry
+```
+
+This keeps tag invalidation independent from the storage backend and gives file caches, SQLite, Redis, and Memcached the same invalidation lifecycle.
+
+Tags are intentionally separate from TTL and signatures:
+
+- **TTL** controls time-based expiration.
+- **Tags** provide explicit group invalidation.
+- **Signatures** validate cached data against the state of another resource.
 
 ## Cache Signatures
 
@@ -514,32 +582,6 @@ $valid = NCache::key('users')
 ```
 
 For file-based cache entries, registry metadata such as stored file size can also be used as an additional consistency check.
-
-## Cache Tags
-
-Tags group multiple cache entries under a shared label so they can be invalidated together, regardless of driver or key.
-
-Tag a cache entry when storing:
-
-```php
-NCache::key('article.1')
-    ->tags('article')
-    ->set($article)
-    ->put();
-
-NCache::key('articles.recent')
-    ->tags(['article', 'homepage'])
-    ->set($list)
-    ->put();
-```
-
-Invalidate every entry that carries a given tag:
-
-```php
-NCache::invalidateTag('article');
-```
-
-Tag invalidation works across all drivers. For file-based caches, the underlying cache file is removed in addition to the registry entry.
 
 ## Append Data
 
@@ -588,7 +630,6 @@ Registry metadata includes:
 - associated file
 - file size when applicable
 - signature
-- tags
 - TTL
 - expiration timestamp
 
@@ -625,12 +666,6 @@ NCache::clear(
     dir: 'users',
     type: CType::JSON
 );
-```
-
-Clear by tag:
-
-```php
-NCache::invalidateTag('article');
 ```
 
 ## Supported Drivers
