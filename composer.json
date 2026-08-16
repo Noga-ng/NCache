@@ -1,6 +1,6 @@
 {
   "name": "noga-ng/ncache",
-  "description": "A multiple drivers cache on one interface.",
+  "description": "A flexible multi-driver cache library for PHP.",
   "type": "library",
   "license": "MIT",
   "homepage": "https://github.com/Noga-ng/NCache",
