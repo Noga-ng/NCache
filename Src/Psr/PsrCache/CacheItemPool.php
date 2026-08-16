@@ -128,7 +128,7 @@ final class CacheItemPool implements CacheItemPoolInterface
     {
         $this->activate();
 
-        NCache::clear();
+        NCache::clear(type:$this->type);
 
         return true;
     }
@@ -163,7 +163,7 @@ final class CacheItemPool implements CacheItemPoolInterface
 
         if (preg_match('/[{}()\/\\\\@:]/', $key) === 1) {
             throw new InvalidCacheArgumentException(
-                "Invalid PSR-16 cache key: {$key}",
+                "Invalid PSR-6 cache key: {$key}",
             );
         }
     }
