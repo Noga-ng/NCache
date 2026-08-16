@@ -93,12 +93,19 @@ final class NCache implements CacheInterface
     }
 
     /**
-     * @param list<string>|string $tags
+     * @param list<string>|string|null $tags
      * @return static
      */
-    public function tag(array|string $tags): static
+    public function tags(mixed $tags = null): static
     {
-        $tags = \is_array($tags) ? $tags : [$tags];
+        $tags = \is_array($tags)
+        ? $tags
+        : (
+            $tags !== null
+            ? [$tags]
+            : null
+        );
+
         $this->cacheItem->setTags($tags);
         return $this;
     }
@@ -209,12 +216,22 @@ final class NCache implements CacheInterface
      *     signature: string|null,
      *     ttl: int|null,
      *     expiresAt: int|null,
-     *     tags: list<string>
+     *     tags: list<string>|null
      * }|null
      */
     public function getRegistry(): ?array
     {
         return $this->registry()->get();
+    }
+
+    /**
+     * @return list<string>|null
+     */
+    public function getTags(): ?array
+    {
+        $register = $this->getRegistry();
+
+        return $register !== null ? $register['tags'] : null;
     }
 
     /**

@@ -32,6 +32,7 @@ use NCache\Enum\CType;
  *     cachePath:string,
  *     defaultDriver:string|null,
  *     namespace:string|null,
+ *     defaultTags: list<string>|null,
  *     extensions:Extensions,
  *     defaultTtl:int|null,
  *     drivers:Drivers
@@ -79,6 +80,14 @@ final class ConfigItem
     public function getDefaultTtl(): ?int
     {
         return $this->entry['defaultTtl'];
+    }
+
+    /**
+     * @return list<string>|null
+     */
+    public function getDefaultTags(): ?array
+    {
+        return $this->entry['defaultTags'];
     }
 
     /**

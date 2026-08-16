@@ -29,9 +29,9 @@ final class CacheItem
     private ?string $signature = null;
 
     /**
-     * @var list<string>
+     * @var list<string>|null
      */
-    private array $tags = [];
+    private ?array $tags = null;
 
     /**
      * @var array<array-key,mixed>
@@ -45,17 +45,7 @@ final class CacheItem
         private readonly CType $type,
         private readonly ConfigItem $config,
     ) {
-        $this->cachePath = new CachePath(
-            $this->config->getBasePath(),
-        );
-
-        $namespace = $this->config->getNamespace();
-
-        if ($namespace !== null && trim($namespace) !== '') {
-            $this->cachePath = $this->cachePath->dir(
-                $namespace,
-            );
-        }
+        $this->resolveNamespace();
     }
 
     /**
@@ -112,12 +102,16 @@ final class CacheItem
     }
 
     /**
-     * @param list<string> $tags
+     * @param list<string>|null $tags
      * @return void
      */
-    public function setTags(array $tags): void
+    public function setTags(?array $tags = null): void
     {
-        $this->tags = array_values(array_filter($tags, 'is_string'));
+        $tags = ($tags === null)
+            ? $this->config->getDefaultTags()
+            : $tags;
+
+        $this->tags = $tags;
     }
 
     /**
@@ -220,9 +214,9 @@ final class CacheItem
     }
 
     /**
-     * @return list<string>
+     * @return list<string>|null
      */
-    public function getTags(): array
+    public function getTags(): ?array
     {
         return $this->tags;
     }
@@ -283,12 +277,29 @@ final class CacheItem
         return $this->data;
     }
 
+    private function resolveNamespace(): void
+    {
+        $this->cachePath = new CachePath(
+            $this->config->getBasePath(),
+        );
+
+        $namespace = $this->config->getNamespace();
+
+        if ($namespace !== null && trim($namespace) !== '') {
+            $this->cachePath = $this->cachePath->dir(
+                $namespace,
+            );
+        }
+    }
+
     /**
      * @return array{
      * data: array<array-key,mixed>,
      * expiresAt: int|null,
      * key: string,
      * name: string,
+     * namespace: string|null,
+     * tags: list<string>|null,
      * signature: string|null,
      * ttl: int|null,
      * type: string
@@ -301,6 +312,7 @@ final class CacheItem
             'name' => $this->key(),
             'key' => $this->hashedKey(),
             'namespace' => $this->getDir(),
+            'tags' => $this->getTags(),
             'signature' => $this->getSignature(),
             'ttl' => $this->ttlValue(),
             'expiresAt' => $this->expiredAt(),

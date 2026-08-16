@@ -36,6 +36,7 @@ use NCache\Exceptions\UnexpectedConfigException;
  *     cachePath:string,
  *     defaultDriver:string|null,
  *     namespace:string|null,
+ *     defaultTags?:list<string>|null,
  *     extensions:Extensions,
  *     defaultTtl:string|int|null,
  *     drivers?:Drivers,
@@ -46,6 +47,7 @@ use NCache\Exceptions\UnexpectedConfigException;
  *     cachePath:string,
  *     defaultDriver:string|null,
  *     namespace:string|null,
+ *     defaultTags:list<string>|null,
  *     extensions:Extensions,
  *     defaultTtl:int|null,
  *     drivers:Drivers
@@ -145,6 +147,8 @@ final class CacheConfig implements ConfigInterface
             $ttl = $this->resolveDefaultTtl($ttl);
         }
 
+        $defaultTags = $entry['defaultTags'] ?? null;
+
         return [
             'cachePath' =>
                 $entry['cachePath'],
@@ -152,6 +156,7 @@ final class CacheConfig implements ConfigInterface
                 $entry['defaultDriver'],
             'namespace' =>
                 $entry['namespace'],
+            'defaultTags' => $defaultTags,
             'extensions' =>
                 $entry['extensions'],
             'defaultTtl' =>
@@ -522,6 +527,16 @@ final class CacheConfig implements ConfigInterface
             );
         }
 
+        $defaultTags = $entry['defaultTags'] ?? null;
+
+        if ($defaultTags !== null && !\is_array($defaultTags)) {
+            throw new UnexpectedConfigException(
+                "defaultTags must be content array in profile {$profile}",
+            );
+        }
+
+        $defaultTags = $this->normalizeTags($defaultTags);
+
         $driversFrom =
             $entry['driversFrom']
                 ?? null;
@@ -552,6 +567,8 @@ final class CacheConfig implements ConfigInterface
                 $defaultDriver,
             'namespace' =>
                 $namespace,
+            'defaultTags' =>
+                $defaultTags,
             'extensions' =>
                 $extensions,
             'defaultTtl' =>
@@ -569,6 +586,31 @@ final class CacheConfig implements ConfigInterface
         }
 
         return $normalized;
+    }
+
+    /**
+     * @param mixed $tags
+     * @throws UnexpectedConfigException
+     * @return list<string>|null
+     */
+    private function normalizeTags(mixed $tags): ?array
+    {
+        $defaultTags = null;
+
+        if ($tags !== null && \is_array($tags)) {
+            foreach ($tags as $tag) {
+                if (!\is_string($tag)) {
+                    throw new UnexpectedConfigException(
+                        'default tags values must be of type string.',
+                    );
+                }
+
+                $defaultTags[] = $tag;
+            }
+
+        }
+
+        return $defaultTags;
     }
 
     /**

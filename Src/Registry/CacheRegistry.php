@@ -24,7 +24,7 @@ use NCache\Exceptions\InvalidCacheArgumentException;
  *     signature: string|null,
  *     ttl: int|null,
  *     expiresAt: int|null,
- *     tags: list<string>
+ *     tags: list<string>|null
  * }
  *
  * @phpstan-type CrEntries array<string, CrEntry>
@@ -237,7 +237,8 @@ final class CacheRegistry implements CacheRegistryInterface
             );
         }
 
-        if (!\array_key_exists('tags', $entry) || !\is_array($entry['tags'])) {
+        if (!\array_key_exists('tags', $entry) ||
+                ($entry['tags'] !== null && !\is_array($entry['tags']))) {
             throw new InvalidCacheArgumentException(
                 "Registry entry 'tags' must be an array.",
             );
@@ -317,7 +318,13 @@ final class CacheRegistry implements CacheRegistryInterface
                 $entries = &$data['entries'];
 
                 foreach ($entries as $key => $entry) {
-                    if (!\in_array($tag, $entry['tags'], true)) {
+                    $entryTags = $entry['tags'];
+
+                    if ($entryTags === null) {
+                        continue;
+                    }
+
+                    if (!\in_array($tag, $entryTags, true)) {
                         continue;
                     }
 

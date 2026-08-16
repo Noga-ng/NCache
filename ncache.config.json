@@ -28,6 +28,7 @@
     "cachePath": "./cache",
     "defaultDriver": "SERIALIZE",
     "namespace": "admin",
+    "defaultTags":["users.noga"],
     "extensions": {
       "SERIALIZE": "nc",
       "STRING": "txt"
