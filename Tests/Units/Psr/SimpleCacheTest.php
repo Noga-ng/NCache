@@ -404,46 +404,46 @@ final class SimpleCacheTest extends TestsUnit
         );
     }
 
-  public function testTwoAdaptersKeepTheirOwnProfiles(): void
-{
-    $default = new SimpleCache(
-        $this->configFile,
-        'default',
-        CType::JSON,
-    );
+    public function testTwoAdaptersKeepTheirOwnProfiles(): void
+    {
+        $default = new SimpleCache(
+            $this->configFile,
+            'default',
+            CType::JSON,
+        );
 
-    $users = new SimpleCache(
-        $this->configFile,
-        'users',
-        CType::JSON,
-    );
+        $users = new SimpleCache(
+            $this->configFile,
+            'users',
+            CType::JSON,
+        );
 
-    self::assertTrue(
-        $default->set(
-            'same-key',
+        self::assertTrue(
+            $default->set(
+                'same-key',
+                ['profile' => 'default'],
+            ),
+        );
+
+        self::assertTrue(
+            $users->set(
+                'same-key',
+                ['profile' => 'users'],
+            ),
+        );
+
+        self::assertSame(
             ['profile' => 'default'],
-        ),
-    );
+            $default->get(
+                'same-key',
+            ),
+        );
 
-    self::assertTrue(
-        $users->set(
-            'same-key',
+        self::assertSame(
             ['profile' => 'users'],
-        ),
-    );
-
-    self::assertSame(
-        ['profile' => 'default'],
-        $default->get(
-            'same-key',
-        ),
-    );
-
-    self::assertSame(
-        ['profile' => 'users'],
-        $users->get(
-            'same-key',
-        ),
-    );
-}
+            $users->get(
+                'same-key',
+            ),
+        );
+    }
 }

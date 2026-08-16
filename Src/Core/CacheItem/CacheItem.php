@@ -146,7 +146,7 @@ final class CacheItem
             'type' => $this->typeName(),
             'dir' => $dir,
             'key' => $this->key(),
-            'profile'=>$this->config->profile()
+            'profile' => $this->config->profile(),
         ]))->get();
     }
 

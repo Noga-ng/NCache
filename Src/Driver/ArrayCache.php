@@ -117,17 +117,18 @@ final class ArrayCache extends CacheDriver
             );
     }
 
-    private function normalize(mixed $value): mixed {
-    if (\is_object($value)) {
-        return $this->normalize(get_object_vars($value));
-    }
-
-    if (\is_array($value)) {
-        foreach ($value as $key => $item) {
-            $value[$key] = $this->normalize($item);
+    private function normalize(mixed $value): mixed
+    {
+        if (\is_object($value)) {
+            return $this->normalize(get_object_vars($value));
         }
-    }
 
-    return $value;
-}
+        if (\is_array($value)) {
+            foreach ($value as $key => $item) {
+                $value[$key] = $this->normalize($item);
+            }
+        }
+
+        return $value;
+    }
 }

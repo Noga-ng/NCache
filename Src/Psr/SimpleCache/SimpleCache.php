@@ -1,12 +1,14 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace NCache\Psr\SimpleCache;
 
+use DateInterval;
 use NCache\Enum\CType;
 use NCache\NCache;
-use Psr\SimpleCache\CacheInterface;
-use DateInterval;
 use NCache\Psr\SimpleCache\Exceptions\InvalidCacheArgumentException;
+use Psr\SimpleCache\CacheInterface;
 
 /**
  * @phpstan-type ItemData array<array-key,mixed>|string|int|bool|float|null
@@ -16,8 +18,9 @@ final class SimpleCache implements CacheInterface
     public function __construct(
         private readonly string $config,
         private readonly string $profile = 'default',
-        private readonly ?CType $type = null
-    ) {}
+        private readonly ?CType $type = null,
+    ) {
+    }
 
     private function activate(): void
     {
@@ -133,7 +136,7 @@ final class SimpleCache implements CacheInterface
             if (!$this->set(
                 $key,
                 $value,
-                $ttl
+                $ttl,
             )) {
                 return false;
             }
