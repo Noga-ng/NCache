@@ -1,18 +1,27 @@
 # NCache
 
 [![CI](https://github.com/Noga-ng/NCache/actions/workflows/ci.yml/badge.svg)](https://github.com/Noga-ng/NCache/actions/workflows/ci.yml)
-![PHPStan Level 9](https://img.shields.io/badge/PHPStan-level%209-brightgreen)
-![PHPUnit](https://img.shields.io/badge/PHPUnit-passing-brightgreen)
-![PHP-CS-Fixer](https://img.shields.io/badge/PHP--CS--Fixer-passing-brightgreen)
 ![PHP](https://img.shields.io/badge/PHP-8.1%20--%208.5-777BB4)
+![PHPStan](https://img.shields.io/badge/PHPStan-level%209-blue)
+![PHPUnit](https://img.shields.io/badge/tested%20with-PHPUnit-blue)
+![PHP-CS-Fixer](https://img.shields.io/badge/code%20style-PHP--CS--Fixer-blue)
+![Version](https://img.shields.io/badge/version-1.1.0-blue)
 
 A lightweight, multi-driver caching library for PHP 8.1+.
 
-NCache provides a unified API for file-based, SQLite, Redis, and Memcached caches while keeping profiles, TTL, namespaces, signatures, metadata, and cache clearing consistent across drivers.
+NCache provides a unified caching API for file-based storage, SQLite, Redis,
+and Memcached while keeping profiles, TTL, namespaces, signatures, tags,
+metadata, and cache invalidation consistent across drivers.
+
+NCache also provides PSR-6 and PSR-16 adapters for applications and libraries
+that rely on standard PHP-FIG caching interfaces.
 
 ## Features
 
 - PHP 8.1+
+- Unified multi-driver cache API
+- PSR-6 `CacheItemInterface` and `CacheItemPoolInterface`
+- PSR-16 `CacheInterface`
 - JSON cache
 - Serialized PHP cache
 - String cache
@@ -22,6 +31,7 @@ NCache provides a unified API for file-based, SQLite, Redis, and Memcached cache
 - Memcached cache
 - Configurable default driver
 - Multiple isolated cache profiles
+- Profile-aware cache key isolation
 - Immutable resolved configuration state per cache instance
 - Relative cache paths resolved from the configuration file
 - Cache namespaces and scoped directories
@@ -30,11 +40,13 @@ NCache provides a unified API for file-based, SQLite, Redis, and Memcached cache
 - Shared Redis/Memcached configuration with `driversFrom`
 - Redis database selection
 - Cache signatures
+- Callable values and signatures
 - Cache tags and global tag invalidation
 - Lazy deletion of tag-invalidated entries
 - Cache registry with metadata
 - Transactional registry updates using file locking
 - Atomic file replacement for file-based cache writes
+- Lazy recursive cache-directory iteration
 - Per-driver and scoped cache clearing
 
 ## Requirements
@@ -118,13 +130,74 @@ Delete it:
 NCache::key('user.42')->delete();
 ```
 
+## Callable Values
+
+NCache supports callables for dynamically resolved cache values.
+
+Instead of resolving a value before passing it to NCache:
+
+```php
+$users = loadUsers();
+
+NCache::key('users')
+    ->set($users)
+    ->put();
+```
+
+a callable can be passed directly:
+
+```php
+NCache::key('users')
+    ->set(
+        fn () => loadUsers()
+    )
+    ->put();
+```
+
+Callables are also supported by `append()`:
+
+```php
+NCache::key('users')
+    ->append(
+        fn () => loadMoreUsers()
+    )
+    ->put();
+```
+
+Signatures can also be dynamically resolved:
+
+```php
+NCache::key('users')
+    ->signature(
+        fn () => getUsersVersion()
+    )
+    ->set(
+        fn () => loadUsers()
+    )
+    ->put();
+```
+
+and validated against the current resource state:
+
+```php
+$valid = NCache::key('users')
+    ->hasValidSignature(
+        fn () => getUsersVersion()
+    );
+```
+
+Callable support is part of the native NCache API and is also available when
+values pass through the PSR adapters.
+
 ## PSR Compatibility
 
-NCache provides adapters for the standard PHP-FIG caching interfaces while keeping the native NCache API independent.
+NCache provides compatibility adapters for the standard PHP-FIG caching
+interfaces without coupling the native API to PSR-specific behavior.
 
 ### PSR-16 — Simple Cache
 
-NCache implements `Psr\SimpleCache\CacheInterface` through the `SimpleCache` adapter.
+NCache implements `Psr\SimpleCache\CacheInterface` through the `SimpleCache`
+adapter.
 
 ```php
 use NCache\Psr\SimpleCache\SimpleCache;
@@ -145,16 +218,19 @@ $user = $cache->get(
 );
 ```
 
-PSR-16 provides a simple key/value caching API with support for TTL, multiple operations, deletion, and cache clearing.
+PSR-16 provides a portable key/value caching API with TTL, multiple operations,
+deletion, and cache clearing.
 
 **[Read the PSR-16 documentation](Src/Psr/SimpleCache/README.md)**
 
 ### PSR-6 — Caching Interface
 
-NCache also implements the PSR-6 cache item and cache pool interfaces:
+NCache implements:
 
 - `Psr\Cache\CacheItemInterface`
 - `Psr\Cache\CacheItemPoolInterface`
+
+Create a cache pool:
 
 ```php
 use NCache\Psr\PsrCache\CacheItemPool;
@@ -163,7 +239,11 @@ $pool = new CacheItemPool(
     __DIR__ . '/ncache.config.json',
     'default',
 );
+```
 
+Retrieve and store an item:
+
+```php
 $item = $pool->getItem(
     'user.42',
 );
@@ -185,7 +265,23 @@ if (!$item->isHit()) {
 $user = $item->get();
 ```
 
-PSR-6 provides cache items, cache pools, expiration management, and deferred persistence through `saveDeferred()` and `commit()`.
+PSR-6 also supports deferred persistence:
+
+```php
+$item = $pool->getItem(
+    'user.42',
+);
+
+$item->set([
+    'id' => 42,
+]);
+
+$pool->saveDeferred(
+    $item,
+);
+
+$pool->commit();
+```
 
 **[Read the PSR-6 documentation](Src/Psr/PsrCache/README.md)**
 
@@ -193,11 +289,12 @@ PSR-6 provides cache items, cache pools, expiration management, and deferred per
 
 | API | Recommended for |
 | --- | --- |
-| Native NCache | Full NCache features such as tags, signatures, namespaces, and driver control |
+| Native NCache | Full NCache functionality including tags, signatures, namespaces, callables, and driver control |
 | PSR-16 | Simple and portable key/value caching |
 | PSR-6 | Libraries and frameworks requiring cache items and cache pools |
 
-The PSR adapters are optional compatibility layers. They do not replace or restrict the native NCache API.
+The PSR adapters are compatibility layers. They do not replace or restrict
+the native NCache API.
 
 ## Configuration
 
@@ -272,9 +369,11 @@ NCache::config(
 
 ## Profile Isolation
 
-When `NCache::key()` creates a cache instance, NCache captures the resolved state of the currently selected profile.
+When `NCache::key()` creates a cache instance, NCache captures the resolved
+state of the currently selected profile.
 
-Changing the active profile later does not mutate cache instances that were already created.
+Changing the active profile later does not mutate cache instances that were
+already created.
 
 ```php
 $config = NCache::config(
@@ -283,25 +382,34 @@ $config = NCache::config(
 
 $config->use('users');
 
-$userCache = NCache::key('user.42');
+$userCache = NCache::key(
+    'user.42'
+);
 
 $config->use('admin');
 
-$adminCache = NCache::key('dashboard');
+$adminCache = NCache::key(
+    'dashboard'
+);
 ```
 
-`$userCache` keeps the resolved `users` configuration, while `$adminCache` uses `admin`.
+The resulting instances remain independent:
 
 ```text
 $userCache  -> users
 $adminCache -> admin
 ```
 
-A later call to `use()` does not switch the configuration of either existing cache instance.
+A later call to `use()` does not switch the configuration of either existing
+cache instance.
+
+Cache identity also includes the active profile, preventing identical cache
+keys from colliding when multiple profiles share the same cache directory.
 
 ## Relative Cache Paths
 
-Relative `cachePath` values are resolved from the directory containing the configuration file, not from the application's current working directory.
+Relative `cachePath` values are resolved from the directory containing the
+configuration file, not from the application's current working directory.
 
 Example:
 
@@ -358,7 +466,7 @@ An explicitly provided driver takes precedence over `defaultDriver`.
 
 ## PHP Array Cache
 
-`CType::ARRAY_PHP` stores an array as a PHP file that returns the cached value.
+`CType::ARRAY_PHP` stores cache data as a PHP file returning an array.
 
 ```php
 NCache::key(
@@ -383,9 +491,11 @@ return [
 ];
 ```
 
-This driver can benefit from PHP OPcache because the cache is loaded through PHP itself rather than decoded from JSON or unserialized at runtime.
+Because the generated cache is loaded as PHP, this driver can benefit from
+PHP OPcache instead of requiring JSON decoding or unserialization for each
+read.
 
-When using this driver, configure its extension:
+Configure the extension with:
 
 ```json
 {
@@ -397,7 +507,8 @@ When using this driver, configure its extension:
 
 ## TTL
 
-NCache distinguishes between persistent cache, configured default TTL, and explicit TTL.
+NCache distinguishes between persistent cache, configured default TTL, and
+explicit TTL.
 
 ### Persistent Cache
 
@@ -490,13 +601,16 @@ NCache::key('profile')
     ->put();
 ```
 
-For file-based drivers, the scope is resolved below the configured `cachePath`.
+For file-based drivers, the scope is resolved below the configured
+`cachePath`.
 
-This allows identical keys to remain isolated between different profiles or cache scopes.
+This allows identical keys to remain isolated between different profiles or
+cache scopes.
 
 ## Shared Driver Configuration
 
-`driversFrom` allows a profile to reuse Redis and Memcached connection settings from another profile.
+`driversFrom` allows a profile to reuse Redis and Memcached connection
+settings from another profile.
 
 ```json
 {
@@ -532,7 +646,8 @@ This allows identical keys to remain isolated between different profiles or cach
 }
 ```
 
-The inherited driver configuration is resolved into the selected profile state.
+The inherited driver configuration is resolved into the selected profile
+state.
 
 ## Redis
 
@@ -568,7 +683,8 @@ Memcached configuration is defined in `drivers.memcached`:
 
 ## Cache Tags
 
-Tags allow multiple cache entries to be grouped logically and invalidated together without depending on a specific cache driver.
+Tags allow multiple cache entries to be grouped logically and invalidated
+together without depending on a specific cache driver.
 
 Attach one tag:
 
@@ -608,10 +724,15 @@ The registry stores tag metadata with the cache entry:
 Invalidate every cache entry associated with a tag:
 
 ```php
-NCache::invalidateTag('articles');
+NCache::invalidateTag(
+    'articles'
+);
 ```
 
-Tag invalidation is intentionally **lazy**. `invalidateTag()` does not immediately delete the underlying cached value. Matching registry entries are only marked as invalid:
+Tag invalidation is intentionally lazy.
+
+`invalidateTag()` does not immediately delete the underlying cached value.
+Matching registry entries are marked as invalid:
 
 ```php
 [
@@ -623,7 +744,8 @@ Tag invalidation is intentionally **lazy**. `invalidateTag()` does not immediate
 ]
 ```
 
-The next `get()` or `has()` operation detects the invalid tag state, deletes the cached value through its own driver, and removes the corresponding registry entry.
+The next `get()` or `has()` detects the invalid tag state, deletes the cached
+value through its own driver, and removes the corresponding registry entry.
 
 ```text
 invalidateTag()
@@ -642,7 +764,8 @@ lazy delete
       +-- registry entry
 ```
 
-This keeps tag invalidation independent from the storage backend and gives file caches, SQLite, Redis, and Memcached the same invalidation lifecycle.
+This keeps tag invalidation independent from the storage backend and gives
+file caches, SQLite, Redis, and Memcached the same invalidation lifecycle.
 
 Tags are intentionally separate from TTL and signatures:
 
@@ -652,11 +775,14 @@ Tags are intentionally separate from TTL and signatures:
 
 ## Cache Signatures
 
-A signature associates cached data with the state or version of another resource.
+A signature associates cached data with the state or version of another
+resource.
 
 ```php
 NCache::key('users')
-    ->signature('users-v2')
+    ->signature(
+        'users-v2'
+    )
     ->set($users)
     ->put();
 ```
@@ -665,12 +791,37 @@ Validate it later:
 
 ```php
 $valid = NCache::key('users')
-    ->hasValidSignature('users-v2');
+    ->hasValidSignature(
+        'users-v2'
+    );
 ```
 
-For file-based cache entries, registry metadata such as stored file size can also be used as an additional consistency check.
+Signatures also support callables:
+
+```php
+NCache::key('users')
+    ->signature(
+        fn () => getUsersVersion()
+    )
+    ->set($users)
+    ->put();
+```
+
+The current state can then be resolved dynamically during validation:
+
+```php
+$valid = NCache::key('users')
+    ->hasValidSignature(
+        fn () => getUsersVersion()
+    );
+```
+
+For file-based cache entries, registry metadata such as stored file size can
+also be used as an additional consistency check.
 
 ## Append Data
+
+Append data to an existing cache value:
 
 ```php
 NCache::key('users')
@@ -680,6 +831,18 @@ NCache::key('users')
     ->append([
         ['id' => 2],
     ])
+    ->put();
+```
+
+`append()` also accepts a callable:
+
+```php
+NCache::key('users')
+    ->append(
+        fn () => [
+            ['id' => 3],
+        ]
+    )
     ->put();
 ```
 
@@ -717,18 +880,34 @@ Registry metadata includes:
 - associated file
 - file size when applicable
 - signature
+- tags
 - TTL
 - expiration timestamp
 
-Registry mutations use an exclusive lock around the complete read-modify-write cycle, reducing lost updates when multiple processes modify the same registry concurrently.
+Registry mutations use an exclusive lock around the complete
+read-modify-write cycle, reducing lost updates when multiple processes modify
+the same registry concurrently.
 
 ## Atomic File Writes
 
-File-based drivers write cache data through a temporary file and replace the final target only after the write is complete.
+File-based drivers write cache data through a temporary file and replace the
+final target only after the write is complete.
 
 This avoids exposing partially written cache files during normal writes.
 
-The registry uses a separate stable lock file so the registry file itself can still be replaced atomically.
+The registry uses a separate stable lock file so the registry file itself can
+still be replaced atomically.
+
+## Lazy Directory Iteration
+
+Recursive cache-directory traversal is performed lazily using PHP iterators
+and generators.
+
+Entries are yielded progressively instead of first collecting the entire
+directory tree into an in-memory array.
+
+This keeps directory operations more memory-efficient when working with a
+large number of cache files.
 
 ## Clearing Cache
 
@@ -767,13 +946,46 @@ NCache::clear(
 | Redis | `CType::REDIS` |
 | Memcached | `CType::MEMCACHED` |
 
-## Quality
+## What's New in v1.1.0
+
+NCache 1.1 expands interoperability, cache invalidation, and native API
+ergonomics while keeping the existing multi-driver architecture.
+
+### PSR
+
+- Added PSR-16 Simple Cache support
+- Added PSR-6 Cache Item Pool support
+- Added PSR-6 expiration management
+- Added PSR-6 deferred persistence with `saveDeferred()` and `commit()`
+- Added dedicated PSR-6 and PSR-16 documentation
+
+### Cache API
+
+- Added callable support for cache values
+- Added callable support to `append()`
+- Added callable-based signatures and signature validation
+- Added cache tags
+- Added global lazy tag invalidation
+- Improved profile-aware cache key isolation
+
+### Storage
+
+- Added the `ARRAY_PHP` cache driver
+- Added OPcache-friendly PHP array cache files
+- Improved lazy recursive directory iteration
+
+### Quality
+
+- PHPStan level 9
+- PHPUnit coverage for native, PSR-6, and PSR-16 APIs
+- PHP-CS-Fixer validation
+- GitHub Actions CI across PHP 8.1–8.5
 
 NCache is developed and tested with:
 
 - PHPUnit
 - PHPStan level 9
-- PHP CS Fixer
+- PHP-CS-Fixer
 - GitHub Actions
 
 Continuous integration validates NCache on:
