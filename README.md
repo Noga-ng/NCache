@@ -1,6 +1,10 @@
 # NCache
 
 [![CI](https://github.com/Noga-ng/NCache/actions/workflows/ci.yml/badge.svg)](https://github.com/Noga-ng/NCache/actions/workflows/ci.yml)
+![PHPStan Level 9](https://img.shields.io/badge/PHPStan-level%209-brightgreen)
+![PHPUnit](https://img.shields.io/badge/PHPUnit-passing-brightgreen)
+![PHP-CS-Fixer](https://img.shields.io/badge/PHP--CS--Fixer-passing-brightgreen)
+![PHP](https://img.shields.io/badge/PHP-8.1%20--%208.5-777BB4)
 
 A lightweight, multi-driver caching library for PHP 8.1+.
 
