@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace NCache\Core\Files;
 
 use FilesystemIterator;
+use Generator;
 use NCache\Exceptions\InvalidCacheArgumentException;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -20,36 +21,33 @@ final class CacheDirectory
     ) {
     }
 
-    /**
-     * @param list<string> $directory
-     *
-     * @return list<RecursiveIteratorIterator<RecursiveDirectoryIterator>>
-     */
-    private function recursiveDirectory(array $directory): array
-    {
-        /**
-        *
-        * @var list<RecursiveIteratorIterator<RecursiveDirectoryIterator>>
-        */
-        $recursive = [];
 
-        foreach ($directory as $dir) {
+    /**
+ * @return Generator<int, SplFileInfo>
+ */
+    public function iterate(): Generator
+    {
+        foreach ($this->directory as $dir) {
             $this->isValidDirectory($dir);
 
-            $directoryIterator
-                = new RecursiveDirectoryIterator(
-                    $dir,
-                    FilesystemIterator::SKIP_DOTS,
-                );
+            $directoryIterator = new RecursiveDirectoryIterator(
+                $dir,
+                FilesystemIterator::SKIP_DOTS,
+            );
 
-            $recursive[]
-                = new RecursiveIteratorIterator(
-                    $directoryIterator,
-                    RecursiveIteratorIterator::CHILD_FIRST,
-                );
+            $iterator = new RecursiveIteratorIterator(
+                $directoryIterator,
+                RecursiveIteratorIterator::CHILD_FIRST,
+            );
+
+            foreach ($iterator as $file) {
+                if (!$file instanceof SplFileInfo) {
+                    continue;
+                }
+
+                yield $file;
+            }
         }
-
-        return $recursive;
     }
 
     private function isValidDirectory(string $directory): void
@@ -61,28 +59,4 @@ final class CacheDirectory
         }
     }
 
-    /**
-     * @return list<SplFileInfo>
-     */
-    public function iterate(): array
-    {
-        $iterators = $this->recursiveDirectory($this->directory);
-
-        /**
-         * @var list<SplFileInfo>
-         */
-        $iterate = [];
-
-        foreach ($iterators as $iterator) {
-            foreach ($iterator as $file) {
-                if (!$file instanceof SplFileInfo) {
-                    continue;
-                }
-
-                $iterate[] = $file;
-            }
-        }
-
-        return $iterate;
-    }
 }

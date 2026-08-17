@@ -65,6 +65,7 @@ final class ConfigItem
             'SERIALIZE' => CType::SERIALIZE,
             'JSON' => CType::JSON,
             'STRING' => CType::STRING,
+            'ARRAY_PHP' => CType::ARRAY_PHP,
             'REDIS' => CType::REDIS,
             'MEMCACHED' => CType::MEMCACHED,
             'SQLite' => CType::SQLite,

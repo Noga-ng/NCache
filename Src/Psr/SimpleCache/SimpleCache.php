@@ -5,45 +5,38 @@ declare(strict_types=1);
 namespace NCache\Psr\SimpleCache;
 
 use DateInterval;
+use NCache\Core\Normalize;
 use NCache\Enum\CType;
 use NCache\NCache;
 use NCache\Psr\SimpleCache\Exceptions\InvalidCacheArgumentException;
 use Psr\SimpleCache\CacheInterface;
 
 /**
- * @phpstan-type ItemData array<array-key,mixed>|string|int|bool|float|null
+ * @phpstan-type ItemData array<array-key,mixed>|string|int|bool|float|null|callable
  */
 final class SimpleCache implements CacheInterface
 {
+    use Normalize;
     public function __construct(
         private readonly ?string $config = null,
-        private readonly string $profile = 'default',
+        private readonly string $profile = '',
         private readonly ?CType $type = null,
     ) {
     }
 
     private function activate(): void
     {
-        NCache::config(
-            $this->config,
-        )->use(
-            $this->profile,
-        );
+        NCache::config($this->config)
+                ->use($this->profile);
     }
 
-    private function cache(
-        string $key,
-    ): NCache {
-        $this->validateKey(
-            $key,
-        );
+    private function cache(string $key): NCache
+    {
+        $this->validateKey($key);
 
         $this->activate();
 
-        return NCache::key(
-            $key,
-            $this->type,
-        );
+        return NCache::key($key, $this->type);
     }
 
     /**
@@ -70,10 +63,11 @@ final class SimpleCache implements CacheInterface
      */
     public function set(string $key, mixed $value, null|int|DateInterval $ttl = null): bool
     {
-        $values = $this->assertItemData($value);
+        $value = $this->assertItemData($value);
+
         $cache = $this
             ->cache($key)
-            ->set($values);
+            ->set($value);
 
         if ($ttl !== null) {
             $seconds = $this->ttlToSeconds($ttl);
@@ -86,6 +80,7 @@ final class SimpleCache implements CacheInterface
         }
 
         return $cache->put();
+
     }
 
     public function delete(string $key): bool
@@ -178,36 +173,27 @@ final class SimpleCache implements CacheInterface
             - $now->getTimestamp();
     }
 
-    private function validateKey(string $key): void
-    {
-        if ($key === '') {
-            throw new InvalidCacheArgumentException(
-                'Cache key cannot be empty.',
-            );
-        }
-
-        if (preg_match('/[{}()\/\\\\@:]/', $key) === 1) {
-            throw new InvalidCacheArgumentException(
-                "Invalid PSR-16 cache key: {$key}",
-            );
-        }
-    }
-
     /**
+     * @param mixed $values
+     * @throws InvalidCacheArgumentException
      * @return ItemData
      */
     private function assertItemData(mixed $values): mixed
     {
-        if (!\is_array($values) &&
-                !\is_string($values) &&
-                !\is_int($values) &&
-                !\is_bool($values) &&
-                !\is_float($values) &&
-                $values !== null) {
+        if (
+            !\is_array($values) &&
+            !\is_string($values) &&
+            !\is_int($values) &&
+            !\is_float($values) &&
+            !\is_bool($values) &&
+            !\is_callable($values) &&
+            $values !== null
+        ) {
             throw new InvalidCacheArgumentException(
-                'Unsupported cache value type.',
+                'Unsupported value type ' .\gettype($values),
             );
         }
+
         return $values;
     }
 }

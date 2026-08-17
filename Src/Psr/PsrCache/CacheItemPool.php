@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NCache\Psr\PsrCache;
 
+use NCache\Core\Normalize;
 use NCache\Enum\CType;
 use NCache\NCache;
 use NCache\Psr\PsrCache\Exceptions\InvalidCacheArgumentException;
@@ -11,10 +12,11 @@ use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 
 /**
- * @phpstan-type ItemData array<array-key,mixed>|string|int|bool|float|null
+ * @phpstan-type ItemData array<array-key,mixed>|string|int|bool|float|null|callable
  */
 final class CacheItemPool implements CacheItemPoolInterface
 {
+    use Normalize;
     /**
      * @var array<string, CacheItemInterface>
      */
@@ -22,7 +24,7 @@ final class CacheItemPool implements CacheItemPoolInterface
 
     public function __construct(
         private readonly string $config,
-        private readonly string $profile = 'default',
+        private readonly string $profile = '',
         private readonly ?CType $type = null,
     ) {
     }
@@ -153,36 +155,28 @@ final class CacheItemPool implements CacheItemPoolInterface
         return true;
     }
 
-    private function validateKey(string $key): void
-    {
-        if ($key === '') {
-            throw new InvalidCacheArgumentException(
-                'Cache key cannot be empty.',
-            );
-        }
-
-        if (preg_match('/[{}()\/\\\\@:]/', $key) === 1) {
-            throw new InvalidCacheArgumentException(
-                "Invalid PSR-6 cache key: {$key}",
-            );
-        }
-    }
-
     /**
-     * @return ItemData
-     */
+    * @param mixed $values
+    * @throws InvalidCacheArgumentException
+    * @return ItemData
+    */
     private function assertItemData(mixed $values): mixed
     {
-        if (!\is_array($values) &&
-                !\is_string($values) &&
-                !\is_int($values) &&
-                !\is_bool($values) &&
-                !\is_float($values) &&
-                $values !== null) {
+        if (
+            !\is_array($values) &&
+            !\is_string($values) &&
+            !\is_int($values) &&
+            !\is_float($values) &&
+            !\is_bool($values) &&
+            !\is_callable($values) &&
+            $values !== null
+        ) {
             throw new InvalidCacheArgumentException(
-                'Unsupported cache value type.',
+                'Unsupported value type ' .\gettype($values),
             );
         }
+
         return $values;
     }
+
 }

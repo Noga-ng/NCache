@@ -12,7 +12,7 @@ use NCache\Core\TtlManager\Expiration;
 use NCache\Enum\CType;
 
 /**
- * @phpstan-type ItemData array<array-key,mixed>|string|int|bool|float|null
+ * @phpstan-type ItemData array<array-key,mixed>|string|int|bool|float|null|object
  */
 final class CacheItem
 {

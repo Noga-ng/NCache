@@ -9,6 +9,7 @@ use NCache\Contract\CacheInterface;
 use NCache\Contract\Clock;
 use NCache\Core\CacheItem\CacheItem;
 use NCache\Core\Clock\SystemClock;
+use NCache\Core\Normalize;
 use NCache\Core\Signature\Signature;
 use NCache\Core\TtlManager\TtlManager;
 use NCache\Driver\CacheDriver;
@@ -22,15 +23,19 @@ use Throwable;
 
 /**
  * @phpstan-type ItemData array<array-key,mixed>|string|int|bool|float|null
+ *
+ * @phpstan-type ItemCallaBack ItemData|callable
  */
 final class NCache implements CacheInterface
 {
+    use Normalize;
+
     private CacheItem $cacheItem;
     private Clock $clock;
 
     private function __construct(string $key, ?CType $type = null)
     {
-        self::obligatorKey($key);
+        $this->obligatorKey($key);
 
         $config = self::config();
         $state = $config->state();
@@ -70,16 +75,37 @@ final class NCache implements CacheInterface
     }
 
     /**
-     * Définit la valeur représentant l'état de la ressource.
-     * Cette valeur est transformée en une signature interne
-     * afin de détecter les changements.
-     * @param ItemData $signature
+     * @param ItemCallaBack $signature
      * @return static
      */
     public function signature(mixed $signature): static
     {
+        if (is_callable($signature)) {
+            $signature = $this->itemCallback($signature);
+        }
+
+        $signature = $this->assertItemData($signature);
+
         $this->cacheItem->setSignature($signature);
         return $this;
+    }
+
+    /**
+     * @param ItemCallaBack $signature
+     * @return bool
+     */
+    public function hasValidSignature(mixed $signature): bool
+    {
+        if (is_callable($signature)) {
+            $signature = $this->itemCallback($signature);
+        }
+
+        $signature = $this->assertItemData($signature);
+
+        return (new Signature(
+            $signature,
+            $this->registry(),
+        ))->validate();
     }
 
     /**
@@ -111,22 +137,35 @@ final class NCache implements CacheInterface
     }
 
     /**
-     * @param ItemData $data
+     * @param ItemCallaBack $data
      * @return static
      */
     public function set(mixed $data): static
     {
+        if (is_callable($data)) {
+            $data = $this->itemCallback($data);
+        }
+
+        $data = $this->assertItemData($data);
+
         $this->cacheItem->setData($data);
+
         return $this;
     }
 
     /**
-     * @param ItemData $data
+     * @param ItemCallaBack $values
      * @return static
      */
-    public function append(mixed $data): static
+    public function append(mixed $values): static
     {
-        $this->cacheItem->appendData($data);
+        if (is_callable($values)) {
+            $values = $this->itemCallback($values);
+        }
+
+        $values = $this->assertItemData($values);
+
+        $this->cacheItem->appendData($values);
         return $this;
     }
 
@@ -254,6 +293,12 @@ final class NCache implements CacheInterface
         return $register !== null ? $register['tags'] : null;
     }
 
+    public static function getProfileActive(): string
+    {
+        $instance = new self('__profile__');
+        return $instance->cacheItem->profile();
+    }
+
     /**
      * @return array<string,mixed>
      */
@@ -335,18 +380,6 @@ final class NCache implements CacheInterface
     }
 
     /**
-     * @param ItemData $data
-     * @return bool
-     */
-    public function hasValidSignature(mixed $data): bool
-    {
-        return (new Signature(
-            $data,
-            $this->registry(),
-        ))->validate();
-    }
-
-    /**
      * load a file configuration
      * @param string $filename
      * @return CacheConfig
@@ -383,16 +416,26 @@ final class NCache implements CacheInterface
     }
 
     /**
-     * @param null|string $key
+     * @param mixed $values
      * @throws InvalidCacheArgumentException
-     * @return void
+     * @return ItemData|object
      */
-    private static function obligatorKey(?string $key = null): void
+    private function assertItemData(mixed $values): mixed
     {
-        if ($key === null || trim($key) === '') {
+        if (
+            !\is_array($values) &&
+            !\is_string($values) &&
+            !\is_int($values) &&
+            !\is_float($values) &&
+            !\is_bool($values) &&
+            !\is_object($values) &&
+            $values !== null
+        ) {
             throw new InvalidCacheArgumentException(
-                'Key cannot be empty',
+                'Unsupported value type ' . gettype($values),
             );
         }
+
+        return $values;
     }
 }

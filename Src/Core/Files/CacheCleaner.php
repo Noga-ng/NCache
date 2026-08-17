@@ -20,6 +20,7 @@ final class CacheCleaner
     {
         /** @var string */
         $ext = \pathinfo($filename, \PATHINFO_EXTENSION);
+
         if (!is_file($filename)) {
             return true;
         }
@@ -37,23 +38,22 @@ final class CacheCleaner
         $files = new CacheDirectory([$dir]);
 
         foreach ($files->iterate() as $file) {
+
             if ($file->isLink()) {
                 continue;
             }
 
             if (
-                $file->isFile()
-                && $this->isExtensionAllowed(
-                    $file->getExtension(),
-                )
+                $file->isFile() &&
+                $this->isExtensionAllowed($file->getExtension())
             ) {
-                $this->isUnlink(
-                    $file->getPathname(),
-                );
+                $this->isUnlink($file->getPathname());
 
                 $count++;
             }
         }
+
+        rmdir($dir);
 
         return $count;
     }
@@ -65,8 +65,10 @@ final class CacheCleaner
                 "cannot delete this file {$filename}",
             );
         }
+
         return true;
     }
+
 
     public function isExtensionAllowed(string $extension): bool
     {

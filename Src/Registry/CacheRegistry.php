@@ -610,6 +610,7 @@ final class CacheRegistry implements CacheRegistryInterface
             }
 
             return $transaction['result'];
+
         } finally {
             if ($locked) {
                 flock(

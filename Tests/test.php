@@ -1,28 +1,28 @@
 <?php
 
-declare(strict_types=1);
-
-use NCache\Psr\PsrCache\CacheItemPool;
+use NCache\Core\Files\CacheDirectory;
+use NCache\Enum\CType;
+use NCache\NCache;
 
 require __DIR__.'/../vendor/autoload.php';
 
+NCache::config(__DIR__.'/../ncache.config.json')->use('admin');
 
-$file = __DIR__.'/../ncache.config.json';
+// $n = new CacheDirectory([__DIR__]);
+// $count = 0;
+// foreach($n->iterate() as $file){
+//         if($file instanceof SplFileInfo){
+//                 if($file->isFile()){
+//                         print $file->getPathname()."\n";
+//                         $count++;
+//                 }
 
-$pool = new CacheItemPool(
-    $file,
-    'admin',
-);
+//         }
+// }
 
-$users = ['name' => 'noga','tel' => '0340488021'];
+// print $count;
 
-$item = $pool->getItem('users');
-if (!$item->isHit()) {
-    $item->set($users);
-    $item->expiresAfter(3600);
-    $pool->save($item);
-}
+$s = NCache::clear(CType::ARRAY_PHP, 'default');
 
-$s = $users = $item->get();
 
-print_r($s);
+print $s;

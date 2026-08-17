@@ -2,20 +2,21 @@
 
 declare(strict_types=1);
 
-use NCache\Psr\SimpleCache\SimpleCache;
+use NCache\Enum\CType;
+use NCache\NCache;
 
 require __DIR__.'/../vendor/autoload.php';
 
 $file = __DIR__.'/../ncache.config.json';
 
+NCache::config($file)->use('admin');
 
-$s = new SimpleCache(
-    $file,
-    'admin',
-);
+$n = NCache::key('noga', CType::JSON);
 
-$s->set('noga', ['noga','germainio']);
+$n->set(fn () => ['noga','germainio']);
 
-$s = $s->get('noga', ['n']);
+$n->put();
+
+$s = $n->get();
 
 print_r($s);

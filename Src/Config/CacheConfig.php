@@ -461,7 +461,7 @@ final class CacheConfig implements ConfigInterface
             trim($cachePath) === ''
         ) {
             throw new UnexpectedConfigException(
-                "Profile {$profile} requires a valid cachePath.",
+                "Profile {$profile} requires a valid cachePath ",
             );
         }
 
@@ -484,7 +484,7 @@ final class CacheConfig implements ConfigInterface
             $defaultDriver !== null &&
             !\in_array(
                 $defaultDriver,
-                ['SERIALIZE', 'JSON', 'STRING', 'REDIS', 'MEMCACHED', 'SQLite'],
+                ['SERIALIZE', 'JSON', 'STRING','ARRAY_PHP', 'REDIS', 'MEMCACHED', 'SQLite'],
                 true,
             )
         ) {

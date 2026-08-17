@@ -1,8 +1,8 @@
 {
-  "shared": {
-    "cachePath": "./cache/shared",
-    "defaultDriver": "SERIALIZE",
-    "namespace": "default",
+  "admin": {
+    "cachePath": "./cache",
+    "defaultDriver": "ARRAY_PHP",
+    "namespace": "admin",
     "extensions": {
       "SERIALIZE": "nc",
       "STRING": "txt"
@@ -23,37 +23,10 @@
       }
     }
   },
-
-  "admin": {
-    "cachePath": "./cache",
-    "defaultDriver": "SERIALIZE",
-    "namespace": "admin",
-    "defaultTags":["users.noga"],
-    "extensions": {
-      "SERIALIZE": "nc",
-      "STRING": "txt"
-    },
-    "defaultTtl": "minutes(15)",
-    "driversFrom": "shared"
-  },
-
-  "users": {
-    "cachePath": "./storage/users",
-    "defaultDriver": "JSON",
-    "namespace": "users",
-    "extensions": {},
-    "defaultTtl": "hours(1)",
-    "driversFrom": "shared"
-  },
-
-  "client": {
-    "cachePath": "./clients",
-    "defaultDriver": "JSON",
-    "namespace": "client",
-    "extensions": {
-      "JSON": "json"
-    },
-    "defaultTtl": "make(1,10,15,25)",
-    "driversFrom": "shared"
+  "users":{
+    "cachePath":"./cache",
+    "defaultDriver":"ARRAY_PHP",
+    "defaultTtl":"days(2)",
+    "namespace":"users"
   }
 }

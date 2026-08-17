@@ -21,7 +21,7 @@ use NCache\Registry\CacheRegistry;
  *     expiresAt: int|null
  * }
  *
- * @phpstan-type ImprintValue array<array-key,mixed>|string|int|bool|float|null
+ * @phpstan-type ImprintValue array<array-key,mixed>|string|int|bool|float|null|object
  */
 final class Signature implements SignatureInterface
 {
