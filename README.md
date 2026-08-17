@@ -5,7 +5,7 @@
 ![PHPStan](https://img.shields.io/badge/PHPStan-level%209-blue)
 ![PHPUnit](https://img.shields.io/badge/tested%20with-PHPUnit-blue)
 ![PHP-CS-Fixer](https://img.shields.io/badge/code%20style-PHP--CS--Fixer-blue)
-![Version](https://img.shields.io/badge/version-1.1.0-blue)
+![Version](https://img.shields.io/badge/version-1.0.0-blue)
 
 A lightweight, multi-driver caching library for PHP 8.1+.
 
@@ -945,11 +945,6 @@ NCache::clear(
 | SQLite | `CType::SQLite` |
 | Redis | `CType::REDIS` |
 | Memcached | `CType::MEMCACHED` |
-
-## What's New in v1.1.0
-
-NCache 1.1 expands interoperability, cache invalidation, and native API
-ergonomics while keeping the existing multi-driver architecture.
 
 ### PSR
 
