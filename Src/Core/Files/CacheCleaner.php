@@ -53,7 +53,7 @@ final class CacheCleaner
             }
         }
 
-        rmdir($dir);
+        @rmdir($dir);
 
         return $count;
     }

@@ -193,9 +193,7 @@ final class CacheDirectoryTest extends TestsUnit
                 $nestedDirectory,
             ),
             $this->extractPaths(
-                array_values(
-                    $directories,
-                ),
+                $directories,
             ),
         );
     }
@@ -272,11 +270,13 @@ final class CacheDirectoryTest extends TestsUnit
             "cannot find a directory on {$missingDirectory}",
         );
 
-        $this
-            ->cacheDirectory(
-                $missingDirectory,
-            )
-            ->iterate();
+        iterator_to_array(
+            $this
+                ->cacheDirectory(
+                    $missingDirectory,
+                )
+                ->iterate(),
+        );
     }
 
     public function testRepeatedIterationDoesNotDuplicateResults(): void
@@ -312,36 +312,44 @@ final class CacheDirectoryTest extends TestsUnit
     }
 
     /**
-     * @param list<SplFileInfo> $files
+     * @param iterable<SplFileInfo> $files
+     *
      * @return list<SplFileInfo>
      */
     private function withoutConfigFile(
-        array $files,
+        iterable $files,
     ): array {
-        return array_values(
-            array_filter(
-                $files,
-                static fn (SplFileInfo $file): bool
-                    => $file->getFilename()
-                        !== 'ncache.config.json',
-            ),
-        );
+        $results = [];
+
+        foreach ($files as $file) {
+            if (
+                $file->getFilename()
+                === 'ncache.config.json'
+            ) {
+                continue;
+            }
+
+            $results[] = $file;
+        }
+
+        return $results;
     }
 
     /**
-     * @param list<SplFileInfo> $files
+     * @param iterable<SplFileInfo> $files
+     *
      * @return list<string>
      */
     private function extractPaths(
-        array $files,
+        iterable $files,
     ): array {
-        $paths = array_map(
-            fn (SplFileInfo $file): string
-                => $this->normalizePath(
-                    $file->getPathname(),
-                ),
-            $files,
-        );
+        $paths = [];
+
+        foreach ($files as $file) {
+            $paths[] = $this->normalizePath(
+                $file->getPathname(),
+            );
+        }
 
         sort(
             $paths,
@@ -354,6 +362,7 @@ final class CacheDirectoryTest extends TestsUnit
 
     /**
      * @param list<string> $paths
+     *
      * @return list<string>
      */
     private function sortPaths(

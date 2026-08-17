@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace NCache\Psr\PsrCache;
 
-use NCache\Core\Normalize;
 use NCache\Enum\CType;
 use NCache\NCache;
 use NCache\Psr\PsrCache\Exceptions\InvalidCacheArgumentException;
@@ -16,7 +15,6 @@ use Psr\Cache\CacheItemPoolInterface;
  */
 final class CacheItemPool implements CacheItemPoolInterface
 {
-    use Normalize;
     /**
      * @var array<string, CacheItemInterface>
      */
@@ -42,6 +40,7 @@ final class CacheItemPool implements CacheItemPoolInterface
     {
         $this->activate();
         $this->validateKey($key);
+
         return NCache::key($key, $this->type);
     }
 
@@ -130,7 +129,7 @@ final class CacheItemPool implements CacheItemPoolInterface
     {
         $this->activate();
 
-        NCache::clear(type:$this->type);
+        NCache::clear(type: $this->type);
 
         return true;
     }
@@ -156,10 +155,10 @@ final class CacheItemPool implements CacheItemPoolInterface
     }
 
     /**
-    * @param mixed $values
-    * @throws InvalidCacheArgumentException
-    * @return ItemData
-    */
+     * @param mixed $values
+     * @throws InvalidCacheArgumentException
+     * @return ItemData
+     */
     private function assertItemData(mixed $values): mixed
     {
         if (
@@ -172,11 +171,25 @@ final class CacheItemPool implements CacheItemPoolInterface
             $values !== null
         ) {
             throw new InvalidCacheArgumentException(
-                'Unsupported value type ' .\gettype($values),
+                'Unsupported value type ' . \gettype($values),
             );
         }
 
         return $values;
     }
 
+    private function validateKey(string $key): void
+    {
+        if ($key === '') {
+            throw new InvalidCacheArgumentException(
+                'Cache key cannot be empty.',
+            );
+        }
+
+        if (preg_match('/[{}()\/\\\\@:]/', $key) === 1) {
+            throw new InvalidCacheArgumentException(
+                "Invalid PSR-6 cache key: {$key}",
+            );
+        }
+    }
 }

@@ -10,7 +10,6 @@ use NCache\Exceptions\InvalidCacheArgumentException;
 /**
  * @phpstan-type ItemData array<array-key,mixed>|string|int|bool|float|null
  * @phpstan-type ItemCallBack ItemData|callable
- *
  */
 trait Normalize
 {
@@ -40,7 +39,7 @@ trait Normalize
     private function itemCallback(callable $callBack): mixed
     {
         $call = $callBack;
-        return match(true) {
+        return match (true) {
             ($call() instanceof Closure) => ($call())(),
             \is_object($call()) => \serialize($call()),
             default => $call()
@@ -61,5 +60,4 @@ trait Normalize
             );
         }
     }
-
 }
