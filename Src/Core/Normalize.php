@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NCache\Core;
 
+use Closure;
 use NCache\Exceptions\InvalidCacheArgumentException;
 
 /**
@@ -39,6 +40,7 @@ trait Normalize
     {
         $call = $callBack();
         return match (true) {
+            ($call instanceof Closure) => ($call()),
             \is_object($call) => \serialize($call),
             default => $call
         };
