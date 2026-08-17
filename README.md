@@ -1,5 +1,7 @@
 # NCache
 
+[![CI](https://github.com/Noga-ng/NCache/actions/workflows/ci.yml/badge.svg)](https://github.com/Noga-ng/NCache/actions/workflows/ci.yml)
+
 A lightweight, multi-driver caching library for PHP 8.1+.
 
 NCache provides a unified API for file-based, SQLite, Redis, and Memcached caches while keeping profiles, TTL, namespaces, signatures, metadata, and cache clearing consistent across drivers.

@@ -13,7 +13,8 @@ NCache::config($file)->use('admin');
 
 $n = NCache::key('noga', CType::JSON);
 
-$n->set(fn () => ['noga','germainio']);
+
+$n->set(fn()=>"ng");
 
 $n->put();
 

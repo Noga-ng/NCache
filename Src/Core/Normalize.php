@@ -38,11 +38,10 @@ trait Normalize
      */
     private function itemCallback(callable $callBack): mixed
     {
-        $call = $callBack;
+        $call = $callBack();
         return match (true) {
-            ($call() instanceof Closure) => ($call())(),
-            \is_object($call()) => \serialize($call()),
-            default => $call()
+            \is_object($call) => \serialize($call),
+            default => $call
         };
     }
 
@@ -56,7 +55,7 @@ trait Normalize
 
         if (preg_match('/[{}()\/\\\\@:]/', $key) === 1) {
             throw new InvalidCacheArgumentException(
-                "Invalid PSR-16 cache key: {$key}",
+                "Invalid cache key: {$key}",
             );
         }
     }
