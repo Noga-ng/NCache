@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace NCache\Core;
 
-use Closure;
 use NCache\Exceptions\InvalidCacheArgumentException;
 
 /**

@@ -14,7 +14,7 @@ NCache::config($file)->use('admin');
 $n = NCache::key('noga', CType::JSON);
 
 
-$n->set(fn()=>"ng");
+$n->set(fn () => 'ng');
 
 $n->put();
 
